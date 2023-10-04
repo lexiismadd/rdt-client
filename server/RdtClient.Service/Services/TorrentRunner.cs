@@ -331,7 +331,6 @@ public class TorrentRunner
                 if (_aggregatedDownloadResults.Count > 0)
                 {
                     await _downloads.UpdateRemoteIdRange(_aggregatedDownloadResults);
-
                 }
 
                 // Check if there are any unpacks that are queued and can be started.
@@ -657,8 +656,7 @@ public class TorrentRunner
 
     private async Task StartDownload(Download download, Torrent torrent, DownloadClient downloadClient)
     {
-        if (ActiveDownloadClients.TryAdd(download.DownloadId, downloadClient) ||
-            (downloadClient.Type == Data.Enums.DownloadClient.Symlink && download.RetryCount > 0))
+        if (ActiveDownloadClients.TryAdd(download.DownloadId, downloadClient))
         {
             Log($"Starting download", download, torrent);
 
@@ -671,13 +669,9 @@ public class TorrentRunner
             }
             else
             {
-                Log($"No ID received", download, torrent);
-                // Lets us redo the download next cycle
-                if (downloadClient.Type == Data.Enums.DownloadClient.Symlink)
-                {
-                    Log($"Marking download as ended, so we can retry", download, torrent);
-                    download.DownloadStarted = null;
-                }
+                download.Error = "No ID recieved";
+                await _downloads.UpdateError(download.DownloadId, download.Error);
+                Log(download.Error, download, torrent);
             }
         }
     }

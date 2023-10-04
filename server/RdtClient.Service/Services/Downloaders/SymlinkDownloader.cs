@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using Microsoft.AspNetCore.Routing.Constraints;
+using RdtClient.Data.Models.Data;
 using Serilog;
 
 namespace RdtClient.Service.Services.Downloaders;
@@ -8,26 +10,40 @@ public class SymlinkDownloader : IDownloader
     public event EventHandler<DownloadCompleteEventArgs>? DownloadComplete;
     public event EventHandler<DownloadProgressEventArgs>? DownloadProgress;
 
-    private readonly String _filePath;
-    private readonly String _uri;
+    private readonly Download _download;
+    private readonly string _filePath;
     
     private readonly CancellationTokenSource _cancellationToken = new();
     
     private readonly ILogger _logger;
     
-    public SymlinkDownloader(String uri, String filePath)
+    public SymlinkDownloader(Download download, string filePath)
     {
         _logger = Log.ForContext<SymlinkDownloader>();
-
-        _uri = uri;
+        _download = download;
         _filePath = filePath;
     }
 
-    public Task<string?> Download()
+    public async Task<string?> Download()
     {
-        _logger.Debug($"Starting download of {_uri}, writing to path: {_filePath}");
+        var filePath = _filePath;
+        _logger.Debug($"Starting download of {_download.RemoteId}, writing to path: {filePath}");
 
-        var fileName = Path.GetFileName(_filePath);
+        var fileName = Path.GetFileName(filePath);
+        var fileExtension = Path.GetExtension(filePath);
+
+        List<string> unWantedExtensions = new List<string>{
+            "zip", "rar", "tar" 
+        };
+
+        if (unWantedExtensions.Any(unwanted => "." + fileExtension == unwanted))
+        {
+            DownloadComplete?.Invoke(this, new DownloadCompleteEventArgs
+            {
+                Error = $"Cant handle compressed files with symlink downloader"
+            });
+            return null;
+        }
 
         DownloadProgress?.Invoke(this, new DownloadProgressEventArgs
         {
@@ -39,36 +55,32 @@ public class SymlinkDownloader : IDownloader
 
         _logger.Debug($"Searching {Settings.Get.DownloadClient.RcloneMountPath} for {fileName}");
 
-        // Recursively search for the fileName in the rclone mount location.
-        var foundFiles = Directory.GetFiles(Settings.Get.DownloadClient.RcloneMountPath, fileName, SearchOption.AllDirectories);
-
-        if (foundFiles.Any())
+        string[] foundFiles = Array.Empty<string>();
+        var tries = 0;
+        while (foundFiles.Length == 0 && tries <= Settings.Get.Integrations.Default.DownloadRetryAttempts)
         {
-            if (foundFiles.Length > 1)
-            {
-                _logger.Warning($"Found {foundFiles.Length} files named {fileName}");
-            }
-
-            // Assume first matching filename is the one we want.
-            var actualFilePath = foundFiles.First();
-
-            var result = TryCreateSymbolicLink(actualFilePath, _filePath);
-
-            if (result)
-            {
-                DownloadComplete?.Invoke(this, new DownloadCompleteEventArgs());
-
-                return Task.FromResult<string?>(actualFilePath);
-            }
+            foundFiles = TryGetFiles(fileName);
+            await Task.Delay(500);
+            tries++;
         }
 
-        // Return null and try again next cycle.
-        return Task.FromResult<string?>(null);
+        var actualFilePath = foundFiles.First();
+
+        var result = TryCreateSymbolicLink(actualFilePath, filePath);
+
+        if (result)
+        {
+            DownloadComplete?.Invoke(this, new DownloadCompleteEventArgs());
+
+            return actualFilePath;
+        }
+
+        return null;
     }
 
     public Task Cancel()
     {
-        _logger.Debug($"Cancelling download {_uri}");
+        _logger.Debug($"Cancelling download {_download.RemoteId}");
 
         _cancellationToken.Cancel(false);
 
@@ -106,5 +118,10 @@ public class SymlinkDownloader : IDownloader
             _logger.Error($"Error creating symbolic link from {sourcePath} to {symlinkPath}: {ex.Message}");
             return false;
         }
+    }
+
+    private static string[] TryGetFiles(string Name)
+    {
+        return Directory.GetFiles(Settings.Get.DownloadClient.RcloneMountPath, Name, SearchOption.AllDirectories);
     }
 }
