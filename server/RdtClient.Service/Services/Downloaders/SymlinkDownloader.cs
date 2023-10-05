@@ -55,27 +55,30 @@ public class SymlinkDownloader : IDownloader
 
         _logger.Debug($"Searching {Settings.Get.DownloadClient.RcloneMountPath} for {fileName}");
 
-        string[] foundFiles = Array.Empty<string>();
+        FileInfo? file = null;
         var tries = 0;
-        while (foundFiles.Length == 0 && tries <= Settings.Get.Integrations.Default.DownloadRetryAttempts)
+        while (file == null && tries <= Settings.Get.Integrations.Default.DownloadRetryAttempts)
         {
-            foundFiles = TryGetFiles(fileName);
-            await Task.Delay(500);
+            file = TryGetFile(fileName);
+            await Task.Delay(1000);
             tries++;
         }
 
-        var actualFilePath = foundFiles.First();
-
-        var result = TryCreateSymbolicLink(actualFilePath, filePath);
-
-        if (result)
+        if (file != null)
         {
-            DownloadComplete?.Invoke(this, new DownloadCompleteEventArgs());
 
-            return actualFilePath;
+            var result = TryCreateSymbolicLink(file.FullName, filePath);
+
+            if (result)
+            {
+                DownloadComplete?.Invoke(this, new DownloadCompleteEventArgs());
+
+                return file.FullName;
+            }
         }
 
         return null;
+
     }
 
     public Task Cancel()
@@ -120,8 +123,16 @@ public class SymlinkDownloader : IDownloader
         }
     }
 
-    private static string[] TryGetFiles(string Name)
+    private static FileInfo? TryGetFile(string Name)
     {
-        return Directory.GetFiles(Settings.Get.DownloadClient.RcloneMountPath, Name, SearchOption.AllDirectories);
+        var dirInfo = new DirectoryInfo(Settings.Get.DownloadClient.RcloneMountPath);
+        foreach (var dir in dirInfo.GetDirectories())
+        {
+            var files = dir.EnumerateFiles();
+            var file = files.FirstOrDefault(f => f.Name == Name);
+            if (file != null) { return file; }
+        }
+        return dirInfo.EnumerateFiles().FirstOrDefault(f => f.Name == Name);
+        //return Directory.GetFiles(Settings.Get.DownloadClient.RcloneMountPath, Name, SearchOption.AllDirectories);
     }
 }
