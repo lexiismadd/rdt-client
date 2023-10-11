@@ -122,16 +122,34 @@ public class SymlinkDownloader : IDownloader
         }
     }
 
-    private static FileInfo? TryGetFile(string Name)
-    {
-        var dirInfo = new DirectoryInfo(Settings.Get.DownloadClient.RcloneMountPath);
-        foreach (var dir in dirInfo.GetDirectories())
+        // this creates symlinks fast, about 5seconds from unrestricting link
+        private static FileInfo? TryGetFile(string Name)
+        {
+            var dirInfo = new DirectoryInfo(Settings.Get.DownloadClient.RcloneMountPath);
+
+        // Get the subdirectories sorted by creation date in descending order
+            var sortedDirectories = dirInfo.GetDirectories()
+                .OrderByDescending(d => d.CreationTime)
+                .ToList();
+
+        foreach (var dir in sortedDirectories)
         {
             var files = dir.EnumerateFiles();
             var file = files.FirstOrDefault(f => f.Name == Name);
             if (file != null) { return file; }
         }
         return dirInfo.EnumerateFiles().FirstOrDefault(f => f.Name == Name);
-        //return Directory.GetFiles(Settings.Get.DownloadClient.RcloneMountPath, Name, SearchOption.AllDirectories);
-    }
+
+    // private static FileInfo? TryGetFile(string Name)
+    // {
+    //     var dirInfo = new DirectoryInfo(Settings.Get.DownloadClient.RcloneMountPath);
+    //     foreach (var dir in dirInfo.GetDirectories())
+    //     {
+    //         var files = dir.EnumerateFiles();
+    //         var file = files.FirstOrDefault(f => f.Name == Name);
+    //         if (file != null) { return file; }
+    //     }
+    //     return dirInfo.EnumerateFiles().FirstOrDefault(f => f.Name == Name);
+    //     //return Directory.GetFiles(Settings.Get.DownloadClient.RcloneMountPath, Name, SearchOption.AllDirectories);
+    // }
 }
