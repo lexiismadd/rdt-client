@@ -121,17 +121,21 @@ public class SymlinkDownloader : IDownloader
             return false;
         }
     }
-
-    private static FileInfo? TryGetFile(string Name)
-    {
-        var dirInfo = new DirectoryInfo(Settings.Get.DownloadClient.RcloneMountPath);
-        foreach (var dir in dirInfo.GetDirectories())
+        private static FileInfo? TryGetFile(string Name)
         {
-            var files = dir.EnumerateFiles();
-            var file = files.FirstOrDefault(f => f.Name == Name);
-            if (file != null) { return file; }
+                var dirInfo = new DirectoryInfo(Settings.Get.DownloadClient.RcloneMountPath);
+
+            // Get the subdirectories sorted by creation date in descending order
+                var sortedDirectories = dirInfo.GetDirectories()
+                    .OrderByDescending(d => d.CreationTime)
+                    .ToList();
+
+            foreach (var dir in sortedDirectories)
+            {
+                var files = dir.EnumerateFiles();
+                var file = files.FirstOrDefault(f => f.Name == Name);
+                if (file != null) { return file; }
+            }
+            return dirInfo.EnumerateFiles().FirstOrDefault(f => f.Name == Name);
         }
-        return dirInfo.EnumerateFiles().FirstOrDefault(f => f.Name == Name);
-        //return Directory.GetFiles(Settings.Get.DownloadClient.RcloneMountPath, Name, SearchOption.AllDirectories);
-    }
 }
