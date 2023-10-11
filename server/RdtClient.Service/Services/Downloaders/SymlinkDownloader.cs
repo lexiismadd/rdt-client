@@ -121,8 +121,6 @@ public class SymlinkDownloader : IDownloader
             return false;
         }
     }
-
-        // this creates symlinks fast, about 5seconds from unrestricting link
         private static FileInfo? TryGetFile(string Name)
         {
                 var dirInfo = new DirectoryInfo(Settings.Get.DownloadClient.RcloneMountPath);
@@ -140,17 +138,4 @@ public class SymlinkDownloader : IDownloader
             }
             return dirInfo.EnumerateFiles().FirstOrDefault(f => f.Name == Name);
         }
-
-    // private static FileInfo? TryGetFile(string Name)
-    // {
-    //     var dirInfo = new DirectoryInfo(Settings.Get.DownloadClient.RcloneMountPath);
-    //     foreach (var dir in dirInfo.GetDirectories())
-    //     {
-    //         var files = dir.EnumerateFiles();
-    //         var file = files.FirstOrDefault(f => f.Name == Name);
-    //         if (file != null) { return file; }
-    //     }
-    //     return dirInfo.EnumerateFiles().FirstOrDefault(f => f.Name == Name);
-    //     //return Directory.GetFiles(Settings.Get.DownloadClient.RcloneMountPath, Name, SearchOption.AllDirectories);
-    // }
 }
