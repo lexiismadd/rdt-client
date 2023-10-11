@@ -26,13 +26,16 @@ public class SymlinkDownloader : IDownloader
 
     public async Task<string?> Download()
     {
+        _logger.Debug($"Starting download of {_download.RemoteId}...");
         var filePath = _filePath;
-        _logger.Debug($"Starting download of {_download.RemoteId}, writing to path: {filePath}");
-
+        _logger.Debug($"Writing to path: ${filePath}");
         var fileName = Path.GetFileName(filePath);
+        _logger.Debug($"{fileName}");
         var fileExtension = Path.GetExtension(filePath);
+        _logger.Debug($"{fileExtension}");
 
-        List<string> unWantedExtensions = new List<string>{
+        List<string> unWantedExtensions = new()
+        {
             "zip", "rar", "tar" 
         };
 
