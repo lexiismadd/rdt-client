@@ -30,9 +30,7 @@ public class SymlinkDownloader : IDownloader
         var filePath = _filePath;
         _logger.Debug($"Writing to path: ${filePath}");
         var fileName = Path.GetFileName(filePath);
-        _logger.Debug($"{fileName}");
         var fileExtension = Path.GetExtension(filePath);
-        _logger.Debug($"{fileExtension}");
 
         List<string> unWantedExtensions = new()
         {
@@ -55,13 +53,11 @@ public class SymlinkDownloader : IDownloader
             Speed = 0
         });
 
-
-        _logger.Debug($"Searching {Settings.Get.DownloadClient.RcloneMountPath} for {fileName}");
-
         FileInfo? file = null;
         var tries = 0;
         while (file == null && tries <= Settings.Get.Integrations.Default.DownloadRetryAttempts)
         {
+            _logger.Debug($"Searching {Settings.Get.DownloadClient.RcloneMountPath} for {fileName} ({tries})...");
             file = TryGetFile(fileName);
             await Task.Delay(1000);
             tries++;
