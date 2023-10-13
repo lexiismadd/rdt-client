@@ -23,6 +23,7 @@ public class TorrentRunner
     private readonly RemoteService _remoteService;
     private readonly HttpClient _httpClient;
     private readonly Dictionary<Guid, string> _aggregatedDownloadResults;
+    private readonly Dictionary<Guid, string> _aggregatedDownloadErrors;
 
     public TorrentRunner(ILogger<TorrentRunner> logger, Torrents torrents, Downloads downloads, RemoteService remoteService)
     {
@@ -31,6 +32,7 @@ public class TorrentRunner
         _downloads = downloads;
         _remoteService = remoteService;
         _aggregatedDownloadResults = new Dictionary<Guid, string>();
+        _aggregatedDownloadErrors = new Dictionary<Guid, string>();
 
         _httpClient = new HttpClient
         {
@@ -324,13 +326,84 @@ public class TorrentRunner
                                              .ToList();
 
                 _aggregatedDownloadResults.Clear();
+                _aggregatedDownloadErrors.Clear();
+
+                var downloadTasks = new List<Task>();
+
                 foreach (var download in queuedDownloads)
                 {
-                    await ProcessDownload(download, torrent, settingDownloadPath, settingDownloadLimit);
+                    if (ActiveDownloadClients.Count >= settingDownloadLimit)
+                    {
+                        Log($"Not starting download because there are already the max number of downloads active", download, torrent);
+
+                        break;
+                    }
+
+                    if (ActiveDownloadClients.ContainsKey(download.DownloadId))
+                    {
+                        Log($"Not starting download because this download is already active", download, torrent);
+
+                        break;
+                    }
+
+                    try
+                    {
+                        if (download.Link == null)
+                        {
+                            Log($"Unrestricting links", download, torrent);
+
+                            var downloadLink = await _torrents.UnrestrictLink(download.DownloadId);
+                            download.Link = downloadLink;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Cannot unrestrict link: {ex.Message}", ex.Message);
+
+                        await _downloads.UpdateError(download.DownloadId, ex.Message);
+                        await _downloads.UpdateCompleted(download.DownloadId, DateTimeOffset.UtcNow);
+                        download.Error = ex.Message;
+                        download.Completed = DateTimeOffset.UtcNow;
+
+                        break;
+                    }
+
+                    Log($"Marking download as started", download, torrent);
+
+                    download.DownloadStarted = DateTime.UtcNow;
+                    await _downloads.UpdateDownloadStarted(download.DownloadId, download.DownloadStarted);
+
+                    var downloadPath = settingDownloadPath;
+
+                    if (!String.IsNullOrWhiteSpace(torrent.Category))
+                    {
+                        downloadPath = Path.Combine(downloadPath, torrent.Category);
+                    }
+
+                    Log($"Setting download path to {downloadPath}", download, torrent);
+
+                    var downloadClient = new DownloadClient(download, torrent, downloadPath);
+
+                    if (downloadClient.Type == Data.Enums.DownloadClient.Symlink)
+                    {
+                    }
+
+                    downloadTasks.Add(StartDownload(download, torrent, downloadClient));
+
+                    // Small delay not to spam the hell out of debrid service api...
+                    await Task.Delay(100);
+
                 }
+
+                await Task.WhenAll(downloadTasks);
+
                 if (_aggregatedDownloadResults.Count > 0)
                 {
                     await _downloads.UpdateRemoteIdRange(_aggregatedDownloadResults);
+                }
+                if(_aggregatedDownloadErrors.Count > 0)
+                {
+                    await _downloads.UpdateErrorInRange(_aggregatedDownloadErrors);
                 }
 
                 // Check if there are any unpacks that are queued and can be started.
@@ -589,71 +662,6 @@ public class TorrentRunner
         _logger.LogError(message);
     }
 
-    private async Task ProcessDownload(Download download, Torrent torrent, string settingDownloadPath, int settingDownloadLimit)
-    {
-        if (ActiveDownloadClients.Count >= settingDownloadLimit)
-        {
-            Log($"Not starting download because there are already the max number of downloads active", download, torrent);
-
-            return;
-        }
-
-        if (ActiveDownloadClients.ContainsKey(download.DownloadId))
-        {
-            Log($"Not starting download because this download is already active", download, torrent);
-
-            return;
-        }
-
-        try
-        {
-            if (download.Link == null)
-            {
-                Log($"Unrestricting links", download, torrent);
-
-                var downloadLink = await _torrents.UnrestrictLink(download.DownloadId);
-                download.Link = downloadLink;
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Cannot unrestrict link: {ex.Message}", ex.Message);
-
-            await _downloads.UpdateError(download.DownloadId, ex.Message);
-            await _downloads.UpdateCompleted(download.DownloadId, DateTimeOffset.UtcNow);
-            download.Error = ex.Message;
-            download.Completed = DateTimeOffset.UtcNow;
-
-            return;
-        }
-
-        Log($"Marking download as started", download, torrent);
-
-        download.DownloadStarted = DateTime.UtcNow;
-        await _downloads.UpdateDownloadStarted(download.DownloadId, download.DownloadStarted);
-
-        var downloadPath = settingDownloadPath;
-
-        if (!String.IsNullOrWhiteSpace(torrent.Category))
-        {
-            downloadPath = Path.Combine(downloadPath, torrent.Category);
-        }
-
-        Log($"Setting download path to {downloadPath}", download, torrent);
-
-        var downloadClient = new DownloadClient(download, torrent, downloadPath);
-
-        if (downloadClient.Type == Data.Enums.DownloadClient.Symlink) // Check if the type is "Symlink"
-        {
-            // If it's Symlink type, start the download concurrently
-            _ = Task.Run(async () => await StartDownload(download, torrent, downloadClient));
-        }
-        else
-        {
-            await StartDownload(download, torrent, downloadClient);
-        }
-    }
-
     private async Task StartDownload(Download download, Torrent torrent, DownloadClient downloadClient)
     {
         if (ActiveDownloadClients.TryAdd(download.DownloadId, downloadClient))
@@ -669,9 +677,8 @@ public class TorrentRunner
             }
             else
             {
-                download.Error = "No ID recieved";
-                await _downloads.UpdateError(download.DownloadId, download.Error);
-                Log(download.Error, download, torrent);
+                Log($"Did not recieve ID {remoteId}", download, torrent);
+                _aggregatedDownloadErrors.Add(download.DownloadId, download.Error);
             }
         }
     }

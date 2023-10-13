@@ -72,6 +72,11 @@ public class Downloads
         await _downloadData.UpdateError(downloadId, error);
     }
 
+    public async Task UpdateErrorInRange(Dictionary<Guid, String> updateDict)
+    {
+        await _downloadData.UpdateErrorInRange(updateDict);
+    }
+
     public async Task UpdateRetryCount(Guid downloadId, Int32 retryCount)
     {
         await _downloadData.UpdateRetryCount(downloadId, retryCount);

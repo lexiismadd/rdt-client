@@ -193,6 +193,22 @@ public class DownloadData
         await TorrentData.VoidCache();
     }
 
+    public async Task UpdateErrorInRange(Dictionary<Guid, string> ErrorIdRange)
+    {
+        foreach (var entry in ErrorIdRange)
+        {
+            var dbDownload = await _dataContext.Downloads.FirstOrDefaultAsync(m => m.DownloadId == entry.Key);
+            if (dbDownload == null)
+            {
+                continue;
+            }
+
+            dbDownload.Error = entry.Value;
+        }
+
+        await _dataContext.SaveChangesAsync();
+    }
+
     public async Task UpdateRetryCount(Guid downloadId, Int32 retryCount)
     {
         var dbDownload = await _dataContext.Downloads

@@ -27,10 +27,12 @@ public class SymlinkDownloader : IDownloader
     public async Task<string?> Download()
     {
         _logger.Debug($"Starting download of {_download.RemoteId}...");
-        var filePath = _filePath;
+        var filePath = new DirectoryInfo(_filePath);
         _logger.Debug($"Writing to path: ${filePath}");
-        var fileName = Path.GetFileName(filePath);
-        var fileExtension = Path.GetExtension(filePath);
+        var fileName = filePath.Name;
+        var fileExtension = filePath.Extension;
+        var fileDirectory = Path.GetFileName(Path.GetDirectoryName(filePath.FullName));
+        string[] folders ={ fileName, fileDirectory };
 
         List<string> unWantedExtensions = new()
         {
@@ -55,10 +57,10 @@ public class SymlinkDownloader : IDownloader
 
         FileInfo? file = null;
         var tries = 0;
-        while (file == null && tries <= Settings.Get.Integrations.Default.DownloadRetryAttempts)
+        while (file == null && tries <= 10)
         {
             _logger.Debug($"Searching {Settings.Get.DownloadClient.RcloneMountPath} for {fileName} ({tries})...");
-            file = TryGetFile(fileName);
+            file = TryGetFileFromFolders(folders, fileName);
             await Task.Delay(1000);
             tries++;
         }
@@ -66,7 +68,7 @@ public class SymlinkDownloader : IDownloader
         if (file != null)
         {
 
-            var result = TryCreateSymbolicLink(file.FullName, filePath);
+            var result = TryCreateSymbolicLink(file.FullName, filePath.FullName);
 
             if (result)
             {
@@ -75,6 +77,11 @@ public class SymlinkDownloader : IDownloader
                 return file.FullName;
             }
         }
+
+        DownloadComplete?.Invoke(this, new DownloadCompleteEventArgs
+        {
+            Error = "Could not find file from rclone mount!"
+        });
 
         return null;
 
@@ -121,21 +128,12 @@ public class SymlinkDownloader : IDownloader
             return false;
         }
     }
-        private static FileInfo? TryGetFile(string Name)
+        private static FileInfo? TryGetFileFromFolders(string[] Folders, string File)
         {
-                var dirInfo = new DirectoryInfo(Settings.Get.DownloadClient.RcloneMountPath);
-
-            // Get the subdirectories sorted by creation date in descending order
-                var sortedDirectories = dirInfo.GetDirectories()
-                    .OrderByDescending(d => d.CreationTime)
-                    .ToList();
-
-            foreach (var dir in sortedDirectories)
-            {
-                var files = dir.EnumerateFiles();
-                var file = files.FirstOrDefault(f => f.Name == Name);
-                if (file != null) { return file; }
-            }
-            return dirInfo.EnumerateFiles().FirstOrDefault(f => f.Name == Name);
+            var dirInfo = new DirectoryInfo(Settings.Get.DownloadClient.RcloneMountPath);
+            return dirInfo.EnumerateDirectories()
+                .FirstOrDefault(dir => Folders.Contains(dir.Name), null)?
+                    .EnumerateFiles()
+                    .FirstOrDefault(x => x.Name == File, null);
         }
 }
