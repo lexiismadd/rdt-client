@@ -12,11 +12,11 @@ public class SymlinkDownloader : IDownloader
 
     private readonly Download _download;
     private readonly string _filePath;
-    
+
     private readonly CancellationTokenSource _cancellationToken = new();
-    
+
     private readonly ILogger _logger;
-    
+
     public SymlinkDownloader(Download download, string filePath)
     {
         _logger = Log.ForContext<SymlinkDownloader>();
@@ -32,11 +32,16 @@ public class SymlinkDownloader : IDownloader
         var fileName = filePath.Name;
         var fileExtension = filePath.Extension;
         var fileDirectory = Path.GetFileName(Path.GetDirectoryName(filePath.FullName));
-        string[] folders ={ fileName, fileDirectory };
+
+        var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(fileName);
+        var fileDirectoryWithoutExtension = Path.GetFileNameWithoutExtension(fileDirectory);
+
+        string[] folders = { fileNameWithoutExtension, fileDirectoryWithoutExtension, fileName, fileDirectory };
+
 
         List<string> unWantedExtensions = new()
         {
-            "zip", "rar", "tar" 
+            "zip", "rar", "tar"
         };
 
         if (unWantedExtensions.Any(unwanted => "." + fileExtension == unwanted))
@@ -128,12 +133,12 @@ public class SymlinkDownloader : IDownloader
             return false;
         }
     }
-        private static FileInfo? TryGetFileFromFolders(string[] Folders, string File)
-        {
-            var dirInfo = new DirectoryInfo(Settings.Get.DownloadClient.RcloneMountPath);
-            return dirInfo.EnumerateDirectories()
-                .FirstOrDefault(dir => Folders.Contains(dir.Name), null)?
-                    .EnumerateFiles()
-                    .FirstOrDefault(x => x.Name == File, null);
-        }
+    private static FileInfo? TryGetFileFromFolders(string[] Folders, string File)
+    {
+        var dirInfo = new DirectoryInfo(Settings.Get.DownloadClient.RcloneMountPath);
+        return dirInfo.EnumerateDirectories()
+            .FirstOrDefault(dir => Folders.Contains(dir.Name), null)?
+                .EnumerateFiles()
+                .FirstOrDefault(x => x.Name == File, null);
+    }
 }
