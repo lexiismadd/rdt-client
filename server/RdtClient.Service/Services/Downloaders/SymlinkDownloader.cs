@@ -77,6 +77,63 @@ public class SymlinkDownloader : IDownloader
 
             if (result)
             {
+                if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
+                {
+                    try
+                    {
+                        var baseSymlinkPath = Path.Combine(Settings.Get.General.CopyAddedTorrents);
+
+                        if (!Directory.Exists(baseSymlinkPath))
+                        {
+                            Directory.CreateDirectory(baseSymlinkPath);
+                        }
+
+                        var finalSymlinkPath = Path.Combine(baseSymlinkPath, fileName);
+
+                        if (!fileName.Equals(fileDirectory, StringComparison.OrdinalIgnoreCase))
+                        {
+
+                            var nestedFolderPath = Path.Combine(baseSymlinkPath, fileDirectory);
+
+                            if (!Directory.Exists(nestedFolderPath))
+                            {
+                                Directory.CreateDirectory(nestedFolderPath);
+                            }
+                            finalSymlinkPath = Path.Combine(nestedFolderPath, fileName);
+                        }
+
+                        // file.FullName au lieu de fileName ? (ou actualPath (ancien fix))
+                        if (TryCreateAdditionalSymbolicLink(fileName, finalSymlinkPath))
+                        {
+                            _logger.Information($"Successfully created both symbolic links for {fileName}");
+                        }
+                        else
+                        {
+                            _logger.Warning($"Only the primary symbolic link was created for {fileName}. Additional symlink failed.");
+                        }
+
+
+                        var sourceFilePath = Path.Combine(Settings.Get.DownloadClient.MappedPath, "tempTorrentsFiles", $"{fileDirectory}.torrent");
+                        var targetFilePath = Path.Combine(Settings.Get.General.CopyAddedTorrents, $"{fileDirectory}.torrent");
+
+                        _logger.Information($"Tentative de déplacement du fichier {fileDirectory}.torrent");
+
+                        if (File.Exists(sourceFilePath))
+                        {
+                            if (File.Exists(targetFilePath))
+                            {
+                                File.Delete(targetFilePath);
+                            }
+                            File.Move(sourceFilePath, targetFilePath);
+                            _logger.Information($"Moved {fileDirectory}.torrent from tempTorrentsFiles to the final directory.");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Error($"An unexpected error occurred while attempting to create additionnal symbolic links or move the torrent file for {fileDirectory}: {ex.Message}. Error details: {ex.StackTrace}");
+                    }
+                }
+
                 DownloadComplete?.Invoke(this, new DownloadCompleteEventArgs());
 
                 return file.FullName;
@@ -130,6 +187,35 @@ public class SymlinkDownloader : IDownloader
         catch (Exception ex)
         {
             _logger.Error($"Error creating symbolic link from {sourcePath} to {symlinkPath}: {ex.Message}");
+            return false;
+        }
+    }
+    private bool TryCreateAdditionalSymbolicLink(string sourcePath, string additionalSymlinkPath)
+    {
+        try
+        {
+            var directoryPath = Path.GetDirectoryName(additionalSymlinkPath);
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+
+            File.CreateSymbolicLink(additionalSymlinkPath, sourcePath);
+
+            if (File.Exists(additionalSymlinkPath))
+            {
+                _logger.Information($"Created additional symbolic link from {sourcePath} to {additionalSymlinkPath}");
+                return true;
+            }
+            else
+            {
+                _logger.Error($"Failed to create additional symbolic link from {sourcePath} to {additionalSymlinkPath}");
+                return false;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"Error creating additional symbolic link from {sourcePath} to {additionalSymlinkPath}: {ex.Message}");
             return false;
         }
     }
