@@ -133,6 +133,36 @@ public class Torrents
 
         Log($"Adding {hash} magnet link {magnetLink}", newTorrent);
 
+        if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
+        {
+            try
+            {
+                if (!Directory.Exists(Settings.Get.General.CopyAddedTorrents))
+                {
+                    Directory.CreateDirectory(Settings.Get.General.CopyAddedTorrents);
+                }
+
+                var processingPath = Path.Combine(Settings.Get.DownloadClient.MappedPath, "tempTorrentsFiles");
+                if (!Directory.Exists(processingPath))
+                {
+                    Directory.CreateDirectory(processingPath);
+                }
+                var copyFileName = Path.Combine(processingPath, $"{FileHelper.RemoveInvalidFileNameChars(magnet.Name)}.magnet");
+
+
+                if (File.Exists(copyFileName))
+                {
+                    File.Delete(copyFileName);
+                }
+
+                await File.WriteAllTextAsync(copyFileName, magnetLink);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Unable to create torrent blackhole directory: {Settings.Get.DownloadClient.MappedPath + "tempTorrentsFiles"}: {ex.Message}");
+            }
+        }
+
         return newTorrent;
     }
 
@@ -158,6 +188,36 @@ public class Torrents
         var newTorrent = await Add(id, hash, fileAsBase64, true, torrent);
 
         Log($"Adding {hash} torrent file {fileAsBase64}", newTorrent);
+
+        if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
+        {
+            try
+            {
+                if (!Directory.Exists(Settings.Get.General.CopyAddedTorrents))
+                {
+                    Directory.CreateDirectory(Settings.Get.General.CopyAddedTorrents);
+                }
+
+                var processingPath = Path.Combine(Settings.Get.DownloadClient.MappedPath, "tempTorrentsFiles");
+                if (!Directory.Exists(processingPath))
+                {
+                    Directory.CreateDirectory(processingPath);
+                }
+                var copyFileName = Path.Combine(processingPath, $"{FileHelper.RemoveInvalidFileNameChars(monoTorrent.Name)}.torrent");
+
+
+                if (File.Exists(copyFileName))
+                {
+                    File.Delete(copyFileName);
+                }
+
+                await File.WriteAllBytesAsync(copyFileName, bytes);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Unable to create torrent blackhole directory: {Settings.Get.DownloadClient.MappedPath + "tempTorrentsFiles"}: {ex.Message}");
+            }
+        }
 
         return newTorrent;
     }
