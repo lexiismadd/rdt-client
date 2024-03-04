@@ -102,8 +102,9 @@ public class SymlinkDownloader : IDownloader
                             finalSymlinkPath = Path.Combine(nestedFolderPath, fileName);
                         }
 
+
                         // file.FullName au lieu de fileName ? (ou actualPath (ancien fix))
-                        if (TryCreateAdditionalSymbolicLink(fileName, finalSymlinkPath))
+                        if (TryCreateAdditionalSymbolicLink(file.FullName, finalSymlinkPath))
                         {
                             _logger.Information($"Successfully created both symbolic links for {fileName}");
                         }
