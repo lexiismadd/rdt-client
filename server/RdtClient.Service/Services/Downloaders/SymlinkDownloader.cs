@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Routing.Constraints;
 using RdtClient.Data.Models.Data;
 using Serilog;
@@ -73,7 +75,7 @@ public class SymlinkDownloader : IDownloader
         if (file != null)
         {
 
-            var result = TryCreateSymbolicLink(file.FullName, filePath.FullName);
+            var result = await TryCreateSymbolicLink(file.FullName, filePath.FullName);
 
             if (result)
             {
@@ -169,7 +171,7 @@ public class SymlinkDownloader : IDownloader
         return Task.CompletedTask;
     }
 
-    private bool TryCreateSymbolicLink(string sourcePath, string symlinkPath)
+    private async Task<bool> TryCreateSymbolicLink(string sourcePath, string symlinkPath)
     {
         try
         {
@@ -177,6 +179,13 @@ public class SymlinkDownloader : IDownloader
             if (File.Exists(symlinkPath))  // Double-check that the link was created
             {
                 _logger.Information($"Created symbolic link from {sourcePath} to {symlinkPath}");
+
+                string filePath = "/data/downloads/radarr/6. The Fast and the Furious. Tokyo Drift (2006) MULTi-VF2 [1080p] BluRay x264-PopHD.mkv";
+                int startIndex = filePath.IndexOf("/data/downloads/") + "/data/downloads/".Length;
+                int endIndex = filePath.IndexOf("/", startIndex);
+                string categoryInstance = filePath.Substring(startIndex, endIndex - startIndex);
+
+                await TryRefreshMonitoredDownloadsAsync(categoryInstance, "/data/db/instances.json");
                 return true;
             }
             else
@@ -188,6 +197,55 @@ public class SymlinkDownloader : IDownloader
         catch (Exception ex)
         {
             _logger.Error($"Error creating symbolic link from {sourcePath} to {symlinkPath}: {ex.Message}");
+            return false;
+        }
+    }
+
+    private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
+    {
+        try
+        {
+            var jsonString = await File.ReadAllTextAsync(configFilePath);
+            using (JsonDocument doc = JsonDocument.Parse(jsonString))
+            {
+                if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
+                {
+                    var host = category.GetProperty("Host").GetString();
+                    var apiKey = category.GetProperty("ApiKey").GetString();
+
+                    if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
+                    {
+                        _logger.Error("Host ou ApiKey est vide.");
+                        return false;
+                    }
+
+                    var data = new StringContent("{\"name\":\"RefreshMonitoredDownloads\"}", Encoding.UTF8, "application/json");
+                    var client = new HttpClient();
+                    client.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
+                    var response = await client.PostAsync($"{host}/api/v3/command", data);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var responseBody = await response.Content.ReadAsStringAsync();
+                        _logger.Information($"Réponse de l'API : {responseBody}");
+                        return true;
+                    }
+                    else
+                    {
+                        _logger.Error("La requête API a échoué.");
+                        return false;
+                    }
+                }
+                else
+                {
+                    _logger.Error($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
+                    return false;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.Error($"Une erreur est survenue lors de la lecture du fichier de configuration ou de l'appel API: {ex.Message}");
             return false;
         }
     }
@@ -220,6 +278,7 @@ public class SymlinkDownloader : IDownloader
             return false;
         }
     }
+
     private static FileInfo? TryGetFileFromFolders(string[] Folders, string File)
     {
         var dirInfo = new DirectoryInfo(Settings.Get.DownloadClient.RcloneMountPath);
