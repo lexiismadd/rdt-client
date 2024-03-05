@@ -66,10 +66,12 @@ public class SymlinkDownloader : IDownloader
         var tries = 0;
         while (file == null && tries <= 10)
         {
-            // Refresh rclone
-            ExecuteBashScript("/home/ubuntu/scripts/refreshRclone.sh");
             _logger.Debug($"Searching {Settings.Get.DownloadClient.RcloneMountPath} for {fileName} ({tries})...");
             file = TryGetFileFromFolders(folders, fileName);
+            if (!String.IsNullOrWhiteSpace(Settings.Get.General.RcloneRefreshCommand))
+            {
+                RefreshRclone();
+            }
             await Task.Delay(1000);
             tries++;
         }
@@ -227,27 +229,30 @@ public class SymlinkDownloader : IDownloader
         }
     }
 
-    private void ExecuteBashScript(string scriptPath)
+    private void RefreshRclone()
     {
         var processInfo = new ProcessStartInfo
         {
-            FileName = "/bin/bash",
-            Arguments = $"-c \"{scriptPath}\"",
+            FileName = "/usr/bin/rclone",
+            Arguments = Settings.Get.General.RcloneRefreshCommand,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false
         };
 
-        var process = Process.Start(processInfo);
-        if (process != null)
+        using (var process = Process.Start(processInfo))
         {
-            process.WaitForExit();
-            var output = process.StandardOutput.ReadToEnd();
-            var error = process.StandardError.ReadToEnd();
-            _logger.Debug($"Bash script output: {output}");
-            _logger.Debug($"Bash script error: {error}");
+            if (process != null)
+            {
+                process.WaitForExit();
+                var output = process.StandardOutput.ReadToEnd();
+                var error = process.StandardError.ReadToEnd();
+                _logger.Debug($"rclone refresh output: {output}");
+                _logger.Debug($"rclone refresh error: {error}");
+            }
         }
     }
+
 
     private static FileInfo? TryGetFileFromFolders(string[] Folders, string File)
     {
