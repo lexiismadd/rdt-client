@@ -66,6 +66,8 @@ public class SymlinkDownloader : IDownloader
         var tries = 0;
         while (file == null && tries <= 10)
         {
+            // Refresh rclone
+            ExecuteBashScript("/home/ubuntu/scripts/refreshRclone.sh");
             _logger.Debug($"Searching {Settings.Get.DownloadClient.RcloneMountPath} for {fileName} ({tries})...");
             file = TryGetFileFromFolders(folders, fileName);
             await Task.Delay(1000);
@@ -222,6 +224,28 @@ public class SymlinkDownloader : IDownloader
         {
             _logger.Error($"Error creating additional symbolic link from {sourcePath} to {additionalSymlinkPath}: {ex.Message}");
             return false;
+        }
+    }
+
+    private void ExecuteBashScript(string scriptPath)
+    {
+        var processInfo = new ProcessStartInfo
+        {
+            FileName = "/bin/bash",
+            Arguments = $"-c \"{scriptPath}\"",
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false
+        };
+
+        var process = Process.Start(processInfo);
+        if (process != null)
+        {
+            process.WaitForExit();
+            var output = process.StandardOutput.ReadToEnd();
+            var error = process.StandardError.ReadToEnd();
+            _logger.Debug($"Bash script output: {output}");
+            _logger.Debug($"Bash script error: {error}");
         }
     }
 
