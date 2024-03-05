@@ -34,18 +34,15 @@ public class Startup : IHostedService
         await settings.Seed();
         await settings.ResetCache();
 
-        // Vérification de l'existence du fichier de configuration d'exemple
-        var exampleConfigPath = "data/db/instances.json.example";
+        var exampleConfigPath = "/data/db/instances.json.example";
         if (!File.Exists(exampleConfigPath))
         {
-            // Création du dossier si nécessaire
             var directoryPath = Path.GetDirectoryName(exampleConfigPath);
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
             }
 
-            // Création et écriture de la configuration initiale dans le fichier
             var defaultConfig = new
             {
                 Category = new { Host = "http://host:port", ApiKey = "api_key" },
