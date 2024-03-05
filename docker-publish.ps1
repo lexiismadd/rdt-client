@@ -42,7 +42,7 @@ param(
     [string]$BuildProgress="auto"
 )
 
-$imageName = "$($DockerAccount)/rdtclient-notif"
+$imageName = "$($DockerAccount)/rdtclient-v39"
 
 $dockerArgs = @( "buildx", "build", "--network=default", "--platform", $Platforms, "--progress=$BuildProgress", "--tag", "$($imageName):latest", "--file", $Dockerfile, "." )
 
