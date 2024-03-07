@@ -118,22 +118,6 @@ public class SymlinkDownloader : IDownloader
                         {
                             _logger.Warning($"Only the primary symbolic link was created for {fileName}. Additional symlink failed.");
                         }
-
-
-                        var sourceFilePath = Path.Combine(Settings.Get.DownloadClient.MappedPath, "tempTorrentsFiles", $"{fileDirectory}.torrent");
-                        var targetFilePath = Path.Combine(Settings.Get.General.CopyAddedTorrents, $"{fileDirectory}.torrent");
-
-                        _logger.Information($"Tentative de déplacement du fichier {fileDirectory}.torrent");
-
-                        if (File.Exists(sourceFilePath))
-                        {
-                            if (File.Exists(targetFilePath))
-                            {
-                                File.Delete(targetFilePath);
-                            }
-                            File.Move(sourceFilePath, targetFilePath);
-                            _logger.Information($"Moved {fileDirectory}.torrent from tempTorrentsFiles to the final directory.");
-                        }
                     }
                     catch (Exception ex)
                     {

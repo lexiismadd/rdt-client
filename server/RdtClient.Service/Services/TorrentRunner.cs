@@ -570,6 +570,24 @@ public class TorrentRunner
                             await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
 
+                        if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
+                        {
+                            var sourceFilePath = Path.Combine(Settings.Get.DownloadClient.MappedPath, "tempTorrentsFiles", $"{torrent.RdName}.torrent");
+                            var targetFilePath = Path.Combine(Settings.Get.General.CopyAddedTorrents, $"{torrent.RdName}.torrent");
+
+                            _logger.LogInformation($"Attempting to move file {torrent.RdName}.torrent");
+
+                            if (File.Exists(sourceFilePath))
+                            {
+                                if (File.Exists(targetFilePath))
+                                {
+                                    File.Delete(targetFilePath);
+                                }
+                                File.Move(sourceFilePath, targetFilePath);
+                                _logger.LogInformation($"Moved {torrent.RdName}.torrent from tempTorrentsFiles to the final directory.");
+                            }
+                        }
+
                         switch (torrent.FinishedAction)
                         {
                             case TorrentFinishedAction.RemoveAllTorrents:
