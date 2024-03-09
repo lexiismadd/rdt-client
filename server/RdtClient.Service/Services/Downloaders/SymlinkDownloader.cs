@@ -79,6 +79,14 @@ public class SymlinkDownloader : IDownloader
         if (file != null)
         {
 
+            List<string> filePaths = new List<string>();
+
+            foreach (var fileSelected in _download.Torrent.Files)
+            {
+                _logger.Information($"Torrent file: {fileSelected.Path}");
+                filePaths.Add(fileSelected.Path);
+            }
+
             var result = await TryCreateSymbolicLink(file.FullName, filePath.FullName);
 
             if (result)
@@ -98,18 +106,43 @@ public class SymlinkDownloader : IDownloader
 
                         if (!fileName.Equals(fileDirectory, StringComparison.OrdinalIgnoreCase))
                         {
+                            _logger.Debug("Checking for non-equality between fileName and fileDirectory.");
 
                             var nestedFolderPath = Path.Combine(baseSymlinkPath, fileDirectory);
+                            _logger.Debug($"Constructed nested folder path: {nestedFolderPath}");
 
                             if (!Directory.Exists(nestedFolderPath))
                             {
                                 Directory.CreateDirectory(nestedFolderPath);
+                                _logger.Debug($"Nested folder created because it did not exist : {nestedFolderPath}");
                             }
-                            finalSymlinkPath = Path.Combine(nestedFolderPath, fileName);
+
+                            string? foundPath = null;
+                            _logger.Debug("Start searching for the corresponding path in the list of torrent files.");
+
+                            foreach (var fileFoundPath in filePaths)
+                            {
+                                _logger.Debug($"Checking the file: {filePath}");
+                                if (fileFoundPath.Contains(fileName))
+                                {
+                                    foundPath = fileFoundPath.TrimStart('/');
+                                    _logger.Debug($"Matching path found and adjusted (without '/'): {foundPath}");
+                                    break;
+                                }
+                            }
+
+                            if (foundPath != null)
+                            {
+                                finalSymlinkPath = Path.Combine(nestedFolderPath, foundPath);
+                                _logger.Debug($"Final path for symbolic link : {finalSymlinkPath}");
+                            }
+                            else
+                            {
+                                finalSymlinkPath = Path.Combine(nestedFolderPath, fileName);
+                                _logger.Debug("No matching path found. Using the default behavior to construct finalSymlinkPath.");
+                            }
                         }
 
-
-                        // file.FullName au lieu de fileName ? (ou actualPath (ancien fix))
                         if (TryCreateAdditionalSymbolicLink(file.FullName, finalSymlinkPath))
                         {
                             _logger.Information($"Successfully created both symbolic links for {fileName}");
@@ -164,7 +197,7 @@ public class SymlinkDownloader : IDownloader
         try
         {
             File.CreateSymbolicLink(symlinkPath, sourcePath);
-            if (File.Exists(symlinkPath))  // Double-check that the link was created
+            if (File.Exists(symlinkPath))
             {
                 _logger.Information($"Created symbolic link from {sourcePath} to {symlinkPath}");
                 return true;
@@ -182,7 +215,7 @@ public class SymlinkDownloader : IDownloader
         }
     }
 
-   
+
     private bool TryCreateAdditionalSymbolicLink(string sourcePath, string additionalSymlinkPath)
     {
         try
