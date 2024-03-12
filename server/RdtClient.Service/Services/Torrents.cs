@@ -163,6 +163,12 @@ public class Torrents
             }
         }
 
+        if (!String.IsNullOrWhiteSpace(Settings.Get.Provider.AddToAllDebridToo))
+        {
+            var allDebridId = await _allDebridTorrentClient.AddMagnet(magnetLink);
+            Log($"Magnet link also added to AllDebrid with ID {allDebridId}", torrent);
+        }
+
         return newTorrent;
     }
 
@@ -217,6 +223,12 @@ public class Torrents
             {
                 _logger.LogError(ex, $"Unable to create torrent blackhole directory: {Settings.Get.DownloadClient.MappedPath + "tempTorrentsFiles"}: {ex.Message}");
             }
+        }
+
+        if (!String.IsNullOrWhiteSpace(Settings.Get.Provider.AddToAllDebridToo))
+        {
+            var allDebridId = await _allDebridTorrentClient.AddFile(bytes);
+            Log($"File also added to AllDebrid with ID {allDebridId}", torrent);
         }
 
         return newTorrent;

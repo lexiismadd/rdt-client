@@ -165,6 +165,10 @@ or
     [Description("The interval to check the torrents info on the providers API. Minumum is 3 seconds. When there are no active downloads this limit is increased * 3.")]
     public Int32 CheckInterval { get; set; } = 10;
 
+    [DisplayName("(Experimental) All-Debrid API Key")]
+    [Description("Sends content to All-Debrid in addition to the main provider already configured")]
+    public String? AddToAllDebridToo { get; set; } = null;
+
     [DisplayName("Auto Import Defaults")]
     public DbSettingsDefaultsWithCategory Default { get; set; } = new();
 }
