@@ -572,21 +572,36 @@ public class TorrentRunner
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
                         {
-                            var sourceFilePath = Path.Combine(Settings.Get.DownloadClient.MappedPath, "tempTorrentsFiles", $"{torrent.RdName}.torrent");
-                            var targetFilePath = Path.Combine(Settings.Get.General.CopyAddedTorrents, $"{torrent.RdName}.torrent");
-
-                            _logger.LogInformation($"Attempting to move file {torrent.RdName}.torrent");
+                            var sourceFilePath = Path.Combine(Settings.Get.DownloadClient.MappedPath, "TorrentBlackhole", "tempTorrentsFiles", $"{torrent.RdName}.torrent");
 
                             if (File.Exists(sourceFilePath))
                             {
+                                if (Settings.Get.General.KeepCopyAddedTorrents)
+                                {
+                                    var categoryTargetFilePath = Path.Combine(Settings.Get.DownloadClient.MappedPath, "TorrentBlackhole", torrent.Category, $"{torrent.RdName}.torrent");
+
+                                    var categoryTargetDir = Path.GetDirectoryName(categoryTargetFilePath);
+                                    if (!Directory.Exists(categoryTargetDir))
+                                    {
+                                        Directory.CreateDirectory(categoryTargetDir);
+                                    }
+
+                                    File.Copy(sourceFilePath, categoryTargetFilePath, true);
+                                    _logger.LogInformation($"Copied {torrent.RdName}.torrent to the Blackhole/{torrent.Category} directory.");
+                                }
+
+                                var targetFilePath = Path.Combine(Settings.Get.General.CopyAddedTorrents, $"{torrent.RdName}.torrent");
+
                                 if (File.Exists(targetFilePath))
                                 {
                                     File.Delete(targetFilePath);
                                 }
+
                                 File.Move(sourceFilePath, targetFilePath);
-                                _logger.LogInformation($"Moved {torrent.RdName}.torrent from tempTorrentsFiles to the final directory.");
+                                _logger.LogInformation($"Moved {torrent.RdName}.torrent from tempTorrentsFiles to the seed client import directory.");
                             }
                         }
+
 
                         switch (torrent.FinishedAction)
                         {

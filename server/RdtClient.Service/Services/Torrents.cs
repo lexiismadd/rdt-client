@@ -142,7 +142,7 @@ public class Torrents
                     Directory.CreateDirectory(Settings.Get.General.CopyAddedTorrents);
                 }
 
-                var processingPath = Path.Combine(Settings.Get.DownloadClient.MappedPath, "tempTorrentsFiles");
+                var processingPath = Path.Combine(Settings.Get.DownloadClient.MappedPath, "TorrentBlackhole", "tempTorrentsFiles");
                 if (!Directory.Exists(processingPath))
                 {
                     Directory.CreateDirectory(processingPath);
@@ -159,7 +159,7 @@ public class Torrents
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Unable to create torrent blackhole directory: {Settings.Get.DownloadClient.MappedPath + "tempTorrentsFiles"}: {ex.Message}");
+                _logger.LogError(ex, $"Unable to create torrent blackhole directory: {Settings.Get.DownloadClient.MappedPath + "TorrentBlackhole/tempTorrentsFiles"}: {ex.Message}");
             }
         }
 
@@ -204,7 +204,7 @@ public class Torrents
                     Directory.CreateDirectory(Settings.Get.General.CopyAddedTorrents);
                 }
 
-                var processingPath = Path.Combine(Settings.Get.DownloadClient.MappedPath, "tempTorrentsFiles");
+                var processingPath = Path.Combine(Settings.Get.DownloadClient.MappedPath, "TorrentBlackhole", "tempTorrentsFiles");
                 if (!Directory.Exists(processingPath))
                 {
                     Directory.CreateDirectory(processingPath);
@@ -221,7 +221,7 @@ public class Torrents
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Unable to create torrent blackhole directory: {Settings.Get.DownloadClient.MappedPath + "tempTorrentsFiles"}: {ex.Message}");
+                _logger.LogError(ex, $"Unable to create torrent blackhole directory: {Settings.Get.DownloadClient.MappedPath + "TorrentBlackhole/tempTorrentsFiles"}: {ex.Message}");
             }
         }
 

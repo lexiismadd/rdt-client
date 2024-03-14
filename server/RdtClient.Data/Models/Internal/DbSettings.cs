@@ -71,16 +71,20 @@ Supports the following parameters:
     [Description("How to authenticate with the client. WARNING: when set to None anyone with access to the URL can use the client without any credentials.")]
     public AuthenticationType AuthenticationType { get; set; } = AuthenticationType.UserNamePassword;
 
-    [DisplayName("Copy added torrent files")]
-    [Description("When a torrent file or magnet is added, create a copy in this directory.")]
+    [DisplayName("Seed added torrent files")]
+    [Description("[Only with Symlink Downloader] When a torrent file or magnet is added, create a copy in this directory so that it can be imported by a seed client, symlinks will be present allowing the seed without downloading again.")]
     public String? CopyAddedTorrents { get; set; } = null;
+
+    [DisplayName("Keep a copy of .torrent files sent to seed client")]
+    [Description("[Only with Symlink Downloader] When a torrent file is added, keep a copy in TorrentBlachole/ImportCategory directory.")]
+    public Boolean KeepCopyAddedTorrents { get; set; } = false;
 
     [DisplayName("Notify Arrs of RDT download completion")]
     [Description("Set the destination path for the Radarr and Sonarr instance JSON configuration file (template available at /data/db/instances.json). This addition speeds up the final import by notifying Radarr / Sonarr of a download's completion by RDT, rather than waiting for them to check on their own.")]
     public String? RadarrSonarrInstanceConfigPath { get; set; } = null;
 
     [DisplayName("Trigger Rclone refresh for speed up file discovery")]
-    [Description("Allows users to define a customizable command, such as \"rc vfs/refresh recursive=true --rc-addr=172.18.0.1:5572\", to trigger an Rclone refresh operation before initiating the file discovery process. This feature aims to expedite the discovery by performing an immediate refresh, instead of relying on Rclone's periodic automatic refresh.")]
+    [Description("Allows users to define a customizable command, such as \"rc vfs/refresh recursive=true --rc-addr=172.17.0.1:5572\", to trigger an Rclone refresh operation before initiating the file discovery process. This feature aims to expedite the discovery by performing an immediate refresh, instead of relying on Rclone's periodic automatic refresh.")]
     public String? RcloneRefreshCommand { get; set; } = null;
 
 }
@@ -165,7 +169,7 @@ or
     [Description("The interval to check the torrents info on the providers API. Minumum is 3 seconds. When there are no active downloads this limit is increased * 3.")]
     public Int32 CheckInterval { get; set; } = 10;
 
-    [DisplayName("(Experimental) All-Debrid API Key")]
+    [DisplayName("All-Debrid API Key")]
     [Description("Sends content to All-Debrid in addition to the main provider already configured")]
     public String? AddToAllDebridToo { get; set; } = null;
 
