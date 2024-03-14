@@ -583,7 +583,9 @@ public class TorrentRunner
 
                             foreach (var filePath in filePaths)
                             {
-                                var expectedFilePath = Path.Combine(Settings.Get.General.CopyAddedTorrents, filePath);
+                                string adjustedFilePath = filePath.StartsWith("/") ? filePath.Substring(1) : filePath;
+
+                                var expectedFilePath = Path.Combine(Settings.Get.General.CopyAddedTorrents, adjustedFilePath);
 
                                 if (File.Exists(expectedFilePath))
                                 {
@@ -595,6 +597,7 @@ public class TorrentRunner
                                     allFilesExist = false;
                                 }
                             }
+
 
                             if (allFilesExist)
                             {
