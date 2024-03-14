@@ -572,33 +572,64 @@ public class TorrentRunner
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
                         {
-                            var sourceFilePath = Path.Combine(Settings.Get.DownloadClient.MappedPath, "TorrentBlackhole", "tempTorrentsFiles", $"{torrent.RdName}.torrent");
+                            List<string> filePaths = new List<string>();
+                            bool allFilesExist = true;
 
-                            if (File.Exists(sourceFilePath))
+                            foreach (var fileSelected in torrent.Files)
                             {
-                                if (Settings.Get.General.KeepCopyAddedTorrents)
-                                {
-                                    var categoryTargetFilePath = Path.Combine(Settings.Get.DownloadClient.MappedPath, "TorrentBlackhole", torrent.Category, $"{torrent.RdName}.torrent");
+                                _logger.LogInformation($"Torrent file: {fileSelected.Path}");
+                                filePaths.Add(fileSelected.Path);
+                            }
 
-                                    var categoryTargetDir = Path.GetDirectoryName(categoryTargetFilePath);
-                                    if (!Directory.Exists(categoryTargetDir))
+                            foreach (var filePath in filePaths)
+                            {
+                                var expectedFilePath = Path.Combine(Settings.Get.General.CopyAddedTorrents, filePath);
+
+                                if (File.Exists(expectedFilePath))
+                                {
+                                    _logger.LogInformation($"File exists: {expectedFilePath}");
+                                }
+                                else
+                                {
+                                    _logger.LogWarning($"File NOT found: {expectedFilePath}");
+                                    allFilesExist = false;
+                                }
+                            }
+
+                            if (allFilesExist)
+                            {
+                                var sourceFilePath = Path.Combine(Settings.Get.DownloadClient.MappedPath, "TorrentBlackhole", "tempTorrentsFiles", $"{torrent.RdName}.torrent");
+
+                                if (File.Exists(sourceFilePath))
+                                {
+                                    if (Settings.Get.General.KeepCopyAddedTorrents)
                                     {
-                                        Directory.CreateDirectory(categoryTargetDir);
+                                        var categoryTargetFilePath = Path.Combine(Settings.Get.DownloadClient.MappedPath, "TorrentBlackhole", torrent.Category, $"{torrent.RdName}.torrent");
+
+                                        var categoryTargetDir = Path.GetDirectoryName(categoryTargetFilePath);
+                                        if (!Directory.Exists(categoryTargetDir))
+                                        {
+                                            Directory.CreateDirectory(categoryTargetDir);
+                                        }
+
+                                        File.Copy(sourceFilePath, categoryTargetFilePath, true);
+                                        _logger.LogInformation($"Copied {torrent.RdName}.torrent to the Blackhole/{torrent.Category} directory.");
                                     }
 
-                                    File.Copy(sourceFilePath, categoryTargetFilePath, true);
-                                    _logger.LogInformation($"Copied {torrent.RdName}.torrent to the Blackhole/{torrent.Category} directory.");
+                                    var targetFilePath = Path.Combine(Settings.Get.General.CopyAddedTorrents, $"{torrent.RdName}.torrent");
+
+                                    if (File.Exists(targetFilePath))
+                                    {
+                                        File.Delete(targetFilePath);
+                                    }
+
+                                    File.Move(sourceFilePath, targetFilePath);
+                                    _logger.LogInformation($"Moved {torrent.RdName}.torrent from tempTorrentsFiles to the seed client import directory.");
                                 }
-
-                                var targetFilePath = Path.Combine(Settings.Get.General.CopyAddedTorrents, $"{torrent.RdName}.torrent");
-
-                                if (File.Exists(targetFilePath))
-                                {
-                                    File.Delete(targetFilePath);
-                                }
-
-                                File.Move(sourceFilePath, targetFilePath);
-                                _logger.LogInformation($"Moved {torrent.RdName}.torrent from tempTorrentsFiles to the seed client import directory.");
+                            }
+                            else
+                            {
+                                _logger.LogWarning("Not all files were found, skipping subsequent actions.");
                             }
                         }
 

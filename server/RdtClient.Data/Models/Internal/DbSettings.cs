@@ -76,7 +76,7 @@ Supports the following parameters:
     public String? CopyAddedTorrents { get; set; } = null;
 
     [DisplayName("Keep a copy of .torrent files sent to seed client")]
-    [Description("[Only with Symlink Downloader] When a torrent file is added, keep a copy in TorrentBlachole/ImportCategory directory.")]
+    [Description("[Only with Symlink Downloader] When a torrent file is added, keep a copy in RDT_Download_Client_Mapped_Path/TorrentBlachole/ImportCategory directory.")]
     public Boolean KeepCopyAddedTorrents { get; set; } = false;
 
     [DisplayName("Notify Arrs of RDT download completion")]
