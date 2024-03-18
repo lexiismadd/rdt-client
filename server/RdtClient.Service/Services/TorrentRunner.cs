@@ -565,10 +565,7 @@ public class TorrentRunner
 
                         await _torrents.UpdateComplete(torrent.TorrentId, null, DateTimeOffset.UtcNow, true);
 
-                        if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
-                        {
-                            await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
-                        }
+                        await AddSeriesToSonarrAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
                         {
@@ -695,7 +692,8 @@ public class TorrentRunner
         }
     }
 
-private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
+
+private async Task<bool> AddSeriesToSonarrAsync(string categoryInstance, string configFilePath, string seriesTitle, string qualityProfileId)
 {
     try
     {
@@ -713,20 +711,31 @@ private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstan
                     return false;
                 }
 
-                var data = new StringContent("{\"name\":\"RefreshMonitoredDownloads\"}", Encoding.UTF8, "application/json");
+                // Construire le corps de la requête pour ajouter la série
+                var requestData = new
+                {
+                    title = seriesTitle,
+                    qualityProfileId = qualityProfileId
+                };
+                var requestBody = JsonConvert.SerializeObject(requestData);
+                var data = new StringContent(requestBody, Encoding.UTF8, "application/json");
+
+                // Ajouter l'en-tête d'authentification
                 _httpClient.DefaultRequestHeaders.Clear();
                 _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
-                var response = await _httpClient.PostAsync($"{host}/api/v3/command", data);
+
+                // Envoyer la requête POST pour ajouter la série dans Sonarr
+                var response = await _httpClient.PostAsync($"{host}/api/series", data);
 
                 if (response.IsSuccessStatusCode)
                 {
                     var responseBody = await response.Content.ReadAsStringAsync();
-                    _logger.LogInformation($"Réponse de l'API : {responseBody}");
+                    _logger.LogInformation($"Série ajoutée avec succès à Sonarr : {responseBody}");
                     return true;
                 }
                 else
                 {
-                    _logger.LogError("La requête API a échoué.");
+                    _logger.LogError("La requête API pour ajouter la série à Sonarr a échoué.");
                     return false;
                 }
             }
@@ -739,11 +748,10 @@ private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstan
     }
     catch (Exception ex)
     {
-        _logger.LogError($"Une erreur est survenue lors de la lecture du fichier de configuration ou de l'appel API: {ex.Message}");
+        _logger.LogError($"Une erreur est survenue lors de l'appel API pour ajouter la série à Sonarr : {ex.Message}");
         return false;
     }
 }
-
 
     private void Log(String message, Download? download, Torrent? torrent)
     {

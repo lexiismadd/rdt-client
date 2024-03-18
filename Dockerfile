@@ -1,9 +1,9 @@
 # Stage 1 - Build the frontend
 FROM node:18-alpine3.18 AS node-build-env
 ARG TARGETPLATFORM
-ENV TARGETPLATFORM=${TARGETPLATFORM:-linux/amd64}
+ENV TARGETPLATFORM=${TARGETPLATFORM:-linux/arm64}
 ARG BUILDPLATFORM
-ENV BUILDPLATFORM=${BUILDPLATFORM:-linux/amd64}
+ENV BUILDPLATFORM=${BUILDPLATFORM:-linux/arm64}
 
 RUN mkdir /appclient
 WORKDIR /appclient
@@ -12,7 +12,7 @@ RUN apk add --no-cache git python3 py3-pip make g++
 
 RUN \
    echo "**** Cloning Source Code ****" && \
-   git clone -b build3 https://github.com/systr0/rdt-client.git . && \
+   git clone https://github.com/laster13/rdt-client.git . && \
    cd client && \
    echo "**** Building Code  ****" && \
    npm ci && \
@@ -21,18 +21,18 @@ RUN \
 RUN ls -FCla /appclient/root
 
 # Stage 2 - Build the backend
-FROM mcr.microsoft.com/dotnet/sdk:6.0-bullseye-slim-amd64 AS dotnet-build-env
+FROM mcr.microsoft.com/dotnet/sdk:6.0-bullseye-slim-arm64v8 AS dotnet-build-env
 ARG TARGETPLATFORM
-ENV TARGETPLATFORM=${TARGETPLATFORM:-linux/amd64}
+ENV TARGETPLATFORM=${TARGETPLATFORM:-linux/arm/v8}
 ARG BUILDPLATFORM
-ENV BUILDPLATFORM=${BUILDPLATFORM:-linux/amd64}
+ENV BUILDPLATFORM=${BUILDPLATFORM:-linux/arm/v8}
 
 RUN mkdir /appserver
 WORKDIR /appserver
 
 RUN \
    echo "**** Cloning Source Code ****" && \
-   git clone -b build3 https://github.com/systr0/rdt-client.git . && \
+   git clone https://github.com/laster13/rdt-client.git . && \
    echo "**** Building Source Code for $TARGETPLATFORM on $BUILDPLATFORM ****" && \
    cd server && \
    if [ "$TARGETPLATFORM" = "linux/arm/v7" ] ; then \
@@ -49,9 +49,9 @@ RUN \
 # Stage 3 - Build runtime image
 FROM ghcr.io/linuxserver/baseimage-alpine:3.18
 ARG TARGETPLATFORM
-ENV TARGETPLATFORM=${TARGETPLATFORM:-linux/amd64}
+ENV TARGETPLATFORM=${TARGETPLATFORM:-linux/arm/v8}
 ARG BUILDPLATFORM
-ENV BUILDPLATFORM=${BUILDPLATFORM:-linux/amd64}
+ENV BUILDPLATFORM=${BUILDPLATFORM:-linux/arm/v8}
 
 # set version label
 ARG BUILD_DATE
