@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
 using System.Text;
@@ -565,74 +565,28 @@ public class TorrentRunner
 
                         await _torrents.UpdateComplete(torrent.TorrentId, null, DateTimeOffset.UtcNow, true);
 
-                        await AddSeriesToSonarrAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                        if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
+                        {
+                            await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                        }
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
                         {
-                            List<string> filePaths = new List<string>();
-                            bool allFilesExist = true;
+                            var sourceFilePath = Path.Combine(Settings.Get.DownloadClient.MappedPath, "tempTorrentsFiles", $"{torrent.RdName}.torrent");
+                            var targetFilePath = Path.Combine(Settings.Get.General.CopyAddedTorrents, $"{torrent.RdName}.torrent");
 
-                            foreach (var fileSelected in torrent.Files)
+                            _logger.LogInformation($"Attempting to move file {torrent.RdName}.torrent");
+
+                            if (File.Exists(sourceFilePath))
                             {
-                                _logger.LogInformation($"Torrent file: {fileSelected.Path}");
-                                filePaths.Add(fileSelected.Path);
-                            }
-
-                            foreach (var filePath in filePaths)
-                            {
-                                string adjustedFilePath = filePath.StartsWith("/") ? filePath.Substring(1) : filePath;
-
-                                var expectedFilePath = Path.Combine(Settings.Get.General.CopyAddedTorrents, adjustedFilePath);
-
-                                if (File.Exists(expectedFilePath))
+                                if (File.Exists(targetFilePath))
                                 {
-                                    _logger.LogInformation($"File exists: {expectedFilePath}");
+                                    File.Delete(targetFilePath);
                                 }
-                                else
-                                {
-                                    _logger.LogWarning($"File NOT found: {expectedFilePath}");
-                                    allFilesExist = false;
-                                }
-                            }
-
-
-                            if (allFilesExist)
-                            {
-                                var sourceFilePath = Path.Combine(Settings.Get.DownloadClient.MappedPath, "TorrentBlackhole", "tempTorrentsFiles", $"{torrent.RdName}.torrent");
-
-                                if (File.Exists(sourceFilePath))
-                                {
-                                    if (Settings.Get.General.KeepCopyAddedTorrents)
-                                    {
-                                        var categoryTargetFilePath = Path.Combine(Settings.Get.DownloadClient.MappedPath, "TorrentBlackhole", torrent.Category, $"{torrent.RdName}.torrent");
-
-                                        var categoryTargetDir = Path.GetDirectoryName(categoryTargetFilePath);
-                                        if (!Directory.Exists(categoryTargetDir))
-                                        {
-                                            Directory.CreateDirectory(categoryTargetDir);
-                                        }
-
-                                        File.Copy(sourceFilePath, categoryTargetFilePath, true);
-                                        _logger.LogInformation($"Copied {torrent.RdName}.torrent to the Blackhole/{torrent.Category} directory.");
-                                    }
-
-                                    var targetFilePath = Path.Combine(Settings.Get.General.CopyAddedTorrents, $"{torrent.RdName}.torrent");
-
-                                    if (File.Exists(targetFilePath))
-                                    {
-                                        File.Delete(targetFilePath);
-                                    }
-
-                                    File.Move(sourceFilePath, targetFilePath);
-                                    _logger.LogInformation($"Moved {torrent.RdName}.torrent from tempTorrentsFiles to the seed client import directory.");
-                                }
-                            }
-                            else
-                            {
-                                _logger.LogWarning("Not all files were found, skipping subsequent actions.");
+                                File.Move(sourceFilePath, targetFilePath);
+                                _logger.LogInformation($"Moved {torrent.RdName}.torrent from tempTorrentsFiles to the final directory.");
                             }
                         }
-
 
                         switch (torrent.FinishedAction)
                         {
@@ -692,8 +646,7 @@ public class TorrentRunner
         }
     }
 
-
-private async Task<bool> AddSeriesToSonarrAsync(string categoryInstance, string configFilePath, string seriesTitle, string qualityProfileId)
+private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
 {
     try
     {
@@ -711,31 +664,20 @@ private async Task<bool> AddSeriesToSonarrAsync(string categoryInstance, string 
                     return false;
                 }
 
-                // Construire le corps de la requête pour ajouter la série
-                var requestData = new
-                {
-                    title = seriesTitle,
-                    qualityProfileId = qualityProfileId
-                };
-                var requestBody = JsonConvert.SerializeObject(requestData);
-                var data = new StringContent(requestBody, Encoding.UTF8, "application/json");
-
-                // Ajouter l'en-tête d'authentification
+                var data = new StringContent("{\"name\":\"RefreshMonitoredDownloads\"}", Encoding.UTF8, "application/json");
                 _httpClient.DefaultRequestHeaders.Clear();
                 _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
-
-                // Envoyer la requête POST pour ajouter la série dans Sonarr
-                var response = await _httpClient.PostAsync($"{host}/api/series", data);
+                var response = await _httpClient.PostAsync($"{host}/api/v3/command", data);
 
                 if (response.IsSuccessStatusCode)
                 {
                     var responseBody = await response.Content.ReadAsStringAsync();
-                    _logger.LogInformation($"Série ajoutée avec succès à Sonarr : {responseBody}");
+                    _logger.LogInformation($"Réponse de l'API : {responseBody}");
                     return true;
                 }
                 else
                 {
-                    _logger.LogError("La requête API pour ajouter la série à Sonarr a échoué.");
+                    _logger.LogError("La requête API a échoué.");
                     return false;
                 }
             }
@@ -748,10 +690,11 @@ private async Task<bool> AddSeriesToSonarrAsync(string categoryInstance, string 
     }
     catch (Exception ex)
     {
-        _logger.LogError($"Une erreur est survenue lors de l'appel API pour ajouter la série à Sonarr : {ex.Message}");
+        _logger.LogError($"Une erreur est survenue lors de la lecture du fichier de configuration ou de l'appel API: {ex.Message}");
         return false;
     }
 }
+
 
     private void Log(String message, Download? download, Torrent? torrent)
     {
