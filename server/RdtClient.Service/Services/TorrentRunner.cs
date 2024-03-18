@@ -543,6 +543,11 @@ public class TorrentRunner
                     }
                 }
 
+                if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
+                {
+                     await AddSeriesToSonarrAsync(/* arguments appropriés */);
+                }
+
                 // Check if torrent is complete, or if we don't want to download any files to the host.
                 if ((torrent.Downloads.Count > 0) || 
                     torrent.RdStatus == TorrentStatus.Finished && torrent.HostDownloadAction == TorrentHostDownloadAction.DownloadNone)
@@ -695,6 +700,65 @@ private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstan
     }
 }
 
+private async Task<bool> AddSeriesToSonarrAsync(string categoryInstance, string configFilePath, string seriesTitle, string qualityProfileId)
+{
+    try
+    {
+        var jsonString = await File.ReadAllTextAsync(configFilePath);
+        using (JsonDocument doc = JsonDocument.Parse(jsonString))
+        {
+            if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
+            {
+                var host = category.GetProperty("Host").GetString();
+                var apiKey = category.GetProperty("ApiKey").GetString();
+
+                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
+                {
+                    _logger.LogError("Host ou ApiKey est vide.");
+                    return false;
+                }
+
+                // Construire le corps de la requête pour ajouter la série
+                var requestData = new
+                {
+                    title = seriesTitle,
+                    qualityProfileId = qualityProfileId
+                };
+                var requestBody = JsonConvert.SerializeObject(requestData);
+                var data = new StringContent(requestBody, Encoding.UTF8, "application/json");
+
+                // Ajouter l'en-tête d'authentification
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
+
+                // Envoyer la requête POST pour ajouter la série dans Sonarr
+                var response = await _httpClient.PostAsync($"{host}/api/series", data);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseBody = await response.Content.ReadAsStringAsync();
+                    _logger.LogInformation($"Série ajoutée avec succès à Sonarr : {responseBody}");
+                    return true;
+                }
+                else
+                {
+                    _logger.LogError("La requête API pour ajouter la série à Sonarr a échoué.");
+                    return false;
+                }
+            }
+            else
+            {
+                _logger.LogError($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
+                return false;
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Une erreur est survenue lors de l'appel API pour ajouter la série à Sonarr : {ex.Message}");
+        return false;
+    }
+}
 
     private void Log(String message, Download? download, Torrent? torrent)
     {
