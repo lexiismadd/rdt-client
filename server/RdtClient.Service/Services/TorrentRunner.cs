@@ -543,6 +543,8 @@ public class TorrentRunner
                     }
                 }
                    Log($"Corinne est partie faire son menage {torrent.TorrentId}");
+                   Log($"patrick est partie faire son menage {torrent.RdName}");
+
 
                 // Check if torrent is complete, or if we don't want to download any files to the host.
                 if ((torrent.Downloads.Count > 0) || 
