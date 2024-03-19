@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Web;
 using Aria2NET;
 using Microsoft.Extensions.Logging;
@@ -11,7 +12,6 @@ using RdtClient.Data.Models.Data;
 using RdtClient.Data.Models.Internal;
 using RdtClient.Service.Helpers;
 using RdtClient.Service.Services.Downloaders;
-using System.Text.RegularExpressions;
 
 
 namespace RdtClient.Service.Services;
@@ -734,11 +734,23 @@ private string ExtractSeriesNameFromRdName(string rdName)
     string[] parts = rdName.Split('.');
 
     // Rechercher la première partie qui contient uniquement des caractères alphabétiques
-    foreach (string part in parts)
+    for (int i = 0; i < parts.Length; i++)
     {
+        string part = parts[i].Trim();
+
+        // Vérifier si la partie ne contient que des lettres
         if (Regex.IsMatch(part, @"^[A-Za-z]+$"))
         {
-            return part;
+            // Vérifier si la partie suivante est également une partie du nom de la série
+            if (i + 1 < parts.Length && Regex.IsMatch(parts[i + 1], @"^[A-Za-z]+$"))
+            {
+                // Concaténer les parties successives pour former le nom complet de la série
+                return $"{part}.{parts[i + 1]}";
+            }
+            else
+            {
+                return part;
+            }
         }
     }
 
