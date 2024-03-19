@@ -560,6 +560,20 @@ public class TorrentRunner
                        // Log($"Impossible de trouver l'ID de la série pour {torrent.RdName}");
                        // }
 
+// Suppose que torrent.RdName contient le nom du torrent
+string seriesName = ExtractSeriesNameFromRdName(torrent.RdName);
+
+if (!string.IsNullOrEmpty(seriesName))
+{
+    // Faire quelque chose avec le nom de la série extrait
+    Log($"Nom de la série extrait : {seriesName}");
+}
+else
+{
+    Log("Impossible d'extraire le nom de la série.");
+}
+
+
 
 
 
