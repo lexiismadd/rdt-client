@@ -548,7 +548,7 @@ public class TorrentRunner
                    foreach (var download in queuedDownloads)
                    {
                        // Récupérer l'ID de la série à partir du nom du torrent
-                       seriesName = ExtractSeriesNameFromTorrentName(torrent.RdName);
+                       // seriesName = ExtractSeriesNameFromTorrentName(torrent.RdName);
                        int? seriesId = await GetSeriesIdFromNameAsync(seriesName);
 
                        if (seriesId.HasValue)
@@ -667,7 +667,7 @@ public class TorrentRunner
 
 
 
-private async Task<int?> GetSeriesIdFromNameAsync(string seriesName)
+private async Task<int?> GetSeriesIdFromNameAsync(seriesName)
 {
     string apiKey = "fd7e1aa7-8cc5-43ba-89a6-6fe6892f5e3d"; // Remplacez par votre propre clé API TheTVDB
     string searchUrl = $"https://api.thetvdb.com/search/series?name={HttpUtility.UrlEncode(seriesName)}";
