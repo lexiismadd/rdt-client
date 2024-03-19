@@ -545,11 +545,11 @@ public class TorrentRunner
                    // Log($"Corinne est partie faire son menage {torrent.TorrentId}");
                    // Log($"patrick est partie faire son menage {torrent.RdName}");
 
-                   foreach (var download in queuedDownloads)
+                   foreach (var toto in queuedDownloads)
                    {
                        // Récupérer l'ID de la série à partir du nom du torrent
                        // seriesName = ExtractSeriesNameFromTorrentName(torrent.RdName);
-                       int? seriesId = await GetSeriesIdFromNameAsync(download.torrent.RdName);
+                       int? seriesId = await GetSeriesIdFromNameAsync(toto.torrent.RdName);
 
                        if (seriesId.HasValue)
                        {
