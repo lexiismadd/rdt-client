@@ -571,22 +571,23 @@ if (!string.IsNullOrEmpty(seriesName))
 {
     // Faire quelque chose avec le nom de la série extrait
     Log($"Nom de la série extrait : {seriesName}");
+
+    int? seriesId = await GetSeriesIdFromNameAsync(seriesName);
+
+    if (seriesId.HasValue)
+    {
+    Log($"Série trouvée avec l'ID {seriesId.Value}");
+    }
+    else
+    {
+    Log($"Impossible de trouver l'ID de la série pour {seriesName}");
+    }
 }
 else
 {
     Log("Impossible d'extraire le nom de la série.");
 }
 
-                        int? seriesId = await GetSeriesIdFromNameAsync(torrent.RdName);
-
-                        if (seriesId.HasValue)
-                        {
-                        Log($"Série trouvée avec l'ID {seriesId.Value}");
-                        }
-                        else
-                        {
-                        Log($"Impossible de trouver l'ID de la série pour {torrent.RdName}");
-                        }
 
 
 
@@ -697,8 +698,6 @@ else
         }
     }
 
-
-
 private async Task<int?> GetSeriesIdFromNameAsync(string seriesName)
 {
     string apiKey = "fd7e1aa7-8cc5-43ba-89a6-6fe6892f5e3d"; // Remplacez par votre propre clé API TheTVDB
@@ -724,17 +723,6 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName)
 
         return null;
     }
-}
-
-public class TvdbSearchResponse
-{
-    public List<TvdbSeriesData> Data { get; set; }
-}
-
-public class TvdbSeriesData
-{
-    public int Id { get; set; }
-    public string SeriesName { get; set; }
 }
 
 private string ExtractSeriesNameFromRdName(string rdName)
