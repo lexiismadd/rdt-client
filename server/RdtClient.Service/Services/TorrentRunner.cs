@@ -545,8 +545,6 @@ public class TorrentRunner
                    // Log($"Corinne est partie faire son menage {torrent.TorrentId}");
                    // Log($"patrick est partie faire son menage {torrent.RdName}");
 
-                   foreach (var download in queuedDownloads)
-                   {
                        // Récupérer l'ID de la série à partir du nom du torrent
                        // seriesName = ExtractSeriesNameFromTorrentName(torrent.RdName);
                        int? seriesId = await GetSeriesIdFromNameAsync(torrent.RdName);
@@ -559,8 +557,6 @@ public class TorrentRunner
                        {
                        Log($"Impossible de trouver l'ID de la série pour {torrent.RdName}");
                        }
-                  }
-
 
                 // Check if torrent is complete, or if we don't want to download any files to the host.
                 if ((torrent.Downloads.Count > 0) || 
