@@ -545,6 +545,21 @@ public class TorrentRunner
                    // Log($"Corinne est partie faire son menage {torrent.TorrentId}");
                    // Log($"patrick est partie faire son menage {torrent.RdName}");
 
+                   foreach (var download in queuedDownloads)
+                   {
+                       // Récupérer l'ID de la série à partir du nom du torrent
+                       // seriesName = ExtractSeriesNameFromTorrentName(torrent.RdName);
+                       int? seriesId = await GetSeriesIdFromNameAsync(torrent.RdName);
+
+                       if (seriesId.HasValue)
+                       {
+                       Log($"Série trouvée avec l'ID {seriesId.Value}");
+                       }
+                       else
+                       {
+                       Log($"Impossible de trouver l'ID de la série pour {torrent.RdName}");
+                       }
+                  }
 
 
                 // Check if torrent is complete, or if we don't want to download any files to the host.
@@ -655,7 +670,7 @@ public class TorrentRunner
 private async Task<int?> GetSeriesIdFromNameAsync(torrent.RdName)
 {
     string apiKey = "fd7e1aa7-8cc5-43ba-89a6-6fe6892f5e3d"; // Remplacez par votre propre clé API TheTVDB
-    string searchUrl = $"https://api.thetvdb.com/search/series?name={HttpUtility.UrlEncode(seriesName)}";
+    string searchUrl = $"https://api.thetvdb.com/search/series?name={HttpUtility.UrlEncode(torrent.RdName)}";
 
     using (HttpClient httpClient = new HttpClient())
     {
@@ -688,6 +703,20 @@ public class TvdbSeriesData
 {
     public int Id { get; set; }
     public string torrent.RdName { get; set; }
+}
+
+private string ExtractSeriesNameFromTorrentName(torrent.RdName)
+{
+    if (string.IsNullOrWhiteSpace(torrent.RdName))
+    {
+        return null;
+    }
+
+    // Séparer le nom du torrent en parties en utilisant le point comme délimiteur
+    string[] parts = torrent.RdName.Split('.');
+
+    // Le premier élément devrait être le nom de la série
+    return parts[0];
 }
 
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
