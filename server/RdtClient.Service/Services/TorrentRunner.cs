@@ -12,6 +12,8 @@ using RdtClient.Data.Models.Data;
 using RdtClient.Data.Models.Internal;
 using RdtClient.Service.Helpers;
 using RdtClient.Service.Services.Downloaders;
+using System;
+
 
 
 namespace RdtClient.Service.Services;
@@ -733,23 +735,24 @@ private string ExtractSeriesNameFromRdName(string rdName)
     // Diviser le nom en parties en utilisant l'espace comme délimiteur
     string[] parts = rdName.Split('.');
 
-    // Rechercher la première partie qui contient uniquement des caractères alphabétiques
+    // Initialiser une expression régulière pour matcher les noms de séries
+    Regex seriesRegex = new Regex(@"^[A-Za-z\s]+$");
+
     for (int i = 0; i < parts.Length; i++)
     {
-        string part = parts[i].Trim();
-
-        // Vérifier si la partie ne contient que des lettres
-        if (Regex.IsMatch(part, @"^[A-Za-z]+$"))
+        // Vérifier si la partie est un nom de série
+        if (seriesRegex.IsMatch(parts[i]))
         {
             // Vérifier si la partie suivante est également une partie du nom de la série
-            if (i + 1 < parts.Length && Regex.IsMatch(parts[i + 1], @"^[A-Za-z]+$"))
+            if (i + 1 < parts.Length && seriesRegex.IsMatch(parts[i + 1]))
             {
                 // Concaténer les parties successives pour former le nom complet de la série
-                return $"{part}.{parts[i + 1]}";
+                string seriesName = string.Join(".", parts[i], parts[i + 1]);
+                return seriesName;
             }
             else
             {
-                return part;
+                return parts[i]; // Si seulement une partie est trouvée, la retourner
             }
         }
     }
