@@ -545,23 +545,6 @@ public class TorrentRunner
                    // Log($"Corinne est partie faire son menage {torrent.TorrentId}");
                    // Log($"patrick est partie faire son menage {torrent.RdName}");
 
-                   foreach (var download in queuedDownloads)
-                   {
-                       // Récupérer l'ID de la série à partir du nom du torrent
-                       // seriesName = ExtractSeriesNameFromTorrentName(torrent.RdName);
-                       int? seriesId = await GetSeriesIdFromNameAsync(torrent.RdName);
-
-                       if (seriesId.HasValue)
-                       {
-                       Log($"Série trouvée avec l'ID {seriesId.Value}");
-                       }
-                       else
-                       {
-                       Log($"Impossible de trouver l'ID de la série pour {torrent.RdName}");
-                       }
-                  }
-
-
                 // Check if torrent is complete, or if we don't want to download any files to the host.
                 if ((torrent.Downloads.Count > 0) || 
                     torrent.RdStatus == TorrentStatus.Finished && torrent.HostDownloadAction == TorrentHostDownloadAction.DownloadNone)
@@ -664,48 +647,6 @@ public class TorrentRunner
             Log($"TorrentRunner Tick End (took {sw.ElapsedMilliseconds}ms)");
         }
     }
-
-
-
-private async Task<int?> GetSeriesIdFromNameAsync(seriesName)
-{
-    string apiKey = "fd7e1aa7-8cc5-43ba-89a6-6fe6892f5e3d"; // Remplacez par votre propre clé API TheTVDB
-    string searchUrl = $"https://api.thetvdb.com/search/series?name={HttpUtility.UrlEncode(seriesName)}";
-
-    using (HttpClient httpClient = new HttpClient())
-    {
-        httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
-
-        HttpResponseMessage response = await httpClient.GetAsync(searchUrl);
-
-        if (response.IsSuccessStatusCode)
-        {
-            string jsonResponse = await response.Content.ReadAsStringAsync();
-            var searchData = JsonSerializer.Deserialize<TvdbSearchResponse>(jsonResponse);
-
-            if (searchData != null && searchData.Data.Any())
-            {
-                // Retourne l'ID de la première série correspondante trouvée
-                return searchData.Data.First().Id;
-            }
-        }
-
-        return null;
-    }
-}
-
-public class TvdbSearchResponse
-{
-    public List<TvdbSeriesData> Data { get; set; }
-}
-
-public class TvdbSeriesData
-{
-    public int Id { get; set; }
-    public string SeriesName { get; set; }
-}
-
-
 
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
 {
