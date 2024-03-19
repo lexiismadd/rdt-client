@@ -732,29 +732,16 @@ private string ExtractSeriesNameFromRdName(string rdName)
         return null;
     }
 
-    // Diviser le nom en parties en utilisant l'espace comme délimiteur
-    string[] parts = rdName.Split('.');
+    // Initialiser une expression régulière pour extraire le nom de la série avant le premier point et après le dernier point
+    Regex seriesRegex = new Regex(@"(?<=^|\.)[^.]+(?=\.|$)");
 
-    // Initialiser une expression régulière pour matcher les noms de séries
-    Regex seriesRegex = new Regex(@"^[A-Za-z\s]+$");
+    // Effectuer la recherche de correspondance dans le nom
+    Match match = seriesRegex.Match(rdName);
 
-    for (int i = 0; i < parts.Length; i++)
+    // Vérifier s'il y a une correspondance
+    if (match.Success)
     {
-        // Vérifier si la partie est un nom de série
-        if (seriesRegex.IsMatch(parts[i]))
-        {
-            // Vérifier si la partie suivante est également une partie du nom de la série
-            if (i + 1 < parts.Length && seriesRegex.IsMatch(parts[i + 1]))
-            {
-                // Concaténer les parties successives pour former le nom complet de la série
-                string seriesName = string.Join(".", parts[i], parts[i + 1]);
-                return seriesName;
-            }
-            else
-            {
-                return parts[i]; // Si seulement une partie est trouvée, la retourner
-            }
-        }
+        return match.Value.Replace(".", " "); // Remplacer les points par des espaces dans le nom de la série
     }
 
     // Si aucun nom de série n'est trouvé, retourner null
