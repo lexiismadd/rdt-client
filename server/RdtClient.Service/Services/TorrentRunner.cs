@@ -577,6 +577,18 @@ else
     Log("Impossible d'extraire le nom de la série.");
 }
 
+                        int? seriesId = await GetSeriesIdFromNameAsync(torrent.RdName);
+
+                        if (seriesId.HasValue)
+                        {
+                        Log($"Série trouvée avec l'ID {seriesId.Value}");
+                        }
+                        else
+                        {
+                        Log($"Impossible de trouver l'ID de la série pour {torrent.RdName}");
+                        }
+
+
 
 
 
