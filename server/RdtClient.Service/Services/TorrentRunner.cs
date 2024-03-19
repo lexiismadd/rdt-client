@@ -548,7 +548,7 @@ public class TorrentRunner
                    foreach (var download in queuedDownloads)
                    {
                        // Récupérer l'ID de la série à partir du nom du torrent
-                       seriesName = ExtractSeriesNameFromTorrentName(download.Torrent.Name);
+                       seriesName = ExtractSeriesNameFromTorrentName(torrent.RdName);
                        int? seriesId = await GetSeriesIdFromNameAsync(seriesName);
 
                        if (seriesId.HasValue)
