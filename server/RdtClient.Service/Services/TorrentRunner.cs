@@ -1,9 +1,10 @@
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using System.Web;
 using Aria2NET;
 using Microsoft.Extensions.Logging;
@@ -12,7 +13,6 @@ using RdtClient.Data.Models.Data;
 using RdtClient.Data.Models.Internal;
 using RdtClient.Service.Helpers;
 using RdtClient.Service.Services.Downloaders;
-using System;
 
 
 
@@ -732,20 +732,46 @@ private string ExtractSeriesNameFromRdName(string rdName)
         return null;
     }
 
-    // Initialiser une expression régulière pour extraire le nom de la série avant le premier point et après le dernier point
-    Regex seriesRegex = new Regex(@"(?<=^|\.)[^.]+(?=\.|$)");
+    // Diviser le nom en segments à chaque point
+    string[] parts = rdName.Split('.');
 
-    // Effectuer la recherche de correspondance dans le nom
-    Match match = seriesRegex.Match(rdName);
+    // Indicateur pour détecter le premier segment contenant uniquement des lettres
+    bool foundFirstLetters = false;
 
-    // Vérifier s'il y a une correspondance
-    if (match.Success)
+    // StringBuilder pour construire le nom de la série
+    var seriesNameBuilder = new StringBuilder();
+
+    // Parcourir les segments
+    foreach (string part in parts)
     {
-        return match.Value.Replace(".", " "); // Remplacer les points par des espaces dans le nom de la série
+        // Vérifier si le segment contient uniquement des lettres
+        if (part.All(char.IsLetter))
+        {
+            // Si c'est le premier segment contenant uniquement des lettres, marquer comme trouvé
+            if (!foundFirstLetters)
+            {
+                foundFirstLetters = true;
+            }
+            else
+            {
+                // Si c'est le deuxième segment contenant uniquement des lettres, arrêter la recherche
+                break;
+            }
+        }
+
+        // Ajouter le segment au nom de la série si le premier segment contenant uniquement des lettres a été trouvé
+        if (foundFirstLetters)
+        {
+            if (seriesNameBuilder.Length > 0)
+            {
+                seriesNameBuilder.Append(".");
+            }
+            seriesNameBuilder.Append(part);
+        }
     }
 
-    // Si aucun nom de série n'est trouvé, retourner null
-    return null;
+    // Retourner le nom de la série
+    return seriesNameBuilder.ToString();
 }
 
 
