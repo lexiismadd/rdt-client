@@ -547,7 +547,7 @@ public class TorrentRunner
 
                        // Récupérer l'ID de la série à partir du nom du torrent
                        // seriesName = ExtractSeriesNameFromTorrentName(torrent.RdName);
-                       int? seriesId = await GetSeriesIdFromNameAsync(torrent.RdName);
+                       int? seriesId = await GetSeriesIdFromNameAsync(shogun);
 
                        if (seriesId.HasValue)
                        {
