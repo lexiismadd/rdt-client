@@ -735,22 +735,26 @@ private string ExtractSeriesNameFromRdName(string rdName)
     // Diviser le nom en parties en utilisant l'espace comme délimiteur
     string[] parts = rdName.Split('.');
 
-    // Initialiser une liste pour stocker les parties alphabétiques
+    // Initialiser une liste pour stocker les parties alphabétiques du nom de la série
     List<string> seriesParts = new List<string>();
 
     // Parcourir toutes les parties
     foreach (string part in parts)
     {
-        // Si la partie ne contient que des caractères alphabétiques, l'ajouter à la liste
-        if (Regex.IsMatch(part, @"^[A-Za-z]+$"))
-        {
-            seriesParts.Add(part);
-        }
         // Si la partie commence par "S01E" ou "SxxExx", c'est le début du numéro de saison et d'épisode, donc arrêter ici
-        else if (Regex.IsMatch(part, @"^S\d{2}E\d{2}$"))
+        if (Regex.IsMatch(part, @"^S\d{2}E\d{2}$"))
         {
             break;
         }
+
+        // Vérifier si la partie contient des chiffres, ce qui indique qu'elle ne fait pas partie du nom de la série
+        if (Regex.IsMatch(part, @"\d"))
+        {
+            continue;
+        }
+
+        // Ajouter la partie à la liste des parties du nom de la série
+        seriesParts.Add(part);
     }
 
     // Concaténer toutes les parties alphabétiques pour former le nom de la série
