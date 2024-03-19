@@ -707,6 +707,21 @@ public class TvdbSeriesData
     public string SeriesName { get; set; }
 }
 
+private string ExtractSeriesNameFromTorrentName(string torrent.RdName)
+{
+    if (string.IsNullOrWhiteSpace(torrent.RdName))
+    {
+        return null;
+    }
+
+    // Séparer le nom du torrent en parties en utilisant le point comme délimiteur
+    string[] parts = torrent.RdName.Split('.');
+
+    // Le premier élément devrait être le nom de la série
+    return parts[0];
+}
+
+
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
 {
     try
