@@ -721,7 +721,7 @@ public class TvdbSeriesData
     public string SeriesName { get; set; }
 }
 
-private string ExtractSeriesNameFromTorrentName(string RdName)
+private string ExtractSeriesNameFromRdName(string RdName)
 {
     if (string.IsNullOrWhiteSpace(RdName))
     {
