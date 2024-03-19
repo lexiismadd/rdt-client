@@ -732,46 +732,32 @@ private string ExtractSeriesNameFromRdName(string rdName)
         return null;
     }
 
-    // Diviser le nom en segments à chaque point
+    // Diviser le nom en parties en utilisant l'espace comme délimiteur
     string[] parts = rdName.Split('.');
 
-    // Indicateur pour détecter le premier segment contenant uniquement des lettres
-    bool foundFirstLetters = false;
+    // Initialiser une liste pour stocker les parties alphabétiques
+    List<string> seriesParts = new List<string>();
 
-    // StringBuilder pour construire le nom de la série
-    var seriesNameBuilder = new StringBuilder();
-
-    // Parcourir les segments
+    // Parcourir toutes les parties
     foreach (string part in parts)
     {
-        // Vérifier si le segment contient uniquement des lettres
-        if (part.All(char.IsLetter))
+        // Si la partie ne contient que des caractères alphabétiques, l'ajouter à la liste
+        if (Regex.IsMatch(part, @"^[A-Za-z]+$"))
         {
-            // Si c'est le premier segment contenant uniquement des lettres, marquer comme trouvé
-            if (!foundFirstLetters)
-            {
-                foundFirstLetters = true;
-            }
-            else
-            {
-                // Si c'est le deuxième segment contenant uniquement des lettres, arrêter la recherche
-                break;
-            }
+            seriesParts.Add(part);
         }
-
-        // Ajouter le segment au nom de la série si le premier segment contenant uniquement des lettres a été trouvé
-        if (foundFirstLetters)
+        // Si la partie commence par "S01E" ou "SxxExx", c'est le début du numéro de saison et d'épisode, donc arrêter ici
+        else if (Regex.IsMatch(part, @"^S\d{2}E\d{2}$"))
         {
-            if (seriesNameBuilder.Length > 0)
-            {
-                seriesNameBuilder.Append(".");
-            }
-            seriesNameBuilder.Append(part);
+            break;
         }
     }
 
-    // Retourner le nom de la série
-    return seriesNameBuilder.ToString();
+    // Concaténer toutes les parties alphabétiques pour former le nom de la série
+    string seriesName = string.Join(" ", seriesParts);
+
+    // Si aucun nom de série n'est trouvé, retourner null
+    return string.IsNullOrWhiteSpace(seriesName) ? null : seriesName;
 }
 
 
