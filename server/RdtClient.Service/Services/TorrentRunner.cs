@@ -542,21 +542,27 @@ public class TorrentRunner
                         }
                     }
                 }
+
+                       //BLOC ESSAI A GARDER POUR L INSTANT
+
                    // Log($"Corinne est partie faire son menage {torrent.TorrentId}");
                    // Log($"patrick est partie faire son menage {torrent.RdName}");
-
                        // Récupérer l'ID de la série à partir du nom du torrent
                        // seriesName = ExtractSeriesNameFromTorrentName(torrent.RdName);
-                       int? seriesId = await GetSeriesIdFromNameAsync(shogun);
+                       // int? seriesId = await GetSeriesIdFromNameAsync(torrent.RdName);
 
-                       if (seriesId.HasValue)
-                       {
-                       Log($"Série trouvée avec l'ID {seriesId.Value}");
-                       }
-                       else
-                       {
-                       Log($"Impossible de trouver l'ID de la série pour {torrent.RdName}");
-                       }
+                       // if (seriesId.HasValue)
+                       // {
+                       // Log($"Série trouvée avec l'ID {seriesId.Value}");
+                       // }
+                       // else
+                       // {
+                       // Log($"Impossible de trouver l'ID de la série pour {torrent.RdName}");
+                       // }
+
+
+
+
 
                 // Check if torrent is complete, or if we don't want to download any files to the host.
                 if ((torrent.Downloads.Count > 0) || 
