@@ -721,18 +721,27 @@ public class TvdbSeriesData
     public string SeriesName { get; set; }
 }
 
-private string ExtractSeriesNameFromRdName(string RdName)
+private string ExtractSeriesNameFromRdName(string rdName)
 {
-    if (string.IsNullOrWhiteSpace(RdName))
+    if (string.IsNullOrWhiteSpace(rdName))
     {
         return null;
     }
 
-    // Séparer le nom du torrent en parties en utilisant le point comme délimiteur
-    string[] parts = RdName.Split('.');
+    // Diviser le nom en parties en utilisant l'espace comme délimiteur
+    string[] parts = rdName.Split('.');
 
-    // Le premier élément devrait être le nom de la série
-    return parts[0];
+    // Rechercher la première partie qui contient uniquement des caractères alphabétiques
+    foreach (string part in parts)
+    {
+        if (Regex.IsMatch(part, @"^[A-Za-z]+$"))
+        {
+            return part;
+        }
+    }
+
+    // Si aucun nom de série n'est trouvé, retourner null
+    return null;
 }
 
 
