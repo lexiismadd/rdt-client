@@ -702,7 +702,7 @@ public class TvdbSearchResponse
 public class TvdbSeriesData
 {
     public int Id { get; set; }
-    public string string seriesName { get; set; }
+    public string SeriesName { get; set; }
 }
 
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
