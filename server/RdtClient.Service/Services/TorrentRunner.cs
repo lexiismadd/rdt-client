@@ -760,7 +760,6 @@ private string ExtractSeriesNameFromRdName(string rdName)
     return string.IsNullOrWhiteSpace(seriesName) ? null : seriesName;
 }
 
-
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
 {
     try
