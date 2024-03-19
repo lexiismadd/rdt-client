@@ -707,15 +707,15 @@ public class TvdbSeriesData
     public string SeriesName { get; set; }
 }
 
-private string ExtractSeriesNameFromTorrentName(string torrent.RdName)
+private string ExtractSeriesNameFromTorrentName(string RdName)
 {
-    if (string.IsNullOrWhiteSpace(torrent.RdName))
+    if (string.IsNullOrWhiteSpace(RdName))
     {
         return null;
     }
 
     // Séparer le nom du torrent en parties en utilisant le point comme délimiteur
-    string[] parts = torrent.RdName.Split('.');
+    string[] parts = RdName.Split('.');
 
     // Le premier élément devrait être le nom de la série
     return parts[0];
