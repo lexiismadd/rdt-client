@@ -11,6 +11,8 @@ using RdtClient.Data.Models.Data;
 using RdtClient.Data.Models.Internal;
 using RdtClient.Service.Helpers;
 using RdtClient.Service.Services.Downloaders;
+using System.Text.RegularExpressions;
+
 
 namespace RdtClient.Service.Services;
 
