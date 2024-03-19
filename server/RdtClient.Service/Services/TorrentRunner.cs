@@ -548,7 +548,8 @@ public class TorrentRunner
                    foreach (var download in queuedDownloads)
                    {
                        // Récupérer l'ID de la série à partir du nom du torrent
-                       int? seriesId = await GetSeriesIdFromNameAsync(torrent.RdName);
+                       seriesName = ExtractSeriesNameFromTorrentName(download.Torrent.Name);
+                       int? seriesId = await GetSeriesIdFromNameAsync(seriesName);
 
                        if (seriesId.HasValue)
                        {
@@ -703,6 +704,21 @@ public class TvdbSeriesData
     public int Id { get; set; }
     public string SeriesName { get; set; }
 }
+
+private string ExtractSeriesNameFromTorrentName(torrent.RdName)
+{
+    if (string.IsNullOrWhiteSpace(torrent.RdName))
+    {
+        return null;
+    }
+
+    // Séparer le nom du torrent en parties en utilisant le point comme délimiteur
+    string[] parts = torrent.RdName.Split('.');
+
+    // Le premier élément devrait être le nom de la série
+    return parts[0];
+}
+
 
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
 {
