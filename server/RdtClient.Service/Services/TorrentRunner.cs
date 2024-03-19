@@ -725,6 +725,19 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName)
     }
 }
 
+
+public class TvdbSearchResponse
+{
+    public List<TvdbSeriesData> Data { get; set; }
+}
+
+public class TvdbSeriesData
+{
+    public int Id { get; set; }
+    public string SeriesName { get; set; }
+}
+
+
 private string ExtractSeriesNameFromRdName(string rdName)
 {
     if (string.IsNullOrWhiteSpace(rdName))
