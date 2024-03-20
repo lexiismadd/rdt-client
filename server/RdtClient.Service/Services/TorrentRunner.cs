@@ -691,34 +691,31 @@ public class TorrentRunner
 
 
 
-private async Task AddSeriesToSonarr(int? tvdbId)
+private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName)
 {
     try
     {
-        if (tvdbId.HasValue)
+        if (theTvdbId.HasValue && !string.IsNullOrEmpty(seriesName))
         {
             var sonarrApiKey = "610d8bd7b8f946518ab6374e0ad11f91";
-            var sonarrUrl = "http://sonarr:8989/api/v3";
+            var sonarrUrl = "http://141.145.207.227:8989/api/v3";
 
             var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Add("X-Api-Key", sonarrApiKey);
 
             var requestData = new
             {
-                tvdbId = tvdbId.Value,
-                qualityProfileId = 1, // Replace with your quality profile ID
-                languageProfileId = 1, // Replace with your language profile ID
-                monitored = true,
-                addOptions = new
-                {
-                    searchForMissingEpisodes = true
-                }
+                tvdbId = theTvdbId.Value,
+                qualityProfileId = 4, // Replace with your quality profile ID
+                title = seriesName,
+                RootFolderPath = "/home/ubuntu/Medias/Series",
+                monitored = true
             };
 
             var json = JsonSerializer.Serialize(requestData);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await httpClient.PostAsync($"{sonarrUrl}/api/series", content);
+            var response = await httpClient.PostAsync($"{sonarrUrl}/series", content);
 
             if (response.IsSuccessStatusCode)
             {
@@ -731,7 +728,7 @@ private async Task AddSeriesToSonarr(int? tvdbId)
         }
         else
         {
-            _logger.LogError("Impossible d'ajouter la série à Sonarr : ID TheTVDB manquant.");
+            _logger.LogError("Impossible d'ajouter la série à Sonarr : ID TheTVDB ou nom de série manquant.");
         }
     }
     catch (Exception ex)
