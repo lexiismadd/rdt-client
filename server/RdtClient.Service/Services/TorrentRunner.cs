@@ -695,53 +695,49 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName)
 {
     try
     {
-        // URL de recherche de la série sur TVmaze
-        string searchUrl = $"http://api.tvmaze.com/search/shows?q={HttpUtility.UrlEncode(seriesName)}";
-
-        // Utilisation d'un client HTTP pour envoyer une requête GET à l'API TVmaze
         using (HttpClient httpClient = new HttpClient())
         {
-            // Envoi de la requête et attente de la réponse
+            string searchUrl = $"https://api.tvmaze.com/search/shows?q={HttpUtility.UrlEncode(seriesName)}";
             HttpResponseMessage response = await httpClient.GetAsync(searchUrl);
 
-            // Vérification si la réponse est un succès
             if (response.IsSuccessStatusCode)
             {
-                // Lecture du contenu de la réponse
                 string jsonResponse = await response.Content.ReadAsStringAsync();
+                var searchData = JsonSerializer.Deserialize<List<TvMazeSearchResult>>(jsonResponse);
 
-                // Désérialisation de la réponse JSON en une liste d'objets de série
-                var searchResults = JsonSerializer.Deserialize<List<TvMazeSearchResult>>(jsonResponse);
-
-                // Vérification si des résultats ont été trouvés
-                if (searchResults != null && searchResults.Any())
+                if (searchData != null && searchData.Any())
                 {
-                    // Retourne l'ID de la première série correspondante trouvée
-                    return searchResults.First().show.id;
+                    // Vous pouvez choisir le premier résultat ou mettre en place une logique de sélection plus avancée ici
+                    int tvdbId = searchData.First().Show.ExternalIds.TheTvdb;
+                    return tvdbId;
                 }
             }
         }
     }
     catch (Exception ex)
     {
-        // Gestion des erreurs potentielles lors de l'appel à l'API TVmaze
-        _logger.LogError($"An error occurred while fetching series ID from TVmaze: {ex.Message}");
+        _logger.LogError($"Erreur lors de la recherche de l'ID de la série sur TVmaze : {ex.Message}");
     }
-
+    
     return null;
 }
 
-
 public class TvMazeSearchResult
 {
-    public Show show { get; set; }
+    public TvMazeShow Show { get; set; }
 }
 
-public class Show
+public class TvMazeShow
 {
-    public int id { get; set; }
-    // Ajoutez d'autres propriétés si nécessaire
+    public TvMazeExternalIds ExternalIds { get; set; }
 }
+
+public class TvMazeExternalIds
+{
+    public int TheTvdb { get; set; }
+}
+
+
 
 private string ExtractSeriesNameFromRdName(string rdName)
 {
