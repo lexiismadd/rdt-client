@@ -715,24 +715,25 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName)
 
                 if (searchData != null && searchData.Count > 0)
                 {
-                    var firstResult = searchData[0];
-                    if (firstResult != null && firstResult.Externals != null && !string.IsNullOrEmpty(firstResult.Externals.TheTvdb))
+                    foreach (var result in searchData)
                     {
-                        if (int.TryParse(firstResult.Externals.TheTvdb, out int tvdbId))
+                        if (result.Show != null && result.Show.Externals != null && !string.IsNullOrEmpty(result.Show.Externals.TheTvdb))
                         {
-                            return tvdbId;
-                        }
-                        else
-                        {
-                            _logger.LogError("L'ID TheTVDB de la série dans la réponse JSON n'est pas un nombre entier valide.");
-                            return null;
+                            if (int.TryParse(result.Show.Externals.TheTvdb, out int tvdbId))
+                            {
+                                return tvdbId;
+                            }
+                            else
+                            {
+                                _logger.LogError("L'ID TheTVDB de la série dans la réponse JSON n'est pas un nombre entier valide.");
+                                return null;
+                            }
                         }
                     }
-                    else
-                    {
-                        _logger.LogError("La clé show.externals.thetvdb est absente ou vide dans la réponse JSON.");
-                        return null;
-                    }
+
+                    // Si aucun résultat avec l'ID TheTVDB n'a été trouvé
+                    _logger.LogError("Aucun ID TheTVDB trouvé dans la réponse JSON.");
+                    return null;
                 }
                 else
                 {
