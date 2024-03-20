@@ -720,7 +720,9 @@ private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName)
 
             if (response.IsSuccessStatusCode)
             {
-                _logger.LogInformation("Série ajoutée avec succès à Sonarr.");
+             //   _logger.LogInformation("Série ajoutée avec succès à Sonarr.");
+                _logger.LogError($"Échec de l'ajout de la série à Sonarr : {response.ReasonPhrase}. Contenu de la réponse : {await response.Content.ReadAsStringAsync()}");
+
             }
             else
             {
