@@ -577,7 +577,7 @@ public class TorrentRunner
                        int? theTvdbId = null;
                        theTvdbId = await GetSeriesIdFromNameAsync(seriesName);
                        Log($"Numero ID : {theTvdbId }");
-                       await AddSeriesToSonarr(theTvdbId.Value, seriesName);
+                       await AddSeriesToSonarr(theTvdbId.Value, seriesName, torrent.Category);
 
 
 
@@ -585,8 +585,7 @@ public class TorrentRunner
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
                         {
-                            await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
-                        }
+                            await TryRefreshMonitoredDownloadsAsync(torrent.Category, category, Settings.Get.General.RadarrSonarrInstanceConfigPath);                        }
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
                         {
@@ -669,7 +668,7 @@ public class TorrentRunner
 
 
 
-private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName)
+private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName, string category)
 {
     try
     {
@@ -821,7 +820,8 @@ private string ExtractSeriesNameFromRdName(string rdName)
 }
 
 
-private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
+private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string category, string configFilePath)
+
 {
     try
     {
