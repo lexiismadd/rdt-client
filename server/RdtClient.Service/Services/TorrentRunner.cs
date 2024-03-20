@@ -566,26 +566,15 @@ public class TorrentRunner
                        // Log($"Impossible de trouver l'ID de la série pour {torrent.RdName}");
                        // }
 
-// Suppose que torrent.RdName contient le nom du torrent
-string seriesName = ExtractSeriesNameFromRdName(torrent.RdName);
+                       // Suppose que torrent.RdName contient le nom du torrent
+                       string seriesName = ExtractSeriesNameFromRdName(torrent.RdName);
 
-    // Faire quelque chose avec le nom de la série extrait
-    Log($"Nom de la série extrait : {seriesName}");
+                       Log($"Nom de la série extrait : {seriesName}");
 
-    int? seriesId = await GetSeriesIdFromNameAsync(seriesName);
-    int? tvdbId = await GetSeriesIdFromNameAsync(seriesName);
+                       int? seriesId = await GetSeriesIdFromNameAsync(seriesName);
+                       int? tvdbId = await GetSeriesIdFromNameAsync(seriesName);
 
-// Si l'ID TVDB est nullable, assurez-vous qu'il a une valeur avant de le passer à la méthode AddSeriesToSonarr
-if (tvdbId.HasValue)
-{
-    // Convertissez l'ID TVDB nullable en int avant de l'envoyer à la méthode AddSeriesToSonarr
-    await AddSeriesToSonarr(tvdbId.Value, "a0fd79bef1fe4b27950726523b782143", "http://sonarr:8989/api");
-}
-else
-{
-    // Gérez le cas où l'ID TVDB est null, peut-être en journalisant une erreur ou en prenant une autre action
-    LogError("L'ID TVDB est null.");
-}
+                       await AddSeriesToSonarr(tvdbId.Value, "a0fd79bef1fe4b27950726523b782143", "http://sonarr:8989/api");
 
 
 
