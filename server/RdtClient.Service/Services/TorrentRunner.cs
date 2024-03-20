@@ -695,9 +695,10 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName)
 {
     try
     {
+        string searchUrl = $"https://api.tvmaze.com/search/shows?q={HttpUtility.UrlEncode(seriesName)}";
+
         using (HttpClient httpClient = new HttpClient())
         {
-            string searchUrl = $"https://api.tvmaze.com/search/shows?q={HttpUtility.UrlEncode(seriesName)}";
             HttpResponseMessage response = await httpClient.GetAsync(searchUrl);
 
             if (response.IsSuccessStatusCode)
@@ -705,22 +706,23 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName)
                 string jsonResponse = await response.Content.ReadAsStringAsync();
                 var searchData = JsonSerializer.Deserialize<List<TvMazeSearchResult>>(jsonResponse);
 
-                if (searchData != null && searchData.Any())
+                if (searchData != null && searchData.Count > 0)
                 {
-                    // Vous pouvez choisir le premier résultat ou mettre en place une logique de sélection plus avancée ici
-                    int tvdbId = searchData.First().Show.ExternalIds.TheTvdb;
-                    return tvdbId;
+                    // Retourne l'ID de la première série correspondante trouvée
+                    return searchData[0].show.externals.thetvdb;
                 }
             }
+
+            return null;
         }
     }
     catch (Exception ex)
     {
-        _logger.LogError($"Erreur lors de la recherche de l'ID de la série sur TVmaze : {ex.Message}");
+        _logger.LogError($"Une erreur est survenue lors de la recherche de l'ID de la série : {ex.Message}");
+        return null;
     }
-    
-    return null;
 }
+
 
 public class TvMazeSearchResult
 {
