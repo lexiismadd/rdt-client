@@ -581,6 +581,7 @@ string seriesName = ExtractSeriesNameFromRdName(torrent.RdName);
     if (seriesId.HasValue)
     {
     Log($"Série trouvée avec l'ID {seriesId.Value}");
+    await AddSeriesToSonarr(seriesName, tvdbId.Value);
     }
     else
     {
@@ -697,6 +698,53 @@ string seriesName = ExtractSeriesNameFromRdName(torrent.RdName);
         }
     }
 
+
+
+
+
+private async Task AddSeriesToSonarr(string seriesName, int tvdbId)
+{
+    try
+    {
+        // Endpoint pour ajouter une série dans Sonarr
+        string sonarrUrl = "http://localhost:8989/api/series";
+
+        // Paramètres de la série à ajouter
+        var seriesData = new
+        {
+            tvdbId = tvdbId,
+            // Autres paramètres de la série...
+        };
+
+        // Envoi de la requête POST à l'API Sonarr
+        using (HttpClient httpClient = new HttpClient())
+        {
+            httpClient.DefaultRequestHeaders.Add("X-Api-Key", "a0fd79bef1fe4b27950726523b782143");
+            var content = new StringContent(JsonSerializer.Serialize(seriesData), Encoding.UTF8, "application/json");
+            HttpResponseMessage response = await httpClient.PostAsync(sonarrUrl, content);
+
+            // Vérification de la réponse
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation($"La série '{seriesName}' a été ajoutée avec succès à Sonarr !");
+            }
+            else
+            {
+                _logger.LogError($"Échec de l'ajout de la série '{seriesName}' à Sonarr : {response.StatusCode}");
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Une erreur est survenue lors de l'ajout de la série '{seriesName}' à Sonarr : {ex.Message}");
+    }
+}
+
+
+
+
+
+
 private async Task<int?> GetSeriesIdFromNameAsync(string seriesName)
 {
     try
@@ -711,39 +759,30 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName)
             {
                 string jsonResponse = await response.Content.ReadAsStringAsync();
 
-                // Désérialiser la chaîne JSON en un tableau d'objets JSON
                 JsonDocument jsonDoc = JsonDocument.Parse(jsonResponse);
                 JsonElement root = jsonDoc.RootElement;
 
-                // Vérifier si le tableau JSON est vide
                 if (root.GetArrayLength() == 0)
                 {
                     return null;
                 }
 
-                // Accéder au premier élément du tableau
                 JsonElement firstElement = root[0];
 
-                // Vérifier si la clé "show" existe dans le premier élément
                 if (firstElement.TryGetProperty("show", out JsonElement showElement))
                 {
-                    // Accéder à la propriété "externals" de l'élément "show"
                     if (showElement.TryGetProperty("externals", out JsonElement externalsElement))
                     {
-                        // Accéder à la propriété "thetvdb" de l'élément "externals"
                         if (externalsElement.TryGetProperty("thetvdb", out JsonElement tvdbElement))
                         {
-                            // Vérifier si la valeur de "thetvdb" est un entier
                             if (tvdbElement.ValueKind == JsonValueKind.Number)
                             {
-                                // Extraire et retourner l'ID TheTVDB en tant qu'entier
                                 return tvdbElement.GetInt32();
                             }
                         }
                     }
                 }
 
-                // Si l'ID TheTVDB n'est pas trouvé, retourner null
                 return null;
             }
             else
@@ -784,35 +823,27 @@ private string ExtractSeriesNameFromRdName(string rdName)
         return null;
     }
 
-    // Diviser le nom en parties en utilisant l'espace comme délimiteur
     string[] parts = rdName.Split('.');
 
-    // Initialiser une liste pour stocker les parties alphabétiques du nom de la série
     List<string> seriesParts = new List<string>();
 
-    // Parcourir toutes les parties
     foreach (string part in parts)
     {
-        // Si la partie commence par "S01E" ou "SxxExx", c'est le début du numéro de saison et d'épisode, donc arrêter ici
         if (Regex.IsMatch(part, @"^S\d{2}E\d{2}$"))
         {
             break;
         }
 
-        // Vérifier si la partie contient des chiffres, ce qui indique qu'elle ne fait pas partie du nom de la série
         if (Regex.IsMatch(part, @"\d"))
         {
             continue;
         }
 
-        // Ajouter la partie à la liste des parties du nom de la série
         seriesParts.Add(part);
     }
 
-    // Concaténer toutes les parties alphabétiques pour former le nom de la série
     string seriesName = string.Join(" ", seriesParts);
 
-    // Si aucun nom de série n'est trouvé, retourner null
     return string.IsNullOrWhiteSpace(seriesName) ? null : seriesName;
 }
 
