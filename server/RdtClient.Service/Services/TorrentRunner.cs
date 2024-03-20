@@ -13,6 +13,12 @@ using RdtClient.Data.Models.Data;
 using RdtClient.Data.Models.Internal;
 using RdtClient.Service.Helpers;
 using RdtClient.Service.Services.Downloaders;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading.Tasks;
+
+
 
 
 
@@ -695,6 +701,7 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName)
 {
     try
     {
+        string apiKey = "_UeNdmy9Tv6Cciomhs9AdivEP1ZQtH7E"; // Remplacez par votre propre clé API TVMaze
         string searchUrl = $"https://api.tvmaze.com/search/shows?q={HttpUtility.UrlEncode(seriesName)}";
 
         using (HttpClient httpClient = new HttpClient())
@@ -708,21 +715,44 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName)
 
                 if (searchData != null && searchData.Count > 0)
                 {
-                    // Retourne l'ID de la première série correspondante trouvée
-                    return searchData[0].show.externals.thetvdb;
+                    var firstResult = searchData[0];
+                    if (firstResult != null && firstResult.Show != null && firstResult.Show.Externals != null && !string.IsNullOrEmpty(firstResult.Show.Externals.TheTvdb))
+                    {
+                        if (int.TryParse(firstResult.Show.Externals.TheTvdb, out int tvdbId))
+                        {
+                            return tvdbId;
+                        }
+                        else
+                        {
+                            _logger.LogError("L'ID TheTVDB de la série dans la réponse JSON n'est pas un nombre entier valide.");
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogError("La clé show.externals.thetvdb est absente ou vide dans la réponse JSON.");
+                        return null;
+                    }
+                }
+                else
+                {
+                    _logger.LogError("Aucune donnée de recherche n'a été retournée par l'API TVMaze.");
+                    return null;
                 }
             }
-
-            return null;
+            else
+            {
+                _logger.LogError("La requête API TVMaze a échoué : " + response.ReasonPhrase);
+                return null;
+            }
         }
     }
     catch (Exception ex)
     {
-        _logger.LogError($"Une erreur est survenue lors de la recherche de l'ID de la série : {ex.Message}");
+        _logger.LogError($"Une erreur est survenue lors de la recherche de l'ID de la série sur TVMaze : {ex.Message}");
         return null;
     }
 }
-
 
 public class TvMazeSearchResult
 {
@@ -731,12 +761,12 @@ public class TvMazeSearchResult
 
 public class TvMazeShow
 {
-    public TvMazeExternalIds ExternalIds { get; set; }
+    public TvMazeExternals Externals { get; set; }
 }
 
-public class TvMazeExternalIds
+public class TvMazeExternals
 {
-    public int TheTvdb { get; set; }
+    public string TheTvdb { get; set; }
 }
 
 
