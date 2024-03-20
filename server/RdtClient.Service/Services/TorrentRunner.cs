@@ -579,7 +579,7 @@ string seriesName = ExtractSeriesNameFromRdName(torrent.RdName);
 if (tvdbId.HasValue)
 {
     // Convertissez l'ID TVDB nullable en int avant de l'envoyer à la méthode AddSeriesToSonarr
-    await AddSeriesToSonarr(tvdbId.Value, "votre_api_key_sonarr", "http://votre_adresse_sonarr/api");
+    await AddSeriesToSonarr(tvdbId.Value, "a0fd79bef1fe4b27950726523b782143", "http://sonarr:8989/api");
 }
 else
 {
