@@ -701,7 +701,6 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName)
 {
     try
     {
-        string apiKey = "_UeNdmy9Tv6Cciomhs9AdivEP1ZQtH7E"; // Remplacez par votre propre clé API TVMaze
         string searchUrl = $"https://api.tvmaze.com/search/shows?q={HttpUtility.UrlEncode(seriesName)}";
 
         using (HttpClient httpClient = new HttpClient())
@@ -715,25 +714,24 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName)
 
                 if (searchData != null && searchData.Count > 0)
                 {
-                    foreach (var result in searchData)
+                    var firstResult = searchData[0];
+                    if (firstResult != null && firstResult.Show != null && firstResult.Show.Externals != null && !string.IsNullOrEmpty(firstResult.Show.Externals.TheTvdb))
                     {
-                        if (result != null && result.Show != null && result.Show.Externals != null && !string.IsNullOrEmpty(result.Show.Externals.TheTvdb))
+                        if (int.TryParse(firstResult.Show.Externals.TheTvdb, out int tvdbId))
                         {
-                            if (int.TryParse(result.Show.Externals.TheTvdb, out int tvdbId))
-                            {
-                                return tvdbId;
-                            }
-                            else
-                            {
-                                _logger.LogError("L'ID TheTVDB de la série dans la réponse JSON n'est pas un nombre entier valide.");
-                                return null;
-                            }
+                            return tvdbId;
+                        }
+                        else
+                        {
+                            _logger.LogError("L'ID TheTVDB de la série dans la réponse JSON n'est pas un nombre entier valide.");
+                            return null;
                         }
                     }
-
-                    // Si aucun résultat avec l'ID TheTVDB n'a été trouvé
-                    _logger.LogError("Aucun ID TheTVDB trouvé dans la réponse JSON.");
-                    return null;
+                    else
+                    {
+                        _logger.LogError("La clé show.externals.thetvdb est absente ou vide dans la réponse JSON.");
+                        return null;
+                    }
                 }
                 else
                 {
