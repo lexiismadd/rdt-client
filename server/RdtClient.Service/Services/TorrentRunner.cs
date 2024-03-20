@@ -702,44 +702,42 @@ string seriesName = ExtractSeriesNameFromRdName(torrent.RdName);
 
 
 
-public async Task AddSeriesToSonarr(int tvdbId, string seriesName)
+private async Task<bool> AddSeriesToSonarr(string seriesName, int tvdbId)
 {
     try
     {
-        string sonarrUrl = "http://sonarr:8989"; // Remplacez par l'URL de votre instance Sonarr
+        string apiUrl = "http://sonarr:8989/api/series"; // Remplacez par l'URL de votre instance Sonarr
         string apiKey = "a0fd79bef1fe4b27950726523b782143"; // Remplacez par votre clé API Sonarr
 
-        // Construire l'objet de la série à ajouter à Sonarr
-        var seriesData = new
+        using (HttpClient httpClient = new HttpClient())
         {
-            tvdbId = tvdbId,
-            title = seriesName
-            // Ajoutez d'autres propriétés de série si nécessaire
-        };
+            httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
 
-        // Convertir l'objet série en JSON
-        var jsonContent = JsonSerializer.Serialize(seriesData);
+            var requestData = new
+            {
+                tvdbId = tvdbId
+            };
 
-        // Configurer les en-têtes HTTP avec la clé API Sonarr
-        _httpClient.DefaultRequestHeaders.Clear();
-        _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
+            var jsonRequest = JsonConvert.SerializeObject(requestData);
+            var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
 
-        // Envoyer la demande POST à Sonarr pour ajouter la série
-        var response = await _httpClient.PostAsync(sonarrUrl + "/api/series", new StringContent(jsonContent, Encoding.UTF8, "application/json"));
+            HttpResponseMessage response = await httpClient.PostAsync(apiUrl, content);
 
-        // Vérifier si la demande a réussi
-        if (response.IsSuccessStatusCode)
-        {
-            _logger.LogInformation($"Série '{seriesName}' ajoutée avec succès à Sonarr.");
-        }
-        else
-        {
-            _logger.LogError($"Échec de l'ajout de la série '{seriesName}' à Sonarr : {response.ReasonPhrase}");
+            if (response.IsSuccessStatusCode)
+            {
+                return true;
+            }
+            else
+            {
+                _logger.LogError($"Échec de l'ajout de la série '{seriesName}' à Sonarr : {response.ReasonPhrase}");
+                return false;
+            }
         }
     }
     catch (Exception ex)
     {
         _logger.LogError($"Échec de l'ajout de la série '{seriesName}' à Sonarr : {ex.Message}");
+        return false;
     }
 }
 
