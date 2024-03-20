@@ -18,10 +18,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
-
-
-
-
 namespace RdtClient.Service.Services;
 
 public class TorrentRunner
@@ -703,53 +699,34 @@ string seriesName = ExtractSeriesNameFromRdName(torrent.RdName);
 
 
 
-private async Task<bool> AddSeriesToSonarr(string title, int tvdbId)
-{
-    try
-    {
-        string apiKey = "a0fd79bef1fe4b27950726523b782143"; // Remplacez par votre propre clé API Sonarr
-        string apiUrl = "http://adresse_de_votre_sonarr/api/series"; // Remplacez par l'URL de votre Sonarr
 
-        // Construction des données de la série à ajouter
-        var serieData = new
+public async Task AddSeriesToSonarr(int seriesId)
+{
+        var apiUrl = "http://sonarr:8989"; // Remplacez par l'URL de l'API Sonarr
+        var apiKey = "a0fd79bef1fe4b27950726523b782143"; // Remplacez par votre clé API Sonarr
+
+        var requestData = new
         {
-            title = title,
-            tvdbId = tvdbId,
-            // Ajoutez d'autres propriétés de la série si nécessaire
+            tvdbId = seriesId
         };
 
-        using (HttpClient httpClient = new HttpClient())
+        var jsonRequest = JsonSerializer.Serialize(requestData);
+        var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+
+        _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
+
+        var response = await _httpClient.PostAsync(apiUrl, content);
+
+        if (response.IsSuccessStatusCode)
         {
-            httpClient.DefaultRequestHeaders.Accept.Clear();
-            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-
-            // Ajout de l'en-tête d'authentification
-            httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
-
-            // Envoi de la requête POST
-            HttpResponseMessage response = await httpClient.PostAsJsonAsync(apiUrl, serieData);
-
-            if (response.IsSuccessStatusCode)
-            {
-                // Série ajoutée avec succès
-                return true;
-            }
-            else
-            {
-                // Gestion des erreurs
-                string errorMessage = await response.Content.ReadAsStringAsync();
-                _logger.LogError($"Échec de l'ajout de la série '{title}' à Sonarr : {response.StatusCode} - {errorMessage}");
-                return false;
-            }
+            // La série a été ajoutée avec succès à Sonarr
+        }
+        else
+        {
+            // Gérer les erreurs en fonction du code de statut de la réponse
         }
     }
-    catch (Exception ex)
-    {
-        // Gestion des exceptions
-        _logger.LogError($"Une erreur est survenue lors de l'ajout de la série '{title}' à Sonarr : {ex.Message}");
-        return false;
-    }
-}
+
 
 
 
