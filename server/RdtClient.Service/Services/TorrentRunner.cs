@@ -576,6 +576,11 @@ public class TorrentRunner
                        await AddSeriesToSonarr(theTvdbId.Value);
 
 
+                       string seriesName = ExtractSeriesNameFromRdName(rdName);
+                       await AddSeriesToSonarr(theTvdbId.Value, seriesName);
+
+
+
 
 
 
