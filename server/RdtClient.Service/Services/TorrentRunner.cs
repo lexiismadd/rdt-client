@@ -568,13 +568,13 @@ public class TorrentRunner
 
                        // Suppose que torrent.RdName contient le nom du torrent
                        string seriesName = ExtractSeriesNameFromRdName(torrent.RdName);
-
                        Log($"Nom de la série extrait : {seriesName}");
-
                        int? seriesId = await GetSeriesIdFromNameAsync(seriesName);
-                       int? tvdbId = await GetSeriesIdFromNameAsync(seriesName);
+                       int? theTvdbId = null;
+                       theTvdbId = await GetSeriesIdFromNameAsync(seriesName);
+                       await AddSeriesToSonarr(theTvdbId.Value);
 
-                       await AddSeriesToSonarr(seriesName, theTvdbId);
+
 
 
 
