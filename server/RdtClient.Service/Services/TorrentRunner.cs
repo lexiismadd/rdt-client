@@ -718,6 +718,7 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName)
                     var firstResult = searchData[0];
                     if (firstResult != null && firstResult.Show != null && firstResult.Show.Externals != null && !string.IsNullOrEmpty(firstResult.Show.Externals.TheTvdb))
                     {
+                        // Retourner directement l'ID TheTVDB en tant qu'entier
                         if (int.TryParse(firstResult.Show.Externals.TheTvdb, out int tvdbId))
                         {
                             return tvdbId;
