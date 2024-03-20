@@ -717,7 +717,7 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName)
                 {
                     foreach (var result in searchData)
                     {
-                        if (result.Show != null && result.Show.Externals != null && !string.IsNullOrEmpty(result.Show.Externals.TheTvdb))
+                        if (result != null && result.Show != null && result.Show.Externals != null && !string.IsNullOrEmpty(result.Show.Externals.TheTvdb))
                         {
                             if (int.TryParse(result.Show.Externals.TheTvdb, out int tvdbId))
                             {
