@@ -573,10 +573,6 @@ public class TorrentRunner
                        int? theTvdbId = null;
                        theTvdbId = await GetSeriesIdFromNameAsync(seriesName);
                        Log($"Numero ID : {theTvdbId }");
-                       await AddSeriesToSonarr(theTvdbId.Value);
-
-
-                       string seriesName = ExtractSeriesNameFromRdName(rdName);
                        await AddSeriesToSonarr(theTvdbId.Value, seriesName);
 
 
