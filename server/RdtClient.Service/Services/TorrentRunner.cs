@@ -697,17 +697,19 @@ private async Task AddSeriesToSonarr(int? tvdbId)
     {
         if (tvdbId.HasValue)
         {
-            var sonarrApiKey = "Ya0fd79bef1fe4b27950726523b782143";
+            var sonarrUsername = "admin";
+            var sonarrPassword = "A6b5cc8p!";
             var sonarrUrl = "http://sonarr:8989";
 
             var httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.Add("X-Api-Key", sonarrApiKey);
+            var credentials = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{sonarrUsername}:{sonarrPassword}"));
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
 
             var requestData = new
             {
                 tvdbId = tvdbId.Value,
-                qualityProfileId = 1, // Replace with your quality profile ID
-                languageProfileId = 1, // Replace with your language profile ID
+                qualityProfileId = 1, // Remplacez par l'ID de votre profil de qualité
+                languageProfileId = 1, // Remplacez par l'ID de votre profil de langue
                 monitored = true,
                 addOptions = new
                 {
