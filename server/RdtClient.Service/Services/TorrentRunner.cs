@@ -577,6 +577,7 @@ string seriesName = ExtractSeriesNameFromRdName(torrent.RdName);
     Log($"Nom de la série extrait : {seriesName}");
 
     int? seriesId = await GetSeriesIdFromNameAsync(seriesName);
+    int? tvdbId = await GetSeriesIdFromNameAsync(seriesName);
 
     if (seriesId.HasValue)
     {
