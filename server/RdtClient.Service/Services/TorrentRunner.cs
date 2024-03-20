@@ -701,7 +701,6 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName)
 {
     try
     {
-        string apiKey = "_UeNdmy9Tv6Cciomhs9AdivEP1ZQtH7E"; // Remplacez par votre propre clé API TVMaze
         string searchUrl = $"https://api.tvmaze.com/search/shows?q={HttpUtility.UrlEncode(seriesName)}";
 
         using (HttpClient httpClient = new HttpClient())
@@ -711,39 +710,45 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName)
             if (response.IsSuccessStatusCode)
             {
                 string jsonResponse = await response.Content.ReadAsStringAsync();
-                var searchData = JsonSerializer.Deserialize<List<TvMazeSearchResult>>(jsonResponse);
 
-                if (searchData != null && searchData.Count > 0)
+                // Désérialiser la chaîne JSON en un tableau d'objets JSON
+                JsonDocument jsonDoc = JsonDocument.Parse(jsonResponse);
+                JsonElement root = jsonDoc.RootElement;
+
+                // Vérifier si le tableau JSON est vide
+                if (root.GetArrayLength() == 0)
                 {
-                    var firstResult = searchData[0];
-                    if (firstResult != null && firstResult.Show != null && firstResult.Show.Externals != null && !string.IsNullOrEmpty(firstResult.Show.Externals.TheTvdb))
-                    {
-                        // Retourner directement l'ID TheTVDB en tant qu'entier
-                        if (int.TryParse(firstResult.Show.Externals.TheTvdb, out int tvdbId))
-                        {
-                            return tvdbId;
-                        }
-                        else
-                        {
-                            _logger.LogError("L'ID TheTVDB de la série dans la réponse JSON n'est pas un nombre entier valide.");
-                            return null;
-                        }
-                    }
-                    else
-                    {
-                        _logger.LogError("La clé show.externals.thetvdb est absente ou vide dans la réponse JSON.");
-                        return null;
-                    }
-                }
-                else
-                {
-                    _logger.LogError("Aucune donnée de recherche n'a été retournée par l'API TVMaze.");
                     return null;
                 }
+
+                // Accéder au premier élément du tableau
+                JsonElement firstElement = root[0];
+
+                // Vérifier si la clé "show" existe dans le premier élément
+                if (firstElement.TryGetProperty("show", out JsonElement showElement))
+                {
+                    // Accéder à la propriété "externals" de l'élément "show"
+                    if (showElement.TryGetProperty("externals", out JsonElement externalsElement))
+                    {
+                        // Accéder à la propriété "thetvdb" de l'élément "externals"
+                        if (externalsElement.TryGetProperty("thetvdb", out JsonElement tvdbElement))
+                        {
+                            // Vérifier si la valeur de "thetvdb" est un entier
+                            if (tvdbElement.ValueKind == JsonValueKind.Number)
+                            {
+                                // Extraire et retourner l'ID TheTVDB en tant qu'entier
+                                return tvdbElement.GetInt32();
+                            }
+                        }
+                    }
+                }
+
+                // Si l'ID TheTVDB n'est pas trouvé, retourner null
+                return null;
             }
             else
             {
-                _logger.LogError("La requête API TVMaze a échoué : " + response.ReasonPhrase);
+                _logger.LogError($"La requête API TVMaze a échoué : {response.ReasonPhrase}");
                 return null;
             }
         }
