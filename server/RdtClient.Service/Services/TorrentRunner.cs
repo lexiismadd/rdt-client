@@ -549,24 +549,12 @@ public class TorrentRunner
                     }
                 }
 
-                       //BLOC ESSAI A GARDER POUR L INSTANT
+                // Check if torrent is complete, or if we don't want to download any files to the host.
+                if ((torrent.Downloads.Count > 0) || 
+                    torrent.RdStatus == TorrentStatus.Finished && torrent.HostDownloadAction == TorrentHostDownloadAction.DownloadNone)
+                {
 
-                   // Log($"Corinne est partie faire son menage {torrent.TorrentId}");
-                   // Log($"patrick est partie faire son menage {torrent.RdName}");
-                       // Récupérer l'ID de la série à partir du nom du torrent
-                       // seriesName = ExtractSeriesNameFromTorrentName(torrent.RdName);
-                       // int? seriesId = await GetSeriesIdFromNameAsync(torrent.RdName);
 
-                       // if (seriesId.HasValue)
-                       // {
-                       // Log($"Série trouvée avec l'ID {seriesId.Value}");
-                       // }
-                       // else
-                       // {
-                       // Log($"Impossible de trouver l'ID de la série pour {torrent.RdName}");
-                       // }
-
-                       // Suppose que torrent.RdName contient le nom du torrent
                        string seriesName = ExtractSeriesNameFromRdName(torrent.RdName);
                        Log($"Nom de la série extrait : {seriesName}");
                        int? seriesId = await GetSeriesIdFromNameAsync(seriesName);
@@ -576,18 +564,6 @@ public class TorrentRunner
                        await AddSeriesToSonarr(theTvdbId.Value, seriesName);
 
 
-
-
-
-
-
-
-
-
-                // Check if torrent is complete, or if we don't want to download any files to the host.
-                if ((torrent.Downloads.Count > 0) || 
-                    torrent.RdStatus == TorrentStatus.Finished && torrent.HostDownloadAction == TorrentHostDownloadAction.DownloadNone)
-                {
                     var completeCount = torrent.Downloads.Count(m => m.Completed != null);
 
                     var completePerc = 0;
