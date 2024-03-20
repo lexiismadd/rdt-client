@@ -708,7 +708,7 @@ private async Task AddSeriesToSonarr(string seriesName, int tvdbId)
     try
     {
         // Endpoint pour ajouter une série dans Sonarr
-        string sonarrUrl = "http://localhost:8989/api/series";
+        string sonarrUrl = "http://sonarr:8989/api/series";
 
         // Paramètres de la série à ajouter
         var seriesData = new
