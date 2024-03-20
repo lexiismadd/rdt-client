@@ -698,7 +698,7 @@ private async Task AddSeriesToSonarr(int? tvdbId)
         if (tvdbId.HasValue)
         {
             var sonarrApiKey = "610d8bd7b8f946518ab6374e0ad11f91";
-            var sonarrUrl = "http://141.145.207.227:8989/api";
+            var sonarrUrl = "http://141.145.207.227:8989";
 
             var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Add("X-Api-Key", sonarrApiKey);
