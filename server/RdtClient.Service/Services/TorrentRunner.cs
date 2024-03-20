@@ -715,9 +715,9 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName)
                 if (searchData != null && searchData.Count > 0)
                 {
                     var firstResult = searchData[0];
-                    if (firstResult != null && firstResult.Show != null && firstResult.Show.Externals != null && !string.IsNullOrEmpty(firstResult.Show.Externals.TheTvdb))
+                    if (firstResult != null && firstResult.Show != null && !string.IsNullOrEmpty(firstResult.Show.TheTvdb))
                     {
-                        if (int.TryParse(firstResult.Show.Externals.TheTvdb, out int tvdbId))
+                        if (int.TryParse(firstResult.Show.TheTvdb, out int tvdbId))
                         {
                             return tvdbId;
                         }
@@ -729,7 +729,7 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName)
                     }
                     else
                     {
-                        _logger.LogError("La clé show.externals.thetvdb est absente ou vide dans la réponse JSON.");
+                        _logger.LogError("La clé show.thetvdb est absente ou vide dans la réponse JSON.");
                         return null;
                     }
                 }
