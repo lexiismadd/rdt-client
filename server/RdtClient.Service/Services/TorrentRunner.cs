@@ -574,8 +574,7 @@ public class TorrentRunner
                        int? seriesId = await GetSeriesIdFromNameAsync(seriesName);
                        int? tvdbId = await GetSeriesIdFromNameAsync(seriesName);
 
-                       await AddSeriesToSonarr(tvdbId.Value, "a0fd79bef1fe4b27950726523b782143", "http://sonarr:8989/api");
-
+                       await AddSeriesToSonarr(seriesName, theTvdbId);
 
 
 
@@ -691,33 +690,52 @@ public class TorrentRunner
 
 
 
-private async Task AddSeriesToSonarr(int tvdbId, string apiKey, string sonarrUrl)
+private async Task AddSeriesToSonarr(int? tvdbId)
 {
     try
     {
-        using (HttpClient httpClient = new HttpClient())
+        if (tvdbId.HasValue)
         {
-            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
+            var sonarrApiKey = "Ya0fd79bef1fe4b27950726523b782143";
+            var sonarrUrl = "http://sonarr:8989";
 
-            var content = new StringContent($"{{ \"tvdbId\": {tvdbId} }}", Encoding.UTF8, "application/json");
-            
-            // Assurez-vous que sonarrUrl est bien l'URL de l'API Sonarr pour ajouter une série
-            HttpResponseMessage response = await httpClient.PostAsync($"{sonarrUrl}/api/series", content);
+            var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("X-Api-Key", sonarrApiKey);
+
+            var requestData = new
+            {
+                tvdbId = tvdbId.Value,
+                qualityProfileId = 1, // Replace with your quality profile ID
+                languageProfileId = 1, // Replace with your language profile ID
+                monitored = true,
+                addOptions = new
+                {
+                    searchForMissingEpisodes = true
+                }
+            };
+
+            var json = JsonSerializer.Serialize(requestData);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await httpClient.PostAsync($"{sonarrUrl}/api/series", content);
 
             if (response.IsSuccessStatusCode)
             {
-                _logger.LogInformation("Série ajoutée à Sonarr avec succès.");
+                _logger.LogInformation("Série ajoutée avec succès à Sonarr.");
             }
             else
             {
-                _logger.LogError($"Échec de l'ajout de la série à Sonarr : {response.StatusCode}");
+                _logger.LogError($"Échec de l'ajout de la série à Sonarr : {response.ReasonPhrase}");
             }
+        }
+        else
+        {
+            _logger.LogError("Impossible d'ajouter la série à Sonarr : ID TheTVDB manquant.");
         }
     }
     catch (Exception ex)
     {
-        _logger.LogError($"Une erreur s'est produite lors de l'ajout de la série à Sonarr : {ex.Message}");
+        _logger.LogError($"Erreur lors de l'ajout de la série à Sonarr : {ex.Message}");
     }
 }
 
