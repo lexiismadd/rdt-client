@@ -828,14 +828,9 @@ private string ExtractSeriesNameFromRdName(string rdName)
 
     foreach (string part in parts)
     {
-        if (Regex.IsMatch(part, @"^S\d{2}E\d{2}$"))
+        if (Regex.IsMatch(part, @"\d")) // Vérifier si la partie contient un chiffre
         {
-            break;
-        }
-
-        if (Regex.IsMatch(part, @"\d"))
-        {
-            continue;
+            break; // Arrêter la recherche dès qu'on rencontre un chiffre
         }
 
         seriesParts.Add(part);
@@ -845,6 +840,7 @@ private string ExtractSeriesNameFromRdName(string rdName)
 
     return string.IsNullOrWhiteSpace(seriesName) ? null : seriesName;
 }
+
 
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
 {
