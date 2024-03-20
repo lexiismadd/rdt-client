@@ -732,17 +732,16 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName)
 }
 
 
-public class TvdbSearchResponse
+public class TvMazeSearchResult
 {
-    public List<TvdbSeriesData> Data { get; set; }
+    public Show show { get; set; }
 }
 
-public class TvdbSeriesData
+public class Show
 {
-    public int Id { get; set; }
-    public string SeriesName { get; set; }
+    public int id { get; set; }
+    // Ajoutez d'autres propriétés si nécessaire
 }
-
 
 private string ExtractSeriesNameFromRdName(string rdName)
 {
