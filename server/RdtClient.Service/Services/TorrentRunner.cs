@@ -567,8 +567,6 @@ public class TorrentRunner
 // Suppose que torrent.RdName contient le nom du torrent
 string seriesName = ExtractSeriesNameFromRdName(torrent.RdName);
 
-if (!string.IsNullOrEmpty(seriesName))
-{
     // Faire quelque chose avec le nom de la série extrait
     Log($"Nom de la série extrait : {seriesName}");
 
@@ -582,11 +580,6 @@ if (!string.IsNullOrEmpty(seriesName))
     {
     Log($"Impossible de trouver l'ID de la série pour {seriesName}");
     }
-}
-else
-{
-    Log("Impossible d'extraire le nom de la série.");
-}
 
 
 
@@ -700,29 +693,42 @@ else
 
 private async Task<int?> GetSeriesIdFromNameAsync(string seriesName)
 {
-    string apiKey = "fd7e1aa7-8cc5-43ba-89a6-6fe6892f5e3d"; // Remplacez par votre propre clé API TheTVDB
-    string searchUrl = $"https://api.thetvdb.com/search/series?name={HttpUtility.UrlEncode(seriesName)}";
-
-    using (HttpClient httpClient = new HttpClient())
+    try
     {
-        httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
+        // URL de recherche de la série sur TVmaze
+        string searchUrl = $"http://api.tvmaze.com/search/shows?q={HttpUtility.UrlEncode(seriesName)}";
 
-        HttpResponseMessage response = await httpClient.GetAsync(searchUrl);
-
-        if (response.IsSuccessStatusCode)
+        // Utilisation d'un client HTTP pour envoyer une requête GET à l'API TVmaze
+        using (HttpClient httpClient = new HttpClient())
         {
-            string jsonResponse = await response.Content.ReadAsStringAsync();
-            var searchData = JsonSerializer.Deserialize<TvdbSearchResponse>(jsonResponse);
+            // Envoi de la requête et attente de la réponse
+            HttpResponseMessage response = await httpClient.GetAsync(searchUrl);
 
-            if (searchData != null && searchData.Data.Any())
+            // Vérification si la réponse est un succès
+            if (response.IsSuccessStatusCode)
             {
-                // Retourne l'ID de la première série correspondante trouvée
-                return searchData.Data.First().Id;
+                // Lecture du contenu de la réponse
+                string jsonResponse = await response.Content.ReadAsStringAsync();
+
+                // Désérialisation de la réponse JSON en une liste d'objets de série
+                var searchResults = JsonSerializer.Deserialize<List<TvMazeSearchResult>>(jsonResponse);
+
+                // Vérification si des résultats ont été trouvés
+                if (searchResults != null && searchResults.Any())
+                {
+                    // Retourne l'ID de la première série correspondante trouvée
+                    return searchResults.First().show.id;
+                }
             }
         }
-
-        return null;
     }
+    catch (Exception ex)
+    {
+        // Gestion des erreurs potentielles lors de l'appel à l'API TVmaze
+        _logger.LogError($"An error occurred while fetching series ID from TVmaze: {ex.Message}");
+    }
+
+    return null;
 }
 
 
