@@ -578,8 +578,10 @@ string seriesName = ExtractSeriesNameFromRdName(torrent.RdName);
     if (seriesId.HasValue)
     {
     Log($"Série trouvée avec l'ID {seriesId.Value}");
-    await AddSeriesToSonarr(tvdbId, seriesName);
-    }
+    int id = tvdbId.Value;
+
+    // Ensuite, passez id comme premier argument à la fonction AddSeriesToSonarr
+    await AddSeriesToSonarr(id, seriesName);    }
     else
     {
     Log($"Impossible de trouver l'ID de la série pour {seriesName}");
