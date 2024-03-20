@@ -708,7 +708,7 @@ private async Task<bool> AddSeriesToSonarr(string title, int tvdbId)
 {
     try
     {
-        string apiKey = "_VotreCléAPI_"; // Remplacez par votre propre clé API Sonarr
+        string apiKey = "a0fd79bef1fe4b27950726523b782143"; // Remplacez par votre propre clé API Sonarr
         string apiUrl = "http://adresse_de_votre_sonarr/api/series"; // Remplacez par l'URL de votre Sonarr
 
         // Construction des données de la série à ajouter
