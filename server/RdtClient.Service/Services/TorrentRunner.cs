@@ -700,32 +700,40 @@ string seriesName = ExtractSeriesNameFromRdName(torrent.RdName);
 
 
 
-public async Task AddSeriesToSonarr(int seriesId)
+public async Task AddSeriesToSonarr(int tvdbId, string seriesName)
 {
-        var apiUrl = "http://sonarr:8989"; // Remplacez par l'URL de l'API Sonarr
-        var apiKey = "a0fd79bef1fe4b27950726523b782143"; // Remplacez par votre clé API Sonarr
+    try
+    {
+        string sonarrUrl = "http://sonarr:8989/api/series";
+        string apiKey = "a0fd79bef1fe4b27950726523b782143";
 
         var requestData = new
         {
-            tvdbId = seriesId
+            tvdbId = tvdbId,
+            title = seriesName
         };
 
-        var jsonRequest = JsonSerializer.Serialize(requestData);
-        var content = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+        string jsonData = JsonSerializer.Serialize(requestData);
+        var content = new StringContent(jsonData, Encoding.UTF8, "application/json");
 
         _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
 
-        var response = await _httpClient.PostAsync(apiUrl, content);
+        var response = await _httpClient.PostAsync(sonarrUrl, content);
 
         if (response.IsSuccessStatusCode)
         {
-            // La série a été ajoutée avec succès à Sonarr
+            _logger.LogInformation($"Série '{seriesName}' ajoutée avec succès à Sonarr.");
         }
         else
         {
-            // Gérer les erreurs en fonction du code de statut de la réponse
+            _logger.LogError($"Échec de l'ajout de la série '{seriesName}' à Sonarr. Statut de la réponse : {response.StatusCode}");
         }
     }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Échec de l'ajout de la série '{seriesName}' à Sonarr : {ex.Message}");
+    }
+}
 
 
 
