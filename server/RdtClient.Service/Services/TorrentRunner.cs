@@ -554,16 +554,6 @@ public class TorrentRunner
                     torrent.RdStatus == TorrentStatus.Finished && torrent.HostDownloadAction == TorrentHostDownloadAction.DownloadNone)
                 {
 
-
-                       string seriesName = ExtractSeriesNameFromRdName(torrent.RdName);
-                       Log($"Nom de la série extrait : {seriesName}");
-                       int? seriesId = await GetSeriesIdFromNameAsync(seriesName);
-                       int? theTvdbId = null;
-                       theTvdbId = await GetSeriesIdFromNameAsync(seriesName);
-                       Log($"Numero ID : {theTvdbId }");
-                       await AddSeriesToSonarr(theTvdbId.Value, seriesName);
-
-
                     var completeCount = torrent.Downloads.Count(m => m.Completed != null);
 
                     var completePerc = 0;
@@ -579,6 +569,17 @@ public class TorrentRunner
                     if (completeCount == torrent.Downloads.Count)
                     {
                         Log($"All downloads complete, marking torrent as complete", torrent);
+
+
+                       string seriesName = ExtractSeriesNameFromRdName(torrent.RdName);
+                       Log($"Nom de la série extrait : {seriesName}");
+                       int? seriesId = await GetSeriesIdFromNameAsync(seriesName);
+                       int? theTvdbId = null;
+                       theTvdbId = await GetSeriesIdFromNameAsync(seriesName);
+                       Log($"Numero ID : {theTvdbId }");
+                       await AddSeriesToSonarr(theTvdbId.Value, seriesName);
+
+
 
                         await _torrents.UpdateComplete(torrent.TorrentId, null, DateTimeOffset.UtcNow, true);
 
