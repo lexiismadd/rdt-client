@@ -585,7 +585,8 @@ public class TorrentRunner
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
                         {
-                            await TryRefreshMonitoredDownloadsAsync(torrent.Category, category, Settings.Get.General.RadarrSonarrInstanceConfigPath);                        }
+                            await TryRefreshMonitoredDownloadsAsync(torrent.Category, string categoryParam, Settings.Get.General.RadarrSonarrInstanceConfigPath); 
+                       }
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
                         {
@@ -820,8 +821,7 @@ private string ExtractSeriesNameFromRdName(string rdName)
 }
 
 
-private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string category, string configFilePath)
-
+private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string categoryParam, string configFilePath)
 {
     try
     {
