@@ -17,6 +17,7 @@ using RdtClient.Data.Models.Data;
 using RdtClient.Data.Models.Internal;
 using RdtClient.Service.Helpers;
 using RdtClient.Service.Services.Downloaders;
+using Newtonsoft.Json.Linq;
 
 namespace RdtClient.Service.Services;
 
