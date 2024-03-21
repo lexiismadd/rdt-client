@@ -593,6 +593,7 @@ public class TorrentRunner
                             int? theTvdbId = null;
                             theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                             Log($"Numero ID TMDB : {theTvdbId }");
+                            await AddMovieToRadarr(theTvdbId.Value, seriesName);
 
                         // Ajouter un message de débogage pour indiquer que rien ne se passe pour la catégorie "radarr"
                         Log($"Torrent dans la catégorie Radarr, aucune action requise.");
@@ -683,6 +684,55 @@ public class TorrentRunner
             Log($"TorrentRunner Tick End (took {sw.ElapsedMilliseconds}ms)");
         }
     }
+
+private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName)
+{
+    try
+    {
+        if (!theTvdbId.HasValue || string.IsNullOrWhiteSpace(seriesName))
+        {
+            _logger.LogError("Impossible d'ajouter le film à Radarr : ID TheTVDB ou nom du film manquant.");
+            return false;
+        }
+
+        // Remplacez "VOTRE_CLE_API_RADARR" par votre clé d'API Radarr
+        var radarrApiKey = "3b02d41cc6c0408f916f5ad1cdcffea6";
+        var radarrUrl = "http://141.145.207.227:7878/api";
+
+        var httpClient = new HttpClient();
+        httpClient.DefaultRequestHeaders.Add("X-Api-Key", radarrApiKey);
+
+        var requestData = new
+        {
+            tmdbId = theTvdbId.Value,
+            title = seriesName,
+            qualityProfileId = 1, // Modifier l'ID de profil de qualité selon vos besoins
+            monitored = true
+        };
+
+        var json = JsonSerializer.Serialize(requestData);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await httpClient.PostAsync($"{radarrUrl}/movie", content);
+
+        if (response.IsSuccessStatusCode)
+        {
+            _logger.LogInformation("Film ajouté avec succès à Radarr.");
+            return true;
+        }
+        else
+        {
+            var responseContent = await response.Content.ReadAsStringAsync();
+            _logger.LogError($"Échec de l'ajout du film à Radarr : {response.ReasonPhrase}. Contenu de la réponse : {responseContent}");
+            return false;
+        }
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Erreur lors de l'ajout du film à Radarr : {ex.Message}");
+        return false;
+    }
+}
 
 private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName)
 {
@@ -853,43 +903,22 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     _logger.LogDebug($"ExtractSeriesNameFromRdName - Category: {category}");
 
     string[] parts = rdName.Split('.');
-    string seriesName = ""; // Initialisation de seriesName en dehors des blocs if/else
+    List<string> seriesParts = new List<string>();
 
-    if (category.ToLower() == "sonarr")
+    foreach (string part in parts)
     {
-        List<string> seriesParts = new List<string>();
-
-        foreach (string part in parts)
+        if (Regex.IsMatch(part, @"\d")) // Vérifier si la partie contient un chiffre
         {
-            if (Regex.IsMatch(part, @"\d")) // Vérifier si la partie contient un chiffre
-            {
-                break; // Arrêter la recherche dès qu'on rencontre un chiffre
-            }
-
-            seriesParts.Add(part);
+            break; // Arrêter la recherche dès qu'on rencontre un chiffre
         }
 
-        // Le nom de série est le résultat de la jointure des parties sans suffixe
-        seriesName = string.Join(" ", seriesParts);
+        seriesParts.Add(part);
     }
-    else if (category.ToLower() == "radarr")
-    {
-        List<string> seriesParts = new List<string>();
 
-        foreach (string part in parts)
-        {
-            if (Regex.IsMatch(part, @"\d")) // Vérifier si la partie contient un chiffre
-            {
-                break; // Arrêter la recherche dès qu'on rencontre un chiffre
-            }
+    // Le nom de série est le résultat de la jointure des parties sans suffixe
+    string seriesName = string.Join(" ", seriesParts);
 
-            seriesParts.Add(part);
-        }
-
-        // Le nom de série est le résultat de la jointure des parties sans suffixe
-        seriesName = string.Join(" ", seriesParts);
-    }
-    else
+    if (category.ToLower() != "sonarr" && category.ToLower() != "radarr")
     {
         // Si la catégorie n'est ni "sonarr" ni "radarr", retourner null
         _logger.LogWarning($"ExtractSeriesNameFromRdName - Unknown category: {category}");
