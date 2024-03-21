@@ -573,27 +573,26 @@ public class TorrentRunner
 
                         Log($"All downloads complete, marking torrent as complete", torrent);
 
-                    if (torrent.Category.ToLower() == "sonarr")
-                    {
-                        string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
-                        Log($"Nom de la série (Sonarr) : {seriesName}");
-                        int? seriesId = await GetSeriesIdFromNameAsync(seriesName);
-                        int? theTvdbId = null;
-                        theTvdbId = await GetSeriesIdFromNameAsync(seriesName);
-                        Log($"Numero ID TVDB : {theTvdbId }");
-                        await AddSeriesToSonarr(theTvdbId.Value, seriesName);
-                    }
-                    else if (torrent.Category.ToLower() == "radarr")
-                    {
-                    // Ajouter un message de débogage pour indiquer que rien ne se passe pour la catégorie "radarr"
-                    Log($"Torrent dans la catégorie Radarr, aucune action requise.");
-                    }
-                    else
-                    {
-                    // Ajouter un message de débogage pour indiquer une catégorie inconnue
-                    Log($"Catégorie de torrent inconnue : {torrent.Category}");
-                    }
-
+                        if (torrent.Category.ToLower() == "sonarr")
+                        {
+                            string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
+                            Log($"Nom de la série (Sonarr) : {seriesName}");
+                            int? seriesId = await GetSeriesIdFromNameAsync(seriesName);
+                            int? theTvdbId = null;
+                            theTvdbId = await GetSeriesIdFromNameAsync(seriesName);
+                            Log($"Numero ID TVDB : {theTvdbId }");
+                            await AddSeriesToSonarr(theTvdbId.Value, seriesName);
+                        }
+                        else if (torrent.Category.ToLower() == "radarr")
+                        {
+                        // Ajouter un message de débogage pour indiquer que rien ne se passe pour la catégorie "radarr"
+                        Log($"Torrent dans la catégorie Radarr, aucune action requise.");
+                        }
+                        else
+                        {
+                        // Ajouter un message de débogage pour indiquer une catégorie inconnue
+                        Log($"Catégorie de torrent inconnue : {torrent.Category}");
+                        }
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
                         {
@@ -731,56 +730,90 @@ private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName)
     }
 }
 
-private async Task<int?> GetSeriesIdFromNameAsync(string seriesName)
+private async Task<int?> GetSeriesIdFromNameAsync(string seriesName, string category)
 {
     try
     {
-        string searchUrl = $"https://api.tvmaze.com/search/shows?q={HttpUtility.UrlEncode(seriesName)}";
-
-        using (HttpClient httpClient = new HttpClient())
+        if (category.ToLower() == "sonarr")
         {
-            HttpResponseMessage response = await httpClient.GetAsync(searchUrl);
+            string searchUrl = $"https://api.tvmaze.com/search/shows?q={HttpUtility.UrlEncode(seriesName)}";
 
-            if (response.IsSuccessStatusCode)
+            using (HttpClient httpClient = new HttpClient())
             {
-                string jsonResponse = await response.Content.ReadAsStringAsync();
+                HttpResponseMessage response = await httpClient.GetAsync(searchUrl);
 
-                JsonDocument jsonDoc = JsonDocument.Parse(jsonResponse);
-                JsonElement root = jsonDoc.RootElement;
-
-                if (root.GetArrayLength() == 0)
+                if (response.IsSuccessStatusCode)
                 {
-                    return null;
-                }
+                    string jsonResponse = await response.Content.ReadAsStringAsync();
 
-                JsonElement firstElement = root[0];
+                    JsonDocument jsonDoc = JsonDocument.Parse(jsonResponse);
+                    JsonElement root = jsonDoc.RootElement;
 
-                if (firstElement.TryGetProperty("show", out JsonElement showElement))
-                {
-                    if (showElement.TryGetProperty("externals", out JsonElement externalsElement))
+                    if (root.GetArrayLength() == 0)
                     {
-                        if (externalsElement.TryGetProperty("thetvdb", out JsonElement tvdbElement))
+                        return null;
+                    }
+
+                    JsonElement firstElement = root[0];
+
+                    if (firstElement.TryGetProperty("show", out JsonElement showElement))
+                    {
+                        if (showElement.TryGetProperty("externals", out JsonElement externalsElement))
                         {
-                            if (tvdbElement.ValueKind == JsonValueKind.Number)
+                            if (externalsElement.TryGetProperty("thetvdb", out JsonElement tvdbElement))
                             {
-                                return tvdbElement.GetInt32();
+                                if (tvdbElement.ValueKind == JsonValueKind.Number)
+                                {
+                                    return tvdbElement.GetInt32();
+                                }
                             }
                         }
                     }
-                }
 
-                return null;
+                    return null;
+                }
+                else
+                {
+                    _logger.LogError($"La requête API TVMaze a échoué : {response.ReasonPhrase}");
+                    return null;
+                }
             }
-            else
+        }
+        else if (category.ToLower() == "radarr")
+        {
+            // Remplacez "VOTRE_CLE_API_TMDB" par votre clé d'API TMDb
+            string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key=VOTRE_CLE_API_TMDB&query={HttpUtility.UrlEncode(seriesName)}";
+
+            using (HttpClient httpClient = new HttpClient())
             {
-                _logger.LogError($"La requête API TVMaze a échoué : {response.ReasonPhrase}");
-                return null;
+                HttpResponseMessage response = await httpClient.GetAsync(searchUrl);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string jsonResponse = await response.Content.ReadAsStringAsync();
+
+                    // Analyser la réponse JSON pour extraire l'ID du premier résultat de la recherche
+                    dynamic result = JObject.Parse(jsonResponse);
+                    int? seriesId = result.results[0].id;
+
+                    return seriesId;
+                }
+                else
+                {
+                    _logger.LogError($"La requête API TMDb a échoué : {response.ReasonPhrase}");
+                    return null;
+                }
             }
+        }
+        else
+        {
+            _logger.LogError($"La catégorie {category} n'est pas prise en charge.");
+            return null;
         }
     }
     catch (Exception ex)
     {
-        _logger.LogError($"Une erreur est survenue lors de la recherche de l'ID de la série sur TVMaze : {ex.Message}");
+        _logger.LogError($"Une erreur est survenue lors de la recherche de l'ID de la série/film : {ex.Message}");
         return null;
     }
 }
