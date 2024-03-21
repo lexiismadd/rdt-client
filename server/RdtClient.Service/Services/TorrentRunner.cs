@@ -697,7 +697,7 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName)
 
         // Remplacez "VOTRE_CLE_API_RADARR" par votre clé d'API Radarr
         var radarrApiKey = "3b02d41cc6c0408f916f5ad1cdcffea6";
-        var radarrUrl = "http://141.145.207.227:7878/api/v3";
+        var radarrUrl = "http://radarr:7878/api/v3";
 
         var httpClient = new HttpClient();
         httpClient.DefaultRequestHeaders.Add("X-Api-Key", radarrApiKey);
@@ -742,7 +742,7 @@ private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName)
         if (theTvdbId.HasValue && !string.IsNullOrEmpty(seriesName))
         {
             var sonarrApiKey = "610d8bd7b8f946518ab6374e0ad11f91";
-            var sonarrUrl = "http://141.145.207.227:8989/api/v3";
+            var sonarrUrl = "http://sonarr:8989/api/v3";
 
             var httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.Add("X-Api-Key", sonarrApiKey);
