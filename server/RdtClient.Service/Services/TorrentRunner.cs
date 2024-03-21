@@ -787,30 +787,53 @@ public class TvMazeExternals
     public string TheTvdb { get; set; }
 }
 
-private string ExtractSeriesNameFromRdName(string rdName)
+private string ExtractSeriesNameFromRdName(string rdName, string category)
 {
     if (string.IsNullOrWhiteSpace(rdName))
     {
         return null;
     }
 
+    // Ajouter un message de débogage pour indiquer la catégorie
+    _logger.LogDebug($"ExtractSeriesNameFromRdName - Category: {category}");
+
     string[] parts = rdName.Split('.');
+    string seriesName = "";
 
-    List<string> seriesParts = new List<string>();
-
-    foreach (string part in parts)
+    if (category.ToLower() == "sonarr")
     {
-        if (Regex.IsMatch(part, @"\d")) // Vérifier si la partie contient un chiffre
+        string sonarrName = "sonarrName"; // Nom de la série pour Sonarr
+        List<string> seriesParts = new List<string>();
+
+        foreach (string part in parts)
         {
-            break; // Arrêter la recherche dès qu'on rencontre un chiffre
+            if (Regex.IsMatch(part, @"\d")) // Vérifier si la partie contient un chiffre
+            {
+                break; // Arrêter la recherche dès qu'on rencontre un chiffre
+            }
+
+            seriesParts.Add(part);
         }
 
-        seriesParts.Add(part);
+        string seriesNameSuffix = string.Join(" ", seriesParts);
+
+        // Ajouter le suffixe au nom de série Sonarr
+        seriesName = string.IsNullOrWhiteSpace(seriesNameSuffix) ? null : $"{sonarrName} {seriesNameSuffix}";
+    }
+    else if (category.ToLower() == "radarr")
+    {
+        string radarrName = "radarrName"; // Nom du film pour Radarr
+        // Ne pas ajouter de suffixe pour les films
+        seriesName = radarrName;
+    }
+    else
+    {
+        // Si la catégorie n'est ni "sonarr" ni "radarr", retourner null
+        _logger.LogWarning($"ExtractSeriesNameFromRdName - Unknown category: {category}");
+        return null;
     }
 
-    string seriesName = string.Join(" ", seriesParts);
-
-    return string.IsNullOrWhiteSpace(seriesName) ? null : seriesName;
+    return seriesName;
 }
 
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
