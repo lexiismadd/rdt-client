@@ -577,7 +577,7 @@ public class TorrentRunner
                         {
                             string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
                             Log($"Nom de la série (Sonarr) : {seriesName}");
-                            int? seriesId = await GetSeriesIdFromNameAsync(seriesName);
+                            int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                             int? theTvdbId = null;
                             theTvdbId = await GetSeriesIdFromNameAsync(seriesName);
                             Log($"Numero ID TVDB : {theTvdbId }");
