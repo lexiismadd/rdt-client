@@ -586,6 +586,14 @@ public class TorrentRunner
                         }
                         else if (torrent.Category.ToLower() == "radarr")
                         {
+
+                            string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
+                            Log($"Nom du Films (Radarr) : {seriesName}");
+                            int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
+                            int? theTvdbId = null;
+                            theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
+                            Log($"Numero ID TMDB : {theTvdbId }");
+
                         // Ajouter un message de débogage pour indiquer que rien ne se passe pour la catégorie "radarr"
                         Log($"Torrent dans la catégorie Radarr, aucune action requise.");
                         }
