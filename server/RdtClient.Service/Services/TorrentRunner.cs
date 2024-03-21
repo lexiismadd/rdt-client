@@ -574,14 +574,14 @@ public class TorrentRunner
                         Log($"All downloads complete, marking torrent as complete", torrent);
 
                         // string seriesName = ExtractSeriesNameFromRdName(torrent.RdName);
-                        string sonarrName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
+                        string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
 
-                        Log($"Nom de la série : {sonarrName}");
-                        int? seriesId = await GetSeriesIdFromNameAsync(sonarrName);
+                        Log($"Nom de la série : {seriesName}");
+                        int? seriesId = await GetSeriesIdFromNameAsync(seriesName);
                         int? theTvdbId = null;
-                        theTvdbId = await GetSeriesIdFromNameAsync(sonarrName);
+                        theTvdbId = await GetSeriesIdFromNameAsync(seriesName);
                         Log($"Numero ID TVDB : {theTvdbId }");
-                        await AddSeriesToSonarr(theTvdbId.Value, sonarrName);
+                        await AddSeriesToSonarr(theTvdbId.Value, seriesName);
 
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
@@ -800,11 +800,10 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     _logger.LogDebug($"ExtractSeriesNameFromRdName - Category: {category}");
 
     string[] parts = rdName.Split('.');
-    string seriesName = "";
+    string seriesName = ""; // Initialisation de seriesName en dehors des blocs if/else
 
     if (category.ToLower() == "sonarr")
     {
-        string sonarrName = "sonarrName"; // Nom de la série pour Sonarr
         List<string> seriesParts = new List<string>();
 
         foreach (string part in parts)
@@ -817,16 +816,13 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
             seriesParts.Add(part);
         }
 
-        string seriesNameSuffix = string.Join(" ", seriesParts);
-
-        // Ajouter le suffixe au nom de série Sonarr
-        seriesName = string.IsNullOrWhiteSpace(seriesNameSuffix) ? null : $"{sonarrName} {seriesNameSuffix}";
+        // Le nom de série est le résultat de la jointure des parties sans suffixe
+        seriesName = string.Join(" ", seriesParts);
     }
     else if (category.ToLower() == "radarr")
     {
-        string radarrName = "radarrName"; // Nom du film pour Radarr
-        // Ne pas ajouter de suffixe pour les films
-        seriesName = radarrName;
+        // Pour les films, le nom est directement le nom de la catégorie
+        seriesName = rdName;
     }
     else
     {
