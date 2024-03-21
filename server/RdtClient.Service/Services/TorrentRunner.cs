@@ -1,10 +1,14 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Numerics;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Web;
 using Aria2NET;
 using Microsoft.Extensions.Logging;
@@ -13,10 +17,6 @@ using RdtClient.Data.Models.Data;
 using RdtClient.Data.Models.Internal;
 using RdtClient.Service.Helpers;
 using RdtClient.Service.Services.Downloaders;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Threading.Tasks;
 
 namespace RdtClient.Service.Services;
 
@@ -568,20 +568,19 @@ public class TorrentRunner
 
                     if (completeCount == torrent.Downloads.Count)
                     {
-                        Log($"All downloads complete, marking torrent as complete", torrent);
-
-
-                       string seriesName = ExtractSeriesNameFromRdName(torrent.RdName);
-                       Log($"Nom de la série extrait : {seriesName}");
-                       int? seriesId = await GetSeriesIdFromNameAsync(seriesName);
-                       int? theTvdbId = null;
-                       theTvdbId = await GetSeriesIdFromNameAsync(seriesName);
-                       Log($"Numero ID : {theTvdbId }");
-                       await AddSeriesToSonarr(theTvdbId.Value, seriesName, torrent.Category);
-
-
 
                         await _torrents.UpdateComplete(torrent.TorrentId, null, DateTimeOffset.UtcNow, true);
+
+                        Log($"All downloads complete, marking torrent as complete", torrent);
+
+                        string seriesName = ExtractSeriesNameFromRdName(torrent.RdName);
+                        Log($"Nom de la série : {seriesName}");
+                        int? seriesId = await GetSeriesIdFromNameAsync(seriesName);
+                        int? theTvdbId = null;
+                        theTvdbId = await GetSeriesIdFromNameAsync(seriesName);
+                        Log($"Numero ID TVDB : {theTvdbId }");
+                        await AddSeriesToSonarr(theTvdbId.Value, seriesName);
+
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
                         {
@@ -664,12 +663,7 @@ public class TorrentRunner
         }
     }
 
-
-
-
-
-
-private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName, string category)
+private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName)
 {
     try
     {
@@ -684,7 +678,7 @@ private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName, string c
             var requestData = new
             {
                 tvdbId = theTvdbId.Value,
-                qualityProfileId = 4, // Replace with your quality profile ID
+                qualityProfileId = 4,
                 title = seriesName,
                 RootFolderPath = "/home/ubuntu/Medias/Series",
                 monitored = true
@@ -716,12 +710,6 @@ private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName, string c
         _logger.LogError($"Erreur lors de l'ajout de la série à Sonarr : {ex.Message}");
     }
 }
-
-
-
-
-
-
 
 private async Task<int?> GetSeriesIdFromNameAsync(string seriesName)
 {
@@ -792,8 +780,6 @@ public class TvMazeExternals
     public string TheTvdb { get; set; }
 }
 
-
-
 private string ExtractSeriesNameFromRdName(string rdName)
 {
     if (string.IsNullOrWhiteSpace(rdName))
@@ -819,7 +805,6 @@ private string ExtractSeriesNameFromRdName(string rdName)
 
     return string.IsNullOrWhiteSpace(seriesName) ? null : seriesName;
 }
-
 
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
 
