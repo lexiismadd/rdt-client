@@ -741,63 +741,42 @@ private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName)
     {
         if (theTvdbId.HasValue && !string.IsNullOrEmpty(seriesName))
         {
-            // Récupérer l'API et l'URL de Sonarr à partir du fichier de configuration
-            bool configResult = await TryRefreshMonitoredDownloadsAsync("sonarr", configFilePath);
-            
-            if (configResult)
+            var sonarrApiKey = "610d8bd7b8f946518ab6374e0ad11f91";
+            var sonarrUrl = "http://sonarr:8989/api/v3";
+
+            var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("X-Api-Key", sonarrApiKey);
+
+            var requestData = new
             {
-                var jsonString = await File.ReadAllTextAsync(configFilePath);
-                using (JsonDocument doc = JsonDocument.Parse(jsonString))
-                {
-                    if (doc.RootElement.TryGetProperty("sonarr", out var category))
-                    {
-                        var sonarrApiKey = category.GetProperty("ApiKey").GetString();
-                        var sonarrUrl = "http://sonarr:8989/api/v3";
+                tvdbId = theTvdbId.Value,
+                qualityProfileId = 4,
+                title = seriesName,
+                RootFolderPath = "/home/ubuntu/Medias/Series",
+                monitored = true
+            };
 
-                        var httpClient = new HttpClient();
-                        httpClient.DefaultRequestHeaders.Add("X-Api-Key", sonarrApiKey);
+            var json = JsonSerializer.Serialize(requestData);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                        var requestData = new
-                        {
-                            tvdbId = theTvdbId.Value,
-                            qualityProfileId = 4, // Vous devez obtenir l'ID de profil de qualité de Radarr
-                            title = seriesName,
-                            RootFolderPath = "/home/ubuntu/Medias/Series",
-                            monitored = true
-                        };
+            var response = await httpClient.PostAsync($"{sonarrUrl}/series", content);
 
-                        var json = JsonSerializer.Serialize(requestData);
-                        var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                        var response = await httpClient.PostAsync($"{sonarrUrl}/series", content);
-
-                        if (response.IsSuccessStatusCode)
-                        {
-                            _logger.LogInformation("Série ajoutée avec succès à Sonarr.");
-                        }
-                        else
-                        {
-                            var responseContent = await response.Content.ReadAsStringAsync();
-                            
-                            if(responseContent.Contains("This series has already been added"))
-                            {
-                                _logger.LogDebug("La série existe déjà dans Sonarr.");
-                            }
-                            else
-                            {
-                                _logger.LogError($"Échec de l'ajout de la série à Sonarr : {response.ReasonPhrase}. Contenu de la réponse : {responseContent}");
-                            }
-                        }
-                    }
-                    else
-                    {
-                        _logger.LogError($"La configuration Sonarr n'est pas trouvée dans le fichier de configuration.");
-                    }
-                }
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation("Série ajoutée avec succès à Sonarr.");
             }
             else
             {
-                _logger.LogError("Impossible de récupérer la configuration Sonarr.");
+                var responseContent = await response.Content.ReadAsStringAsync();
+                
+                if(responseContent.Contains("This series has already been added"))
+                {
+                    _logger.LogDebug("La série existe déjà dans Sonarr.");
+                }
+                else
+                {
+                    _logger.LogError($"Échec de l'ajout de la série à Sonarr : {response.ReasonPhrase}. Contenu de la réponse : {responseContent}");
+                }
             }
         }
         else
