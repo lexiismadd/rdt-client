@@ -574,13 +574,14 @@ public class TorrentRunner
                         Log($"All downloads complete, marking torrent as complete", torrent);
 
                         // string seriesName = ExtractSeriesNameFromRdName(torrent.RdName);
-                        string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
-                        Log($"Nom de la série : {seriesName}");
-                        int? seriesId = await GetSeriesIdFromNameAsync(seriesName);
+                        string sonarrName = ExtractSeriesNameFromRdName(RdName, torrent.Category);
+
+                        Log($"Nom de la série : {sonarrName}");
+                        int? seriesId = await GetSeriesIdFromNameAsync(sonarrName);
                         int? theTvdbId = null;
-                        theTvdbId = await GetSeriesIdFromNameAsync(seriesName);
+                        theTvdbId = await GetSeriesIdFromNameAsync(sonarrName);
                         Log($"Numero ID TVDB : {theTvdbId }");
-                        await AddSeriesToSonarr(theTvdbId.Value, seriesName);
+                        await AddSeriesToSonarr(theTvdbId.Value, sonarrName);
 
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
