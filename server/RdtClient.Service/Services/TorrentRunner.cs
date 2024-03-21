@@ -573,7 +573,8 @@ public class TorrentRunner
 
                         Log($"All downloads complete, marking torrent as complete", torrent);
 
-                        string seriesName = ExtractSeriesNameFromRdName(torrent.RdName);
+                        // string seriesName = ExtractSeriesNameFromRdName(torrent.RdName);
+                        string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
                         Log($"Nom de la série : {seriesName}");
                         int? seriesId = await GetSeriesIdFromNameAsync(seriesName);
                         int? theTvdbId = null;
