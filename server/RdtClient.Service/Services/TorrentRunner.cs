@@ -695,9 +695,16 @@ private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName)
             }
             else
             {
-            //    _logger.LogError($"Échec de l'ajout de la série à Sonarr : {response.ReasonPhrase}");
-               _logger.LogError($"Échec de l'ajout de la série à Sonarr : {response.ReasonPhrase}. Contenu de la réponse : {await response.Content.ReadAsStringAsync()}");
-
+                var responseContent = await response.Content.ReadAsStringAsync();
+                
+                if(responseContent.Contains("This series has already been added"))
+                {
+                    _logger.LogDebug("La série existe déjà dans Sonarr.");
+                }
+                else
+                {
+                    _logger.LogError($"Échec de l'ajout de la série à Sonarr : {response.ReasonPhrase}. Contenu de la réponse : {responseContent}");
+                }
             }
         }
         else
