@@ -669,43 +669,35 @@ private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName)
     {
         if (theTvdbId.HasValue && !string.IsNullOrEmpty(seriesName))
         {
-            // Vérifier si l'ID TVDB correspond à une série
-            bool isSeries = await IsTvdbIdSeriesAsync(theTvdbId.Value);
+            var sonarrApiKey = "610d8bd7b8f946518ab6374e0ad11f91";
+            var sonarrUrl = "http://141.145.207.227:8989/api/v3";
 
-            if (isSeries)
+            var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Add("X-Api-Key", sonarrApiKey);
+
+            var requestData = new
             {
-                var sonarrApiKey = "610d8bd7b8f946518ab6374e0ad11f91";
-                var sonarrUrl = "http://141.145.207.227:8989/api/v3";
+                tvdbId = theTvdbId.Value,
+                qualityProfileId = 4,
+                title = seriesName,
+                RootFolderPath = "/home/ubuntu/Medias/Series",
+                monitored = true
+            };
 
-                var httpClient = new HttpClient();
-                httpClient.DefaultRequestHeaders.Add("X-Api-Key", sonarrApiKey);
+            var json = JsonSerializer.Serialize(requestData);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var requestData = new
-                {
-                    tvdbId = theTvdbId.Value,
-                    qualityProfileId = 4,
-                    title = seriesName,
-                    RootFolderPath = "/home/ubuntu/Medias/Series",
-                    monitored = true
-                };
+            var response = await httpClient.PostAsync($"{sonarrUrl}/series", content);
 
-                var json = JsonSerializer.Serialize(requestData);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var response = await httpClient.PostAsync($"{sonarrUrl}/series", content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    _logger.LogInformation("Série ajoutée avec succès à Sonarr.");
-                }
-                else
-                {
-                    _logger.LogError($"Échec de l'ajout de la série à Sonarr : {response.ReasonPhrase}. Contenu de la réponse : {await response.Content.ReadAsStringAsync()}");
-                }
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation("Série ajoutée avec succès à Sonarr.");
             }
             else
             {
-                _logger.LogError("L'ID TVDB ne correspond pas à une série télévisée.");
+            //    _logger.LogError($"Échec de l'ajout de la série à Sonarr : {response.ReasonPhrase}");
+               _logger.LogError($"Échec de l'ajout de la série à Sonarr : {response.ReasonPhrase}. Contenu de la réponse : {await response.Content.ReadAsStringAsync()}");
+
             }
         }
         else
@@ -716,35 +708,6 @@ private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName)
     catch (Exception ex)
     {
         _logger.LogError($"Erreur lors de l'ajout de la série à Sonarr : {ex.Message}");
-    }
-}
-
-private async Task<bool> IsTvdbIdSeriesAsync(int tvdbId)
-{
-    try
-    {
-        string searchUrl = $"https://api.tvmaze.com/lookup/shows?thetvdb={tvdbId}";
-
-        using (HttpClient httpClient = new HttpClient())
-        {
-            HttpResponseMessage response = await httpClient.GetAsync(searchUrl);
-
-            if (response.IsSuccessStatusCode)
-            {
-                string jsonResponse = await response.Content.ReadAsStringAsync();
-                return !string.IsNullOrEmpty(jsonResponse);
-            }
-            else
-            {
-                _logger.LogError($"La requête API TVMaze a échoué : {response.ReasonPhrase}");
-                return false;
-            }
-        }
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError($"Une erreur est survenue lors de la recherche de l'ID de la série sur TVMaze : {ex.Message}");
-        return false;
     }
 }
 
