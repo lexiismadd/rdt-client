@@ -573,15 +573,26 @@ public class TorrentRunner
 
                         Log($"All downloads complete, marking torrent as complete", torrent);
 
-                        // string seriesName = ExtractSeriesNameFromRdName(torrent.RdName);
+                    if (torrent.Category.ToLower() == "sonarr")
+                    {
                         string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
-
-                        Log($"Nom de la série : {seriesName}");
+                        Log($"Nom de la série (Sonarr) : {seriesName}");
                         int? seriesId = await GetSeriesIdFromNameAsync(seriesName);
                         int? theTvdbId = null;
                         theTvdbId = await GetSeriesIdFromNameAsync(seriesName);
                         Log($"Numero ID TVDB : {theTvdbId }");
                         await AddSeriesToSonarr(theTvdbId.Value, seriesName);
+                    }
+                    else if (torrent.Category.ToLower() == "radarr")
+                    {
+                    // Ajouter un message de débogage pour indiquer que rien ne se passe pour la catégorie "radarr"
+                    Log($"Torrent dans la catégorie Radarr, aucune action requise.");
+                    }
+                    else
+                    {
+                    // Ajouter un message de débogage pour indiquer une catégorie inconnue
+                    Log($"Catégorie de torrent inconnue : {torrent.Category}");
+                    }
 
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
