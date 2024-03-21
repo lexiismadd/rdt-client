@@ -582,7 +582,7 @@ public class TorrentRunner
                             int? theTvdbId = null;
                             theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                             Log($"Numero ID TVDB : {theTvdbId }");
-                            await AddSeriesToSonarr(theTvdbId.Value, seriesName, torrent.Category);
+                            await AddSeriesToSonarr(theTvdbId.Value, seriesName);
                         }
                         else if (torrent.Category.ToLower() == "radarr")
                         {
