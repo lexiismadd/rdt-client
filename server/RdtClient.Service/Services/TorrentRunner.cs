@@ -719,6 +719,35 @@ private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName)
     }
 }
 
+private async Task<bool> IsTvdbIdSeriesAsync(int tvdbId)
+{
+    try
+    {
+        string searchUrl = $"https://api.tvmaze.com/lookup/shows?thetvdb={tvdbId}";
+
+        using (HttpClient httpClient = new HttpClient())
+        {
+            HttpResponseMessage response = await httpClient.GetAsync(searchUrl);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string jsonResponse = await response.Content.ReadAsStringAsync();
+                return !string.IsNullOrEmpty(jsonResponse);
+            }
+            else
+            {
+                _logger.LogError($"La requête API TVMaze a échoué : {response.ReasonPhrase}");
+                return false;
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Une erreur est survenue lors de la recherche de l'ID de la série sur TVMaze : {ex.Message}");
+        return false;
+    }
+}
+
 private async Task<int?> GetSeriesIdFromNameAsync(string seriesName)
 {
     try
