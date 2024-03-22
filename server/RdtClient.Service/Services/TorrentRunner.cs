@@ -927,13 +927,14 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
     int endIndex = rdName.Length; // Par défaut, utiliser la fin de la chaîne
 
-    if (parenthesisIndex != -1)
+    if (parenthesisIndex != -1 && parenthesisIndex > lastBracketIndex)
     {
         endIndex = parenthesisIndex; // Terminer avant la première parenthèse
     }
     else
     {
-        // Si aucune parenthèse n'est trouvée, chercher le premier chiffre après le titre
+        // Si aucune parenthèse n'est trouvée ou si la parenthèse est avant le crochet fermant,
+        // chercher le premier chiffre après le crochet fermant
         int digitIndex = startIndex;
         while (digitIndex < rdName.Length && !char.IsDigit(rdName[digitIndex]))
         {
@@ -942,7 +943,6 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
         endIndex = digitIndex;
     }
 
-    // Extraire le titre en supprimant les espaces supplémentaires avant et après
     string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
 
     return seriesName;
@@ -950,6 +950,7 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
 
 
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
+
 {
     try
     {
@@ -967,14 +968,10 @@ private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstan
                     return false;
                 }
 
-                HttpResponseMessage response;
-                lock (_httpClient)
-                {
-                    _httpClient.DefaultRequestHeaders.Clear();
-                    _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
-                    var data = new StringContent("{\"name\":\"RefreshMonitoredDownloads\"}", Encoding.UTF8, "application/json");
-                    response = _httpClient.PostAsync($"{host}/api/v3/command", data).Result;
-                }
+                var data = new StringContent("{\"name\":\"RefreshMonitoredDownloads\"}", Encoding.UTF8, "application/json");
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
+                var response = await _httpClient.PostAsync($"{host}/api/v3/command", data);
 
                 if (response.IsSuccessStatusCode)
                 {
