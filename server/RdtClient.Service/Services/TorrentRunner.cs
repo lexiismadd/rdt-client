@@ -900,6 +900,9 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
         return null;
     }
 
+    // Remplacer les points par des espaces
+    rdName = rdName.Replace(".", " ");
+
     // Recherche de la première occurrence d'un crochet ou d'une parenthèse
     int lastBracketIndex = rdName.LastIndexOf(']');
     int parenthesisIndex = rdName.IndexOf('(');
