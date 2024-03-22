@@ -937,8 +937,8 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
         digitIndex++;
     }
 
-    // Déterminer l'indice de fin pour extraire le titre
-    int endIndex = digitIndex < rdName.Length ? digitIndex : rdName.Length; // Utiliser le premier chiffre ou la fin de la chaîne
+    // Si aucun chiffre n'est trouvé, la fin de la chaîne est utilisée comme indice de fin
+    int endIndex = digitIndex;
 
     string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
 
