@@ -900,26 +900,38 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
         return null;
     }
 
-    // Recherche de la dernière occurrence d'un crochet '['
-    int lastBracketIndex = rdName.LastIndexOf('[');
+    // Recherche de la première occurrence d'un crochet ou d'une parenthèse
+    int bracketIndex = rdName.IndexOf('[');
+    int parenthesisIndex = rdName.IndexOf('(');
 
-    if (lastBracketIndex == -1)
+    // Déterminer l'indice de début et de fin pour extraire le titre
+    int startIndex = -1;
+    if (bracketIndex != -1 && parenthesisIndex != -1)
     {
-        // Si aucun crochet n'est trouvé, retourner le nom complet
-        return rdName;
+        startIndex = Math.Min(bracketIndex, parenthesisIndex) + 1;
+    }
+    else if (bracketIndex != -1)
+    {
+        startIndex = bracketIndex + 1;
+    }
+    else if (parenthesisIndex != -1)
+    {
+        startIndex = parenthesisIndex + 1;
+    }
+    else
+    {
+        startIndex = 0; // Aucun crochet ni parenthèse trouvé, commencer au début
     }
 
-    // Recherche de la première occurrence d'une parenthèse '(' après le dernier crochet '['
-    int firstParenthesisIndex = rdName.IndexOf('(', lastBracketIndex);
+    // Supprimer les espaces supplémentaires avant et après
+    string seriesName = rdName.Substring(startIndex).Trim();
 
-    if (firstParenthesisIndex == -1)
+    // Si le titre contient des chiffres, tronquer pour s'arrêter avant les chiffres
+    int digitIndex = seriesName.LastIndexOfAny("0123456789".ToCharArray());
+    if (digitIndex != -1)
     {
-        // Si aucune parenthèse n'est trouvée après le dernier crochet, retourner le nom complet après le crochet
-        return rdName.Substring(lastBracketIndex + 1).Trim();
+        seriesName = seriesName.Substring(0, digitIndex).Trim();
     }
-
-    // Extraire le titre entre le dernier crochet '[' et la première parenthèse '(' après celui-ci
-    string seriesName = rdName.Substring(lastBracketIndex + 1, firstParenthesisIndex - lastBracketIndex - 1).Trim();
 
     return seriesName;
 }
