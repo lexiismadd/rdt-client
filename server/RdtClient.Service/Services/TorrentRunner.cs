@@ -918,6 +918,9 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
         seriesName = seriesName.Substring(0, digitIndex).Trim();
     }
 
+    // Supprimer les crochets et les parenthèses de la sortie
+    seriesName = seriesName.Replace("[", "").Replace("]", "").Replace("(", "").Replace(")", "");
+
     return seriesName;
 }
 
