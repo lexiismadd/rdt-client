@@ -919,42 +919,18 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     // Ajouter un message de débogage pour indiquer la catégorie
     _logger.LogDebug($"ExtractSeriesNameFromRdName - Category: {category}");
 
-    string[] parts = rdName.Split('.');
-    List<string> seriesParts = new List<string>();
+    int closedBracketIndex = rdName.LastIndexOf(']');
+    int openParenthesisIndex = rdName.IndexOf('(', closedBracketIndex);
 
-    bool foundOpenBracket = false;
-    foreach (string part in parts)
+    if (closedBracketIndex == -1 || openParenthesisIndex == -1)
     {
-        if (foundOpenBracket)
-        {
-            if (part.Contains(')')) // Vérifier si la partie contient une parenthèse fermante
-            {
-                int endIndex = part.IndexOf(')');
-                seriesParts.Add(part.Substring(0, endIndex)); // Ajouter seulement la partie avant la parenthèse fermante
-                break; // Sortir de la boucle après avoir trouvé la parenthèse fermante
-            }
-            else
-            {
-                seriesParts.Add(part); // Ajouter la partie au titre
-            }
-        }
-        else if (part.Contains(']')) // Vérifier si la partie contient un crochet fermé
-        {
-            foundOpenBracket = true; // Marquer qu'on a trouvé le crochet fermé
-            int startIndex = part.IndexOf(']') + 1; // Commencer après le crochet fermé
-            seriesParts.Add(part.Substring(startIndex)); // Ajouter la partie après le crochet fermé
-        }
-    }
-
-    // Le nom de série est le résultat de la jointure des parties sans suffixe
-    string seriesName = string.Join(" ", seriesParts);
-
-    if (category.ToLower() != "sonarr" && category.ToLower() != "radarr")
-    {
-        // Si la catégorie n'est ni "sonarr" ni "radarr", retourner null
-        _logger.LogWarning($"ExtractSeriesNameFromRdName - Unknown category: {category}");
+        // Si l'un des indices n'est pas trouvé, retourner null
+        _logger.LogError("Cannot find closed bracket or open parenthesis.");
         return null;
     }
+
+    // Extraire le titre entre le crochet fermé et la parenthèse ouvrante
+    string seriesName = rdName.Substring(closedBracketIndex + 1, openParenthesisIndex - closedBracketIndex - 1).Trim();
 
     return seriesName;
 }
