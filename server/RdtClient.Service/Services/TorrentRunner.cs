@@ -919,37 +919,28 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     // Remplacer les points par des espaces
     rdName = rdName.Replace(".", " ");
 
-    // Recherche de la première occurrence d'un crochet ou d'une parenthèse
+    // Recherche de la dernière occurrence d'un crochet fermant
     int lastBracketIndex = rdName.LastIndexOf(']');
-    int parenthesisIndex = rdName.IndexOf('(');
-
-    // Déterminer l'indice de début et de fin pour extraire le titre
-    int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
-    int endIndex = rdName.Length; // Par défaut, utiliser la fin de la chaîne
-
-    if (parenthesisIndex != -1)
+    if (lastBracketIndex == -1)
     {
-        endIndex = parenthesisIndex; // Terminer avant la première parenthèse
-    }
-    else
-    {
-        // Si aucune parenthèse n'est trouvée, chercher le premier chiffre après le titre
-        int digitIndex = startIndex;
-        while (digitIndex < rdName.Length && !char.IsDigit(rdName[digitIndex]))
-        {
-            digitIndex++;
-        }
-        endIndex = digitIndex;
+        // Aucun crochet fermant trouvé, retourner null
+        return null;
     }
 
-    // Extrait la partie du titre en gardant les chiffres entre le crochet fermant et le titre
+    // Déterminer l'indice de début pour extraire le titre
+    int startIndex = lastBracketIndex + 1; // Commencer après le dernier crochet
+
+    // Chercher le premier chiffre après le titre
+    int digitIndex = startIndex;
+    while (digitIndex < rdName.Length && !char.IsDigit(rdName[digitIndex]))
+    {
+        digitIndex++;
+    }
+
+    // Déterminer l'indice de fin pour extraire le titre
+    int endIndex = digitIndex < rdName.Length ? digitIndex : rdName.Length; // Utiliser le premier chiffre ou la fin de la chaîne
+
     string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
-
-    // Si le titre contient uniquement des chiffres, on le conserve entièrement
-    if (seriesName.All(char.IsDigit))
-    {
-        seriesName = rdName.Substring(0, endIndex).Trim();
-    }
 
     return seriesName;
 }
