@@ -901,30 +901,15 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     }
 
     // Recherche de la première occurrence d'un crochet ou d'une parenthèse
-    int bracketIndex = rdName.IndexOf('[');
+    int lastBracketIndex = rdName.LastIndexOf(']');
     int parenthesisIndex = rdName.IndexOf('(');
 
     // Déterminer l'indice de début et de fin pour extraire le titre
-    int startIndex = -1;
-    if (bracketIndex != -1 && parenthesisIndex != -1)
-    {
-        startIndex = Math.Min(bracketIndex, parenthesisIndex) + 1;
-    }
-    else if (bracketIndex != -1)
-    {
-        startIndex = bracketIndex + 1;
-    }
-    else if (parenthesisIndex != -1)
-    {
-        startIndex = parenthesisIndex + 1;
-    }
-    else
-    {
-        startIndex = 0; // Aucun crochet ni parenthèse trouvé, commencer au début
-    }
+    int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
+    int endIndex = parenthesisIndex == -1 ? rdName.Length : parenthesisIndex; // Terminer avant la première parenthèse
 
-    // Supprimer les espaces supplémentaires avant et après
-    string seriesName = rdName.Substring(startIndex).Trim();
+    // Extraire le titre en supprimant les espaces supplémentaires avant et après
+    string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
 
     // Si le titre contient des chiffres, tronquer pour s'arrêter avant les chiffres
     int digitIndex = seriesName.LastIndexOfAny("0123456789".ToCharArray());
