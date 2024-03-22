@@ -893,7 +893,7 @@ public class TvMazeExternals
     public string TheTvdb { get; set; }
 }
 
-private string ExtractSeriesNameFromRdName(string rdName)
+private string ExtractSeriesNameFromRdName(string rdName, string category)
 {
     if (string.IsNullOrWhiteSpace(rdName))
     {
