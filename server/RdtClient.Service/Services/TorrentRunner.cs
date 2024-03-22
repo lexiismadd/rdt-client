@@ -923,23 +923,19 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     int lastBracketIndex = rdName.LastIndexOf(']');
     int parenthesisIndex = rdName.IndexOf('(');
 
-    // Déterminer l'indice de début et de fin pour extraire le titre
+    // Détermination de l'indice de début et de fin pour extraire le titre
     int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
     int endIndex = rdName.Length; // Par défaut, utiliser la fin de la chaîne
 
     // Si aucune parenthèse n'est trouvée, chercher le premier chiffre avant le titre
     if (parenthesisIndex == -1)
     {
-        int digitIndex = startIndex - 1;
-        while (digitIndex >= 0 && char.IsDigit(rdName[digitIndex]))
+        int digitIndex = startIndex;
+        while (digitIndex < rdName.Length && !char.IsDigit(rdName[digitIndex]))
         {
-            digitIndex--;
+            digitIndex++;
         }
-        if (digitIndex != startIndex - 1)
-        {
-            // S'il y a des chiffres avant le titre, ajuster l'indice de début
-            startIndex = digitIndex + 1;
-        }
+        endIndex = digitIndex; // Terminer juste avant le premier chiffre rencontré
     }
     else
     {
@@ -951,7 +947,6 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
 
     return seriesName;
 }
-
 
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
 
