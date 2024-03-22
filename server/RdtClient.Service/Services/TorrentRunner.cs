@@ -919,27 +919,30 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     // Remplacer les points par des espaces
     rdName = rdName.Replace(".", " ");
 
-    // Recherche de la première occurrence d'un crochet ouvrant
+    // Recherche de la première occurrence d'un crochet ou d'une parenthèse
     int lastBracketIndex = rdName.LastIndexOf(']');
     int parenthesisIndex = rdName.IndexOf('(');
 
-    // Déterminer l'indice de début pour extraire le titre
+    // Déterminer l'indice de début et de fin pour extraire le titre
     int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
+    int endIndex = rdName.Length; // Par défaut, utiliser la fin de la chaîne
 
-    // Si une parenthèse ouvrante est trouvée avant le titre, ajuster l'indice de début
-    if (parenthesisIndex != -1 && parenthesisIndex < startIndex)
+    if (parenthesisIndex != -1)
     {
-        startIndex = parenthesisIndex;
+        endIndex = parenthesisIndex; // Terminer avant la première parenthèse
+    }
+    else
+    {
+        // Si aucune parenthèse n'est trouvée, chercher le premier chiffre après le titre
+        int digitIndex = startIndex;
+        while (digitIndex < rdName.Length && !char.IsDigit(rdName[digitIndex]))
+        {
+            digitIndex++;
+        }
+        endIndex = digitIndex;
     }
 
-    // Si aucune parenthèse n'est trouvée, ou si des chiffres sont présents après le titre, chercher le premier chiffre après le titre
-    int digitIndex = startIndex;
-    while (digitIndex < rdName.Length && !char.IsDigit(rdName[digitIndex]))
-    {
-        digitIndex++;
-    }
-    int endIndex = digitIndex == startIndex ? rdName.Length : digitIndex; // Terminer avant le premier chiffre ou à la fin de la chaîne
-
+    // Extrait la partie du titre en gardant les chiffres entre le crochet fermant et le titre
     string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
 
     return seriesName;
