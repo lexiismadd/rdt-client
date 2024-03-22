@@ -935,7 +935,11 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
         {
             digitIndex--;
         }
-        startIndex = digitIndex + 1;
+        if (digitIndex != startIndex - 1)
+        {
+            // S'il y a des chiffres avant le titre, ajuster l'indice de début
+            startIndex = digitIndex + 1;
+        }
     }
     else
     {
