@@ -903,25 +903,24 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     // Ajouter un message de débogage pour indiquer la catégorie
     _logger.LogDebug($"ExtractSeriesNameFromRdName - Category: {category}");
 
-    string[] parts = rdName.Split('.');
-    List<string> seriesParts = new List<string>();
+    // Trouver l'index du début du titre après le premier crochet fermant ']' dans le nom de fichier
+    int startIndex = rdName.IndexOf(']') + 2;
 
-    foreach (string part in parts)
+    // Trouver l'index de la première occurrence d'un chiffre dans le nom de fichier
+    int firstDigitIndex = rdName.IndexOfAny("0123456789".ToCharArray(), startIndex);
+
+    // Si aucun chiffre n'est trouvé, retourner le nom de fichier entier
+    if (firstDigitIndex == -1)
     {
-        if (Regex.IsMatch(part, @"\d")) // Vérifier si la partie contient un chiffre
-        {
-            break; // Arrêter la recherche dès qu'on rencontre un chiffre
-        }
-
-        seriesParts.Add(part);
+        return rdName;
     }
 
-    // Le nom de série est le résultat de la jointure des parties sans suffixe
-    string seriesName = string.Join(" ", seriesParts);
+    // Extraire le sous-chaîne correspondant au titre
+    string seriesName = rdName.Substring(startIndex, firstDigitIndex - startIndex).Trim();
 
+    // Si la catégorie n'est ni "sonarr" ni "radarr", retourner null
     if (category.ToLower() != "sonarr" && category.ToLower() != "radarr")
     {
-        // Si la catégorie n'est ni "sonarr" ni "radarr", retourner null
         _logger.LogWarning($"ExtractSeriesNameFromRdName - Unknown category: {category}");
         return null;
     }
