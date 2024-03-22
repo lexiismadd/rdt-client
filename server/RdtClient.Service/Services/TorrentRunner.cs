@@ -945,6 +945,12 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     // Extrait la partie du titre en gardant les chiffres entre le crochet fermant et le titre
     string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
 
+    // Si le titre contient uniquement des chiffres, on le conserve entièrement
+    if (seriesName.All(char.IsDigit))
+    {
+        seriesName = rdName.Substring(0, endIndex).Trim();
+    }
+
     return seriesName;
 }
 
