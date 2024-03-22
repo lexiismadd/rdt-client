@@ -919,25 +919,31 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     // Ajouter un message de débogage pour indiquer la catégorie
     _logger.LogDebug($"ExtractSeriesNameFromRdName - Category: {category}");
 
-    string[] parts = rdName.Split('.');
-    List<string> seriesParts = new List<string>();
+    int lastClosedBracketIndex = rdName.LastIndexOf(']');
+    int firstDigitIndex = -1;
 
-    foreach (string part in parts)
+    // Chercher le premier chiffre après le dernier crochet fermé
+    for (int i = lastClosedBracketIndex + 1; i < rdName.Length; i++)
     {
-        if (Regex.IsMatch(part, @"\d")) // Vérifier si la partie contient un chiffre
+        if (char.IsDigit(rdName[i]))
         {
-            break; // Arrêter la recherche dès qu'on rencontre un chiffre
+            firstDigitIndex = i;
+            break;
         }
-
-        seriesParts.Add(part);
     }
 
-    // Le nom de série est le résultat de la jointure des parties sans suffixe
-    string seriesName = string.Join(" ", seriesParts);
+    // Si aucun chiffre n'est trouvé après le crochet fermé, retourner null
+    if (firstDigitIndex == -1)
+    {
+        return null;
+    }
 
+    // Extraire le titre entre le dernier crochet fermé et le premier chiffre
+    string seriesName = rdName.Substring(lastClosedBracketIndex + 1, firstDigitIndex - lastClosedBracketIndex - 1).Trim();
+
+    // Si la catégorie n'est ni "sonarr" ni "radarr", retourner null
     if (category.ToLower() != "sonarr" && category.ToLower() != "radarr")
     {
-        // Si la catégorie n'est ni "sonarr" ni "radarr", retourner null
         _logger.LogWarning($"ExtractSeriesNameFromRdName - Unknown category: {category}");
         return null;
     }
