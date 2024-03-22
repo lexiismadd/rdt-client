@@ -916,34 +916,31 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
         return null;
     }
 
-    // Remplacer les points par des espaces
-    rdName = rdName.Replace(".", " ");
+    // Ajouter un message de débogage pour indiquer la catégorie
+    _logger.LogDebug($"ExtractSeriesNameFromRdName - Category: {category}");
 
-    // Recherche de la première occurrence d'un crochet ou d'une parenthèse
-    int lastBracketIndex = rdName.LastIndexOf(']');
-    int parenthesisIndex = rdName.IndexOf('(');
+    string[] parts = rdName.Split('.');
+    List<string> seriesParts = new List<string>();
 
-    // Détermination de l'indice de début et de fin pour extraire le titre
-    int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
-    int endIndex = rdName.Length; // Par défaut, utiliser la fin de la chaîne
-
-    // Si aucune parenthèse n'est trouvée, chercher le premier chiffre avant le titre
-    if (parenthesisIndex == -1)
+    foreach (string part in parts)
     {
-        int digitIndex = startIndex;
-        while (digitIndex < rdName.Length && !char.IsDigit(rdName[digitIndex]))
+        if (Regex.IsMatch(part, @"\d")) // Vérifier si la partie contient un chiffre
         {
-            digitIndex++;
+            break; // Arrêter la recherche dès qu'on rencontre un chiffre
         }
-        endIndex = digitIndex; // Terminer juste avant le premier chiffre rencontré
-    }
-    else
-    {
-        endIndex = parenthesisIndex; // Terminer avant la première parenthèse
+
+        seriesParts.Add(part);
     }
 
-    // Extraire le titre entre le dernier crochet et la première parenthèse (ou le premier chiffre, le cas échéant)
-    string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
+    // Le nom de série est le résultat de la jointure des parties sans suffixe
+    string seriesName = string.Join(" ", seriesParts);
+
+    if (category.ToLower() != "sonarr" && category.ToLower() != "radarr")
+    {
+        // Si la catégorie n'est ni "sonarr" ni "radarr", retourner null
+        _logger.LogWarning($"ExtractSeriesNameFromRdName - Unknown category: {category}");
+        return null;
+    }
 
     return seriesName;
 }
