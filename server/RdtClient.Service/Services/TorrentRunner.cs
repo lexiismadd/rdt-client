@@ -901,29 +901,26 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     }
 
     // Recherche de la première occurrence d'un crochet ou d'une parenthèse
-    int bracketIndex = rdName.IndexOf('[');
+    int bracketIndex = rdName.LastIndexOf('[');
     int parenthesisIndex = rdName.IndexOf('(');
 
-    // Déterminer l'indice de fin en fonction de la première occurrence de crochet ou de parenthèse
-    int endIndex = rdName.Length;
-    if (bracketIndex != -1 && parenthesisIndex != -1)
-    {
-        endIndex = Math.Min(bracketIndex, parenthesisIndex);
-    }
-    else if (bracketIndex != -1)
-    {
-        endIndex = bracketIndex;
-    }
-    else if (parenthesisIndex != -1)
-    {
-        endIndex = parenthesisIndex;
-    }
+    // Déterminer l'indice de début et de fin pour extraire le titre
+    int startIndex = bracketIndex == -1 ? 0 : bracketIndex + 1; // Commencer après le dernier crochet
+    int endIndex = parenthesisIndex == -1 ? rdName.Length : parenthesisIndex; // Terminer avant la première parenthèse
 
     // Extraire le titre en supprimant les espaces supplémentaires avant et après
-    string seriesName = rdName.Substring(0, endIndex).Trim();
+    string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
+
+    // Si le titre contient des chiffres, tronquer pour s'arrêter avant les chiffres
+    int digitIndex = seriesName.LastIndexOfAny("0123456789".ToCharArray());
+    if (digitIndex != -1)
+    {
+        seriesName = seriesName.Substring(0, digitIndex).Trim();
+    }
 
     return seriesName;
 }
+
 
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
 
