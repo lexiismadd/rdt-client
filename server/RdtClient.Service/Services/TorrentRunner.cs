@@ -903,24 +903,56 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     // Ajouter un message de débogage pour indiquer la catégorie
     _logger.LogDebug($"ExtractSeriesNameFromRdName - Category: {category}");
 
-    // Trouver l'index du début du titre après le premier crochet fermant ']' dans le nom de fichier
-    int startIndex = rdName.IndexOf(']') + 2;
+    int endIndex = rdName.Length;
 
-    // Trouver l'index de la première occurrence d'un chiffre dans le nom de fichier
-    int firstDigitIndex = rdName.IndexOfAny("0123456789".ToCharArray(), startIndex);
+    // Recherchez la première occurence d'un crochet fermant ou d'une parenthèse pour déterminer la fin du titre
+    int bracketIndex = rdName.IndexOf(']');
+    int parenthesisIndex = rdName.IndexOf(')');
 
-    // Si aucun chiffre n'est trouvé, retourner le nom de fichier entier
-    if (firstDigitIndex == -1)
+    if (bracketIndex != -1 && parenthesisIndex != -1)
     {
-        return rdName;
+        endIndex = Math.Min(bracketIndex, parenthesisIndex);
+    }
+    else if (bracketIndex != -1)
+    {
+        endIndex = bracketIndex;
+    }
+    else if (parenthesisIndex != -1)
+    {
+        endIndex = parenthesisIndex;
+    }
+    else
+    {
+        // Recherchez le premier chiffre après le titre comme indicateur de fin
+        for (int i = 0; i < rdName.Length; i++)
+        {
+            if (char.IsDigit(rdName[i]))
+            {
+                endIndex = i;
+                break;
+            }
+        }
     }
 
-    // Extraire le sous-chaîne correspondant au titre
-    string seriesName = rdName.Substring(startIndex, firstDigitIndex - startIndex).Trim();
+    string[] parts = rdName.Substring(0, endIndex).Split('.');
+    List<string> seriesParts = new List<string>();
 
-    // Si la catégorie n'est ni "sonarr" ni "radarr", retourner null
+    foreach (string part in parts)
+    {
+        if (Regex.IsMatch(part, @"\d")) // Vérifier si la partie contient un chiffre
+        {
+            break; // Arrêter la recherche dès qu'on rencontre un chiffre
+        }
+
+        seriesParts.Add(part);
+    }
+
+    // Le nom de série est le résultat de la jointure des parties sans suffixe
+    string seriesName = string.Join(" ", seriesParts).Trim();
+
     if (category.ToLower() != "sonarr" && category.ToLower() != "radarr")
     {
+        // Si la catégorie n'est ni "sonarr" ni "radarr", retourner null
         _logger.LogWarning($"ExtractSeriesNameFromRdName - Unknown category: {category}");
         return null;
     }
