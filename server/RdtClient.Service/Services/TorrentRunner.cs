@@ -919,27 +919,30 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     // Remplacer les points par des espaces
     rdName = rdName.Replace(".", " ");
 
-    // Recherche de la dernière occurrence d'un crochet fermant
+    // Recherche de la première occurrence d'un crochet ou d'une parenthèse
     int lastBracketIndex = rdName.LastIndexOf(']');
-    if (lastBracketIndex == -1)
+    int parenthesisIndex = rdName.IndexOf('(');
+
+    // Déterminer l'indice de début et de fin pour extraire le titre
+    int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
+    int endIndex = rdName.Length; // Par défaut, utiliser la fin de la chaîne
+
+    if (parenthesisIndex != -1)
     {
-        // Aucun crochet fermant trouvé, retourner null
-        return null;
+        endIndex = parenthesisIndex; // Terminer avant la première parenthèse
+    }
+    else
+    {
+        // Si aucune parenthèse n'est trouvée, chercher le premier chiffre après le titre
+        int digitIndex = startIndex;
+        while (digitIndex < rdName.Length && !char.IsDigit(rdName[digitIndex]))
+        {
+            digitIndex++;
+        }
+        endIndex = digitIndex;
     }
 
-    // Déterminer l'indice de début pour extraire le titre
-    int startIndex = lastBracketIndex + 1; // Commencer après le dernier crochet
-
-    // Chercher le premier chiffre après le titre
-    int digitIndex = startIndex;
-    while (digitIndex < rdName.Length && !char.IsDigit(rdName[digitIndex]))
-    {
-        digitIndex++;
-    }
-
-    // Si aucun chiffre n'est trouvé, la fin de la chaîne est utilisée comme indice de fin
-    int endIndex = digitIndex;
-
+    // Extraire le titre entre le dernier crochet et la première parenthèse (ou le premier chiffre, le cas échéant)
     string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
 
     return seriesName;
