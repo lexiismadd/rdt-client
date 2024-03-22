@@ -919,18 +919,43 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     // Ajouter un message de débogage pour indiquer la catégorie
     _logger.LogDebug($"ExtractSeriesNameFromRdName - Category: {category}");
 
-    int closedBracketIndex = rdName.LastIndexOf(']');
-    int openParenthesisIndex = rdName.IndexOf('(', closedBracketIndex);
+    string[] parts = rdName.Split('.');
+    List<string> seriesParts = new List<string>();
 
-    if (closedBracketIndex == -1 || openParenthesisIndex == -1)
+    bool foundBracket = false;
+    bool foundDigitAfterBracket = false;
+
+    foreach (string part in parts)
     {
-        // Si l'un des indices n'est pas trouvé, retourner null
-        _logger.LogError("Cannot find closed bracket or open parenthesis.");
-        return null;
+        if (part.Contains("]"))
+        {
+            foundBracket = true;
+        }
+
+        if (foundBracket)
+        {
+            if (Regex.IsMatch(part, @"\d"))
+            {
+                foundDigitAfterBracket = true;
+                break;
+            }
+        }
+
+        if (!foundBracket || foundDigitAfterBracket)
+        {
+            seriesParts.Add(part);
+        }
     }
 
-    // Extraire le titre entre le crochet fermé et la parenthèse ouvrante
-    string seriesName = rdName.Substring(closedBracketIndex + 1, openParenthesisIndex - closedBracketIndex - 1).Trim();
+    // Le nom de série est le résultat de la jointure des parties sans suffixe
+    string seriesName = string.Join(" ", seriesParts);
+
+    if (category.ToLower() != "sonarr" && category.ToLower() != "radarr")
+    {
+        // Si la catégorie n'est ni "sonarr" ni "radarr", retourner null
+        _logger.LogWarning($"ExtractSeriesNameFromRdName - Unknown category: {category}");
+        return null;
+    }
 
     return seriesName;
 }
