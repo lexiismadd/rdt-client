@@ -696,7 +696,7 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName)
         }
 
         // Remplacez "VOTRE_CLE_API_RADARR" par votre clé d'API Radarr
-        var radarrApiKey = "3b02d41cc6c0408f916f5ad1cdcffea6";
+        var radarrApiKey = "bf78203e8ad548c79d7b499b63989782";
         var radarrUrl = "http://radarr:7878/api/v3";
 
         var httpClient = new HttpClient();
