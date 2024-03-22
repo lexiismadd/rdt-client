@@ -967,32 +967,25 @@ private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstan
                     return false;
                 }
 
-                // Ajoutez une gestion de file d'attente pour limiter le nombre de requêtes simultanées
+                HttpResponseMessage response;
                 lock (_httpClient)
                 {
                     _httpClient.DefaultRequestHeaders.Clear();
                     _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
                     var data = new StringContent("{\"name\":\"RefreshMonitoredDownloads\"}", Encoding.UTF8, "application/json");
-                    var response = await _httpClient.PostAsync($"{host}/api/v3/command", data);
-                    
-                    // Vérifiez si la requête a échoué en raison d'une surcharge
-                    if (response.StatusCode == HttpStatusCode.TooManyRequests)
-                    {
-                        _logger.LogWarning("La requête API a échoué en raison d'une surcharge. Tentative de nouveau plus tard.");
-                        return false; // Indiquez que la requête a échoué en raison de la surcharge
-                    }
+                    response = _httpClient.PostAsync($"{host}/api/v3/command", data).Result;
+                }
 
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var responseBody = await response.Content.ReadAsStringAsync();
-                        _logger.LogInformation($"Réponse de l'API : {responseBody}");
-                        return true;
-                    }
-                    else
-                    {
-                        _logger.LogError("La requête API a échoué.");
-                        return false;
-                    }
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseBody = await response.Content.ReadAsStringAsync();
+                    _logger.LogInformation($"Réponse de l'API : {responseBody}");
+                    return true;
+                }
+                else
+                {
+                    _logger.LogError("La requête API a échoué.");
+                    return false;
                 }
             }
             else
