@@ -927,15 +927,15 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
     int endIndex = rdName.Length; // Par défaut, utiliser la fin de la chaîne
 
-    // Si aucune parenthèse n'est trouvée, chercher le premier chiffre après le titre
+    // Si aucune parenthèse n'est trouvée, chercher le premier chiffre avant le titre
     if (parenthesisIndex == -1)
     {
-        int digitIndex = startIndex;
-        while (digitIndex < rdName.Length && !char.IsDigit(rdName[digitIndex]))
+        int digitIndex = startIndex - 1;
+        while (digitIndex >= 0 && char.IsDigit(rdName[digitIndex]))
         {
-            digitIndex++;
+            digitIndex--;
         }
-        endIndex = digitIndex;
+        startIndex = digitIndex + 1;
     }
     else
     {
