@@ -941,7 +941,7 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     // Trouver la fin de la série
     for (int i = startIndex; i < rdName.Length; i++)
     {
-        if (!char.IsDigit(rdName[i]))
+        if (!char.IsDigit(rdName[i]) && rdName[i] != ' ')
         {
             endIndex = i - 1;
             break;
