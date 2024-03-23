@@ -921,31 +921,15 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
 
     _logger.LogInformation($"Nom du fichier : {rdName}");
 
-    // Remplacer les points par des espaces
-    rdName = rdName.Replace(".", " ");
-    _logger.LogInformation($"Nom du fichier après remplacement des points : {rdName}");
-
     // Trouver l'indice du dernier crochet fermant
     int lastBracketIndex = rdName.LastIndexOf(']');
     int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Établir l'indice 0 après le crochet fermant
 
-    // Trouver l'indice de fin en recherchant le premier chiffre ou 'S' après le titre
+    // Trouver l'indice de fin en recherchant le premier chiffre, 'S', parenthèse ou crochet après le titre
     int endIndex = startIndex;
-    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S')
+    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S' && rdName[endIndex] != '(' && rdName[endIndex] != '[')
     {
-        if (!char.IsLetterOrDigit(rdName[endIndex]) && rdName[endIndex] != ' ')
-        {
-            endIndex++;
-            continue; // Ignorer les caractères spéciaux autres que l'espace dans le titre
-        }
-
-        if (rdName[endIndex] == '(' || rdName[endIndex] == '[')
-        {
-            // Si on rencontre une parenthèse ou un crochet avant de trouver le chiffre ou 'S', arrêter la recherche
-            break;
-        }
-
-        endIndex++; // Avancer vers le prochain caractère
+        endIndex++;
     }
 
     // Extraire le titre entre les indices de début et de fin
