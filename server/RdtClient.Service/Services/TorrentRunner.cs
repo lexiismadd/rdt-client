@@ -19,6 +19,8 @@ using RdtClient.Data.Models.Internal;
 using RdtClient.Service.Helpers;
 using RdtClient.Service.Services.Downloaders;
 using Newtonsoft.Json.Linq;
+using TagLib;
+
 
 namespace RdtClient.Service.Services;
 
@@ -909,53 +911,61 @@ public class TvMazeExternals
     public string TheTvdb { get; set; }
 }
 
-private string ExtractSeriesNameFromRdName(string rdName, string category)
+public static string ExtractSeriesNameFromRdName(string rdName, string category)
+{
+    string seriesName = ExtractSeriesNameByParsing(rdName);
+
+    if (string.IsNullOrEmpty(seriesName))
+    {
+        seriesName = ExtractSeriesNameWithTagLib(rdName);
+    }
+
+    return seriesName;
+}
+
+public static string ExtractSeriesNameByParsing(string rdName)
 {
     if (string.IsNullOrWhiteSpace(rdName))
     {
         return null;
     }
 
-    // Appel de MediaInfo pour obtenir les informations sur le fichier
-    ProcessStartInfo psi = new ProcessStartInfo("mediainfo");
-    psi.Arguments = "\"" + rdName + "\"";
-    psi.RedirectStandardOutput = true;
-    psi.UseShellExecute = false;
-    psi.CreateNoWindow = true;
+    // Remplacer les points par des espaces
+    rdName = rdName.Replace(".", " ");
 
-    using (Process process = Process.Start(psi))
+    // Recherche de la première occurrence d'un crochet fermant
+    int lastBracketIndex = rdName.LastIndexOf(']');
+
+    // Déterminer l'indice de début pour extraire le titre
+    int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
+
+    // Rechercher le premier chiffre ou 'S' après le crochet fermant
+    int endIndex = startIndex;
+    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S')
     {
-        // Lecture de la sortie de MediaInfo
-        string mediaInfoOutput = process.StandardOutput.ReadToEnd();
-
-        // Recherche de la balise <complete_name>
-        int completeNameIndex = mediaInfoOutput.IndexOf("<complete_name>");
-        if (completeNameIndex != -1)
-        {
-            // Recherche de la fin de la balise
-            int endIndex = mediaInfoOutput.IndexOf("</complete_name>", completeNameIndex);
-            if (endIndex != -1)
-            {
-                // Extrait le nom complet du fichier
-                string completeName = mediaInfoOutput.Substring(completeNameIndex + "<complete_name>".Length, endIndex - completeNameIndex - "<complete_name>".Length).Trim();
-
-                // Extrait le titre à partir du nom complet du fichier
-                string seriesName = System.IO.Path.GetFileNameWithoutExtension(completeName);
-
-                // Si le titre contient des informations sur l'épisode (SxxExx), les supprimer
-                int episodeIndex = seriesName.IndexOf("S");
-                if (episodeIndex != -1)
-                {
-                    seriesName = seriesName.Substring(0, episodeIndex).Trim();
-                }
-
-                return seriesName;
-            }
-        }
-
-        // Si aucune balise <complete_name> n'est trouvée, renvoyer null
-        return null;
+        endIndex++;
     }
+
+    string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
+
+    return seriesName;
+}
+
+public static string ExtractSeriesNameWithTagLib(string rdName)
+{
+    string seriesName = null;
+    
+    try
+    {
+        TagLib.File file = TagLib.File.Create(rdName);
+        seriesName = file.Tag.Title;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Erreur lors de l'extraction du titre avec TagLib : " + ex.Message);
+    }
+
+    return seriesName;
 }
 
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
