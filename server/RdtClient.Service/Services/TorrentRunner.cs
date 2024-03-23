@@ -914,37 +914,34 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
 {
     if (string.IsNullOrWhiteSpace(rdName))
     {
+        Console.WriteLine("Le nom du fichier est vide ou nul.");
         return null;
     }
 
+    Console.WriteLine("Nom du fichier : " + rdName);
+
     // Remplacer les points par des espaces
     rdName = rdName.Replace(".", " ");
+    Console.WriteLine("Nom du fichier après remplacement des points : " + rdName);
 
-    // Recherche de la dernière occurrence d'un crochet fermant
+    // Recherche de la première occurrence d'un crochet fermant
     int lastBracketIndex = rdName.LastIndexOf(']');
+    Console.WriteLine("Indice du dernier crochet fermant : " + lastBracketIndex);
 
     // Déterminer l'indice de début pour extraire le titre
-    int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet fermant ou à 0 si aucun crochet fermant trouvé
+    int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
+    Console.WriteLine("Indice de début : " + startIndex);
 
-    // Rechercher le premier chiffre après le crochet fermant
+    // Rechercher le premier chiffre ou 'S' après le crochet fermant
     int endIndex = startIndex;
-    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]))
+    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S')
     {
         endIndex++;
     }
+    Console.WriteLine("Indice de fin : " + endIndex);
 
-    // Si un chiffre est trouvé après le crochet fermant
-    if (char.IsDigit(rdName[endIndex]))
-    {
-        // Trouver l'indice de fin du titre en cherchant le premier chiffre après le premier chiffre trouvé
-        while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]))
-        {
-            endIndex++;
-        }
-    }
-
-    // Extraire le titre entre le dernier crochet fermant et l'indice de fin
     string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
+    Console.WriteLine("Nom de la série extrait : " + seriesName);
 
     return seriesName;
 }
