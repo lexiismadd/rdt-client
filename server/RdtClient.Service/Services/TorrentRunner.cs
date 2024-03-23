@@ -921,13 +921,17 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
 
     _logger.LogInformation($"Nom du fichier : {rdName}");
 
+    // Remplacer les points par des espaces
+    rdName = rdName.Replace(".", " ");
+    _logger.LogInformation($"Nom du fichier après remplacement des points : {rdName}");
+
     // Trouver l'indice du dernier crochet fermant
     int lastBracketIndex = rdName.LastIndexOf(']');
     int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Établir l'indice 0 après le crochet fermant
 
-    // Trouver l'indice de fin en recherchant le premier chiffre, 'S', parenthèse ou crochet après le titre
+    // Trouver l'indice de fin en recherchant le premier chiffre ou 'S' après le titre
     int endIndex = startIndex;
-    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S' && rdName[endIndex] != '(' && rdName[endIndex] != '[')
+    while (endIndex < rdName.Length && rdName[endIndex] != '(' && rdName[endIndex] != '[' && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S')
     {
         endIndex++;
     }
