@@ -913,7 +913,7 @@ public class TvMazeExternals
 
 public string ExtractSeriesNameFromRdName(string rdName, string category)
 {
-    string seriesName = ExtractSeriesNameFromDecoupage(string rdName, string category);
+    string seriesName = ExtractSeriesNameFromDecoupage(rdName);
 
     if (string.IsNullOrEmpty(seriesName))
     {
@@ -923,7 +923,7 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     return seriesName;
 }
 
-private string ExtractSeriesNameFromDecoupage(string rdName, string category)
+private string ExtractSeriesNameFromDecoupage(string rdName)
 {
     if (string.IsNullOrWhiteSpace(rdName))
     {
@@ -951,7 +951,7 @@ private string ExtractSeriesNameFromDecoupage(string rdName, string category)
     return seriesName;
 }
 
-private string ExtractSeriesNameFromRdNumber(string rdName, string category)
+private string ExtractSeriesNameFromRdNumber(string rdName)
 {
     if (string.IsNullOrWhiteSpace(rdName))
     {
