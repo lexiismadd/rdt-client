@@ -926,7 +926,7 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Établir l'indice 0 après le crochet fermant
 
     // Utiliser une expression régulière pour extraire le titre
-    Regex regex = new Regex(@"\b(\S[^()]*)\b"); // Recherche du premier mot après l'indice 0, excluant les parenthèses
+    Regex regex = new Regex(@"\b(\S[^(\d+)]*)\b"); // Recherche du premier mot après l'indice 0, arrêt à la première parenthèse
     Match match = regex.Match(rdName, startIndex);
 
     string seriesName = null;
