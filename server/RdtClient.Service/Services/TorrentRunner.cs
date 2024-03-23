@@ -911,7 +911,7 @@ public class TvMazeExternals
 }
 
 
-private string ExtractSeriesNameFromRdName(string rdName, string category)
+public string ExtractSeriesNameFromRdName(string rdName)
 {
     if (string.IsNullOrWhiteSpace(rdName))
     {
@@ -921,19 +921,22 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
 
     _logger.LogInformation($"Nom du fichier : {rdName}");
 
+    // Remplacer les points par des espaces
+    rdName = rdName.Replace(".", " ").Replace("\"", "");
+
     // Trouver l'indice du dernier crochet fermant
     int lastBracketIndex = rdName.LastIndexOf(']');
     int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Établir l'indice 0 après le crochet fermant
 
     // Utiliser une expression régulière pour extraire le titre
-    Regex regex = new Regex(@"\b(\S[^(\d+)]*)\b"); // Recherche du premier mot après l'indice 0, arrêt à la première parenthèse
+    Regex regex = new Regex(@"\b(\S.*)\b"); // Recherche du premier mot après l'indice 0
     Match match = regex.Match(rdName, startIndex);
 
     string seriesName = null;
 
     if (match.Success)
     {
-        seriesName = match.Groups[1].Value;
+        seriesName = match.Groups[1].Value.Trim();
         _logger.LogInformation($"Série extraite : \"{seriesName}\"");
     }
     else
