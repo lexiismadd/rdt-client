@@ -911,65 +911,51 @@ public class TvMazeExternals
 }
 
 private string ExtractSeriesNameFromRdName(string rdName, string category)
-{
-    if (string.IsNullOrWhiteSpace(rdName))
     {
-        Console.WriteLine("Le nom du fichier est vide ou nul.");
-        return null;
+        if (string.IsNullOrWhiteSpace(rdName))
+        {
+            _logger.LogError("Le nom du fichier est vide ou null.");
+            return null;
+        }
+
+        _logger.LogInformation($"Nom du fichier : {rdName}");
+
+        // Remplacer les points par des espaces
+        rdName = rdName.Replace(".", " ");
+        _logger.LogInformation($"Nom du fichier après remplacement des points : {rdName}");
+
+        // Recherche de la dernière occurrence d'un crochet fermant
+        int lastBracketIndex = rdName.LastIndexOf(']');
+        if (lastBracketIndex == -1)
+        {
+            _logger.LogError("Aucun crochet fermant trouvé dans le nom de fichier.");
+            return null;
+        }
+
+        // Déterminer l'indice de début pour extraire le titre
+        int startIndex = lastBracketIndex + 1; // Commencer après le dernier crochet fermant
+        _logger.LogInformation($"Indice de début : {startIndex}");
+
+        // Rechercher le premier chiffre après le crochet fermant
+        int endIndex = startIndex;
+        while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]))
+        {
+            endIndex++;
+        }
+
+        // Si aucun chiffre n'est trouvé, retourner null
+        if (endIndex == rdName.Length)
+        {
+            _logger.LogError("Aucun chiffre trouvé après le crochet fermant.");
+            return null;
+        }
+
+        // Extraire le titre entre le dernier crochet fermant et le premier chiffre trouvé
+        string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
+        _logger.LogInformation($"Série extraite : {seriesName}");
+
+        return seriesName;
     }
-
-    Console.WriteLine($"Nom du fichier : {rdName}");
-
-    // Remplacer les points par des espaces
-    rdName = rdName.Replace(".", " ");
-    Console.WriteLine($"Nom du fichier après remplacement des points : {rdName}");
-
-    // Recherche de la dernière occurrence d'un crochet fermant
-    int lastBracketIndex = rdName.LastIndexOf(']');
-
-    // Si aucun crochet fermant n'est trouvé, la fonction renvoie null
-    if (lastBracketIndex == -1)
-    {
-        Console.WriteLine("Aucun crochet fermant trouvé dans le nom de fichier.");
-        return null;
-    }
-
-    Console.WriteLine($"Indice du dernier crochet fermant : {lastBracketIndex}");
-
-    // Déterminer l'indice de début pour extraire le titre
-    int startIndex = lastBracketIndex + 1; // Commencer après le dernier crochet fermant
-
-    // Rechercher le premier chiffre avant le titre
-    int digitIndex = lastBracketIndex;
-    while (digitIndex >= 0 && char.IsDigit(rdName[digitIndex]))
-    {
-        digitIndex--;
-    }
-
-    // Si un chiffre est trouvé, utiliser son index comme début du titre
-    if (digitIndex >= 0 && digitIndex < lastBracketIndex)
-    {
-        startIndex = digitIndex + 1;
-    }
-
-    Console.WriteLine($"Indice de début : {startIndex}");
-
-    // Rechercher le premier chiffre après le titre pour déterminer l'indice de fin
-    int endIndex = startIndex;
-    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]))
-    {
-        endIndex++;
-    }
-
-    Console.WriteLine($"Indice de fin : {endIndex}");
-
-    // Extraire le titre entre le dernier crochet fermant et le premier chiffre après le titre
-    string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
-
-    Console.WriteLine($"Nom de la série/film extrait : {seriesName}");
-
-    return seriesName;
-}
 
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
 
