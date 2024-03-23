@@ -916,30 +916,23 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
         return null;
     }
 
-    // Remplacer les points par des espaces ainsi que les tirets
+    // Remplacer les points par des espaces
     rdName = rdName.Replace(".", " ").Replace("-", " ");
 
     // Recherche de la première occurrence d'un crochet fermant
     int lastBracketIndex = rdName.LastIndexOf(']');
 
-    // Recherche de la première occurrence d'une parenthèse ouvrante
-    int parenthesisIndex = rdName.IndexOf('(');
-
     // Déterminer l'indice de début pour extraire le titre
     int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
 
-    // Rechercher le premier chiffre, 'S', parenthèse ouvrante après le crochet fermant
+    // Rechercher le premier chiffre ou 'S' après le crochet fermant
     int endIndex = startIndex;
-    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S' && rdName[endIndex] != '(')
+    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S')
     {
         endIndex++;
     }
 
-    // Supprimer les espaces inutiles en début et fin de chaîne
     string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
-
-    // Remplacer les espaces multiples par un seul espace
-    seriesName = Regex.Replace(seriesName, @"\s+", " ");
 
     return seriesName;
 }
