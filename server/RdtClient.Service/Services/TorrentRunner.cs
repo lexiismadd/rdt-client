@@ -911,19 +911,6 @@ public class TvMazeExternals
 }
 
 
-using System;
-using System.Text.RegularExpressions;
-using Microsoft.Extensions.Logging;
-
-public class TorrentHelper
-{
-    private readonly ILogger<TorrentHelper> _logger;
-
-    public TorrentHelper(ILogger<TorrentHelper> logger)
-    {
-        _logger = logger;
-    }
-
     public string ExtractSeriesNameFromRdName(string rdName)
     {
         if (string.IsNullOrWhiteSpace(rdName))
@@ -956,7 +943,7 @@ public class TorrentHelper
 
         return seriesName;
     }
-}
+
 
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
 
