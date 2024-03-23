@@ -928,11 +928,15 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     int lastBracketIndex = rdName.LastIndexOf(']');
     int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Établir l'indice 0 après le crochet fermant
 
-    // Trouver l'indice de fin pour extraire le titre (le premier chiffre rencontré après le titre)
-    int endIndex = rdName.IndexOfAny("0123456789".ToCharArray(), startIndex);
+    // Trouver l'indice de fin pour extraire le titre (le premier chiffre ou 'S' rencontré après le crochet fermant)
+    int endIndex = startIndex;
+    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S')
+    {
+        endIndex++;
+    }
 
-    // Si aucun chiffre n'est trouvé après le titre, l'indice de fin est la fin de la chaîne
-    if (endIndex == -1)
+    // Si aucun chiffre ou 'S' n'est trouvé après le crochet fermant, l'indice de fin est la fin de la chaîne
+    if (endIndex == rdName.Length)
     {
         endIndex = rdName.Length;
     }
