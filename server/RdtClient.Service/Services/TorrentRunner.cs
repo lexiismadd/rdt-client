@@ -933,10 +933,10 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     int endIndex = startIndex;
     while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S')
     {
-        if (char.IsWhiteSpace(rdName[endIndex]) || !char.IsLetterOrDigit(rdName[endIndex]))
+        if (!char.IsLetterOrDigit(rdName[endIndex]) && rdName[endIndex] != ' ')
         {
             endIndex++;
-            continue; // Ignore les caractères spéciaux et les espaces dans le titre
+            continue; // Ignorer les caractères spéciaux autres que l'espace dans le titre
         }
 
         if (rdName[endIndex] == '(' || rdName[endIndex] == '[')
