@@ -919,25 +919,31 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     // Remplacer les points par des espaces
     rdName = rdName.Replace(".", " ");
 
-    // Recherche de la première occurrence d'un crochet ou d'une parenthèse ou de la lettre "S"
+    // Recherche de la première occurrence d'un crochet ou d'une parenthèse
     int lastBracketIndex = rdName.LastIndexOf(']');
     int parenthesisIndex = rdName.IndexOf('(');
-    int sIndex = rdName.IndexOf('S');
 
     // Déterminer l'indice de début et de fin pour extraire le titre
     int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
     int endIndex = rdName.Length; // Par défaut, utiliser la fin de la chaîne
 
-    if ((parenthesisIndex != -1 && parenthesisIndex > lastBracketIndex) || (sIndex != -1 && sIndex > lastBracketIndex))
+    if (parenthesisIndex != -1 && parenthesisIndex > lastBracketIndex)
     {
-        endIndex = parenthesisIndex != -1 ? parenthesisIndex : sIndex; // Terminer avant la première parenthèse ou "S"
+        // Si une parenthèse est trouvée après le crochet fermant, extraire le titre entre ces deux caractères
+        endIndex = parenthesisIndex;
+    }
+    else if (rdName.IndexOf(" S", startIndex) != -1)
+    {
+        // Si un espace suivi d'un "S" est trouvé après le titre, extraire le titre jusqu'au "S"
+        int sIndex = rdName.IndexOf(" S", startIndex);
+        endIndex = sIndex != -1 ? sIndex : endIndex;
     }
     else
     {
-        // Si aucune parenthèse ou "S" n'est trouvée après le crochet fermant,
-        // chercher le premier chiffre ou "S" après le crochet fermant
+        // Si aucune parenthèse n'est trouvée et qu'il n'y a pas de "S" après le titre,
+        // chercher le premier chiffre après le titre
         int digitIndex = startIndex;
-        while (digitIndex < rdName.Length && !char.IsDigit(rdName[digitIndex]) && rdName[digitIndex] != 'S')
+        while (digitIndex < rdName.Length && !char.IsDigit(rdName[digitIndex]))
         {
             digitIndex++;
         }
