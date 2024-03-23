@@ -911,7 +911,7 @@ public class TvMazeExternals
 }
 
 
-private string ExtractSeriesNameFromRdName(string rdName, string category)
+public string ExtractSeriesNameFromRdName(string rdName)
 {
     if (string.IsNullOrWhiteSpace(rdName))
     {
