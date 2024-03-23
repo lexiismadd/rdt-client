@@ -928,21 +928,18 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     int lastBracketIndex = rdName.LastIndexOf(']');
     int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Établir l'indice 0 après le crochet fermant
 
-    // Utiliser une expression régulière pour extraire le titre
-    Regex regex = new Regex(@"\b(\S.*)\b"); // Recherche du premier mot après l'indice 0
-    Match match = regex.Match(rdName, startIndex);
+    // Trouver l'indice de fin pour extraire le titre (le premier chiffre rencontré après le titre)
+    int endIndex = rdName.IndexOfAny("0123456789".ToCharArray(), startIndex);
 
-    string seriesName = null;
+    // Si aucun chiffre n'est trouvé après le titre, l'indice de fin est la fin de la chaîne
+    if (endIndex == -1)
+    {
+        endIndex = rdName.Length;
+    }
 
-    if (match.Success)
-    {
-        seriesName = match.Groups[1].Value.Trim();
-        _logger.LogInformation($"Série extraite : \"{seriesName}\"");
-    }
-    else
-    {
-        _logger.LogError("Aucune série trouvée dans le nom de fichier.");
-    }
+    // Extraire le titre
+    string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
+    _logger.LogInformation($"Série extraite : \"{seriesName}\"");
 
     return seriesName;
 }
