@@ -933,7 +933,13 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     int endIndex = startIndex;
     while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S')
     {
-        endIndex++;
+        if (char.IsWhiteSpace(rdName[endIndex]) || !char.IsLetterOrDigit(rdName[endIndex]))
+        {
+            endIndex++;
+            continue; // Ignore les caractères spéciaux et les espaces dans le titre
+        }
+
+        endIndex++; // Avancer vers le prochain caractère
     }
 
     // Extraire le titre entre les indices de début et de fin
