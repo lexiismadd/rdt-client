@@ -963,23 +963,27 @@ private static string ExtractSeriesNameWithTagLib(string rdName)
     // Recherche de la dernière occurrence d'un crochet fermant
     int lastBracketIndex = rdName.LastIndexOf(']');
 
-    // Si aucun crochet fermant n'est trouvé, la fonction renvoie null
-    if (lastBracketIndex == -1)
-    {
-        return null;
-    }
-
     // Déterminer l'indice de début pour extraire le titre
-    int startIndex = lastBracketIndex + 1; // Commencer après le dernier crochet fermant
+    int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet fermant ou à 0 si aucun crochet fermant trouvé
 
-    // Rechercher le premier chiffre ou 'S' après le crochet fermant
+    // Rechercher le premier chiffre après le crochet fermant
     int endIndex = startIndex;
-    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S')
+    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]))
     {
         endIndex++;
     }
 
-    // Extraire le titre entre le dernier crochet fermant et le premier chiffre ou 'S' trouvé
+    // Si un chiffre est trouvé après le crochet fermant
+    if (char.IsDigit(rdName[endIndex]))
+    {
+        // Trouver l'indice de fin du titre en cherchant le premier chiffre après le premier chiffre trouvé
+        while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]))
+        {
+            endIndex++;
+        }
+    }
+
+    // Extraire le titre entre le dernier crochet fermant et l'indice de fin
     string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
 
     return seriesName;
