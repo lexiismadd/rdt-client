@@ -909,6 +909,34 @@ public class TvMazeExternals
     public string TheTvdb { get; set; }
 }
 
+private string ExtractSeriesNameFromRdName(string rdName, string category)
+{
+    if (string.IsNullOrWhiteSpace(rdName))
+    {
+        return null;
+    }
+
+    // Remplacer les points par des espaces
+    rdName = rdName.Replace(".", " ");
+
+    // Recherche de la première occurrence d'un crochet fermant
+    int lastBracketIndex = rdName.LastIndexOf(']');
+
+    // Déterminer l'indice de début pour extraire le titre
+    int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
+
+    // Rechercher le premier chiffre ou 'S' après le crochet fermant
+    int endIndex = startIndex;
+    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S')
+    {
+        endIndex++;
+    }
+
+    string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
+
+    return seriesName;
+}
+
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
 
 {
