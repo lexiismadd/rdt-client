@@ -922,32 +922,26 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     _logger.LogInformation($"Nom du fichier : {rdName}");
 
     // Remplacer les points par des espaces
-    rdName = rdName.Replace(".", " ").Replace("\"", "");
+    rdName = rdName.Replace(".", " ");
+    _logger.LogInformation($"Nom du fichier après remplacement des points : {rdName}");
 
     // Trouver l'indice du dernier crochet fermant
     int lastBracketIndex = rdName.LastIndexOf(']');
     int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Établir l'indice 0 après le crochet fermant
 
-    // Trouver l'indice de fin pour extraire le titre (le premier chiffre ou 'S' rencontré après le crochet fermant)
+    // Trouver l'indice de fin en recherchant le premier chiffre ou 'S' après le titre
     int endIndex = startIndex;
     while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S')
     {
         endIndex++;
     }
 
-    // Si aucun chiffre ou 'S' n'est trouvé après le crochet fermant, l'indice de fin est la fin de la chaîne
-    if (endIndex == rdName.Length)
-    {
-        endIndex = rdName.Length;
-    }
-
-    // Extraire le titre
+    // Extraire le titre entre les indices de début et de fin
     string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
     _logger.LogInformation($"Série extraite : \"{seriesName}\"");
 
     return seriesName;
 }
-
 
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
 
