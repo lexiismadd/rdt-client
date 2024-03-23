@@ -916,23 +916,59 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
         return null;
     }
 
-    // Remplacer les points par des espaces
-    rdName = rdName.Replace(".", " ");
+    // Ajouter un message de débogage pour indiquer la catégorie
+    _logger.LogDebug($"ExtractSeriesNameFromRdName - Category: {category}");
 
-    // Recherche de la première occurrence d'un crochet fermant
-    int lastBracketIndex = rdName.LastIndexOf(']');
+    string[] parts = rdName.Split('.');
+    List<string> seriesParts = new List<string>();
 
-    // Déterminer l'indice de début pour extraire le titre
-    int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
+    bool foundBracket = false;
+    bool foundDigitOrS = false;
+    bool foundSpecialWord = false;
+    List<string> specialWords = new List<string> { "Multi", "Version" };
 
-    // Rechercher le premier chiffre ou 'S' après le crochet fermant
-    int endIndex = startIndex;
-    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S')
+    foreach (string part in parts)
     {
-        endIndex++;
+        if (part == "]")
+        {
+            foundBracket = true;
+        }
+
+        if (foundBracket)
+        {
+            if (Regex.IsMatch(part, @"\d") || part == "S")
+            {
+                foundDigitOrS = true;
+                break;
+            }
+
+            foreach (string word in specialWords)
+            {
+                if (part.Equals(word, StringComparison.OrdinalIgnoreCase))
+                {
+                    foundSpecialWord = true;
+                    break;
+                }
+            }
+
+            if (foundSpecialWord)
+            {
+                break;
+            }
+        }
+
+        seriesParts.Add(part);
     }
 
-    string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
+    // Le nom de série est le résultat de la jointure des parties sans suffixe
+    string seriesName = string.Join(" ", seriesParts);
+
+    if (category.ToLower() != "sonarr" && category.ToLower() != "radarr")
+    {
+        // Si la catégorie n'est ni "sonarr" ni "radarr", retourner null
+        _logger.LogWarning($"ExtractSeriesNameFromRdName - Unknown category: {category}");
+        return null;
+    }
 
     return seriesName;
 }
