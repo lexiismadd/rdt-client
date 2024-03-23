@@ -911,47 +911,7 @@ public class TvMazeExternals
 }
 
 
-public string ExtractSeriesNameFromRdName(string rdName, string category)
-{
-    string seriesName = ExtractSeriesNameFromDecoupage(rdName);
-
-    if (string.IsNullOrEmpty(seriesName))
-    {
-        seriesName = ExtractSeriesNameFromRdNumber(rdName);
-    }
-
-    return seriesName;
-}
-
-private string ExtractSeriesNameFromDecoupage(string rdName)
-{
-    if (string.IsNullOrWhiteSpace(rdName))
-    {
-        return null;
-    }
-
-    // Remplacer les points par des espaces
-    rdName = rdName.Replace(".", " ");
-
-    // Recherche de la première occurrence d'un crochet fermant
-    int lastBracketIndex = rdName.LastIndexOf(']');
-
-    // Déterminer l'indice de début pour extraire le titre
-    int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
-
-    // Rechercher le premier chiffre ou 'S' après le crochet fermant
-    int endIndex = startIndex;
-    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S')
-    {
-        endIndex++;
-    }
-
-    string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
-
-    return seriesName;
-}
-
-private string ExtractSeriesNameFromRdNumber(string rdName)
+private string ExtractSeriesNameFromRdName(string rdName, string category)
 {
     if (string.IsNullOrWhiteSpace(rdName))
     {
@@ -961,19 +921,15 @@ private string ExtractSeriesNameFromRdNumber(string rdName)
 
     _logger.LogInformation($"Nom du fichier : {rdName}");
 
-    // Remplacer les points par des espaces
-    rdName = rdName.Replace(".", " ");
-    _logger.LogInformation($"Nom du fichier après remplacement des points : {rdName}");
-
-    // Utiliser une expression régulière pour extraire le numéro suivi du titre
-    Regex regex = new Regex(@"(\d+)\s*(\S+)");
+    // Utiliser une expression régulière pour extraire le titre
+    Regex regex = new Regex(@"(?<=\])[^\d]*(.+?)\d{4}");
     Match match = regex.Match(rdName);
 
     string seriesName = null;
 
     if (match.Success)
     {
-        seriesName = match.Groups[1].Value + " " + match.Groups[2].Value;
+        seriesName = match.Groups[1].Value.Trim();
         _logger.LogInformation($"Série extraite : \"{seriesName}\"");
     }
     else
