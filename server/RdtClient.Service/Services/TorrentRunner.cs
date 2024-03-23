@@ -912,7 +912,7 @@ public class TvMazeExternals
 
 public static string ExtractSeriesNameFromRdName(string rdName, string category)
 {
-    string seriesName = ExtractSeriesNameByParsing(rdName);
+    string seriesName = ExtractSeriesNameByParsing(rdName, category);
 
     if (string.IsNullOrEmpty(seriesName))
     {
