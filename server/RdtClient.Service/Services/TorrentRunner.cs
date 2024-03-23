@@ -916,18 +916,21 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
         return null;
     }
 
-    // Remplacer les points par des espaces
-    rdName = rdName.Replace(".", " ");
+    // Remplacer les points et les tirets par des espaces
+    rdName = rdName.Replace(".", " ").Replace("-", " ");
 
     // Recherche de la première occurrence d'un crochet fermant
     int lastBracketIndex = rdName.LastIndexOf(']');
 
+    // Recherche de la première occurrence d'une parenthèse ouvrante
+    int parenthesisIndex = rdName.IndexOf('(');
+
     // Déterminer l'indice de début pour extraire le titre
     int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
 
-    // Rechercher le premier chiffre ou 'S' après le crochet fermant
+    // Rechercher le premier chiffre, 'S' ou parenthèse ouvrante après le crochet fermant
     int endIndex = startIndex;
-    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S')
+    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S' && rdName[endIndex] != '(')
     {
         endIndex++;
     }
