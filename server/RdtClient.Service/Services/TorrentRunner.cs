@@ -928,17 +928,27 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     int startIndex = 0;
     int endIndex = rdName.Length - 1;
 
-    // Trouver le premier chiffre
+    // Trouver le début de la série
     for (int i = 0; i < rdName.Length; i++)
     {
         if (char.IsDigit(rdName[i]))
+        {
+            startIndex = i;
+            break;
+        }
+    }
+
+    // Trouver la fin de la série
+    for (int i = startIndex; i < rdName.Length; i++)
+    {
+        if (!char.IsDigit(rdName[i]))
         {
             endIndex = i - 1;
             break;
         }
     }
 
-    // Extraire les chiffres et le titre
+    // Extraire la série
     string seriesName = rdName.Substring(startIndex, endIndex - startIndex + 1).Trim();
     _logger.LogInformation($"Série extraite : \"{seriesName}\"");
 
