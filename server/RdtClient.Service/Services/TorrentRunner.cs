@@ -910,6 +910,7 @@ public class TvMazeExternals
     public string TheTvdb { get; set; }
 }
 
+
 private string ExtractSeriesNameFromRdName(string rdName, string category)
 {
     if (string.IsNullOrWhiteSpace(rdName))
@@ -924,33 +925,21 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     rdName = rdName.Replace(".", " ");
     _logger.LogInformation($"Nom du fichier après remplacement des points : {rdName}");
 
-    // Initialiser les indices de début et de fin
-    int startIndex = 0;
-    int endIndex = rdName.Length - 1;
+    // Utiliser une expression régulière pour extraire le numéro suivi du titre
+    Regex regex = new Regex(@"(\d+)\s*(\S+)");
+    Match match = regex.Match(rdName);
 
-    // Trouver le début de la série
-    for (int i = 0; i < rdName.Length; i++)
+    string seriesName = null;
+
+    if (match.Success)
     {
-        if (char.IsDigit(rdName[i]))
-        {
-            startIndex = i;
-            break;
-        }
+        seriesName = match.Groups[1].Value + " " + match.Groups[2].Value;
+        _logger.LogInformation($"Série extraite : \"{seriesName}\"");
     }
-
-    // Trouver la fin de la série
-    for (int i = startIndex; i < rdName.Length; i++)
+    else
     {
-        if (!char.IsDigit(rdName[i]) && rdName[i] != ' ')
-        {
-            endIndex = i - 1;
-            break;
-        }
+        _logger.LogError("Aucune série trouvée dans le nom de fichier.");
     }
-
-    // Extraire la série
-    string seriesName = rdName.Substring(startIndex, endIndex - startIndex + 1).Trim();
-    _logger.LogInformation($"Série extraite : \"{seriesName}\"");
 
     return seriesName;
 }
