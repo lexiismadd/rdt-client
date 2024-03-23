@@ -944,38 +944,6 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     return seriesName;
 }
 
-{
-    if (string.IsNullOrWhiteSpace(rdName))
-    {
-        _logger.LogError("Le nom du fichier est vide ou null.");
-        return null;
-    }
-
-    _logger.LogInformation($"Nom du fichier : {rdName}");
-
-    // Trouver l'indice du dernier crochet fermant
-    int lastBracketIndex = rdName.LastIndexOf(']');
-    int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Établir l'indice 0 après le crochet fermant
-
-    // Utiliser une expression régulière pour extraire le titre
-    Regex regex = new Regex(@"\b(\S.*)\b"); // Recherche du premier mot après l'indice 0
-    Match match = regex.Match(rdName, startIndex);
-
-    string seriesName = null;
-
-    if (match.Success)
-    {
-        seriesName = match.Groups[1].Value;
-        _logger.LogInformation($"Série extraite : \"{seriesName}\"");
-    }
-    else
-    {
-        _logger.LogError("Aucune série trouvée dans le nom de fichier.");
-    }
-
-    return seriesName;
-}
-
 
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
 
