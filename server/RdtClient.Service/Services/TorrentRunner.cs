@@ -914,50 +914,61 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
 {
     if (string.IsNullOrWhiteSpace(rdName))
     {
+        Console.WriteLine("Le nom du fichier est vide ou nul.");
         return null;
     }
 
+    Console.WriteLine($"Nom du fichier : {rdName}");
+
     // Remplacer les points par des espaces
     rdName = rdName.Replace(".", " ");
+    Console.WriteLine($"Nom du fichier après remplacement des points : {rdName}");
 
-    // Recherche de la première occurrence d'un crochet fermant
+    // Recherche de la dernière occurrence d'un crochet fermant
     int lastBracketIndex = rdName.LastIndexOf(']');
 
+    // Si aucun crochet fermant n'est trouvé, la fonction renvoie null
+    if (lastBracketIndex == -1)
+    {
+        Console.WriteLine("Aucun crochet fermant trouvé dans le nom de fichier.");
+        return null;
+    }
+
+    Console.WriteLine($"Indice du dernier crochet fermant : {lastBracketIndex}");
+
     // Déterminer l'indice de début pour extraire le titre
-    int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
+    int startIndex = lastBracketIndex + 1; // Commencer après le dernier crochet fermant
 
-    // Rechercher le premier chiffre ou 'S' après le crochet fermant
+    // Rechercher le premier chiffre avant le titre
+    int digitIndex = lastBracketIndex;
+    while (digitIndex >= 0 && char.IsDigit(rdName[digitIndex]))
+    {
+        digitIndex--;
+    }
+
+    // Si un chiffre est trouvé, utiliser son index comme début du titre
+    if (digitIndex >= 0 && digitIndex < lastBracketIndex)
+    {
+        startIndex = digitIndex + 1;
+    }
+
+    Console.WriteLine($"Indice de début : {startIndex}");
+
+    // Rechercher le premier chiffre après le titre pour déterminer l'indice de fin
     int endIndex = startIndex;
-    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S')
+    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]))
     {
         endIndex++;
     }
 
-    // Extraire le numéro s'il est présent avant le titre
-    string seriesNumber = null;
-    if (endIndex > startIndex)
-    {
-        seriesNumber = rdName.Substring(startIndex, endIndex - startIndex).Trim();
-    }
+    Console.WriteLine($"Indice de fin : {endIndex}");
 
-    // Rechercher le début du titre
-    while (endIndex < rdName.Length && (char.IsDigit(rdName[endIndex]) || rdName[endIndex] == 'S'))
-    {
-        endIndex++;
-    }
+    // Extraire le titre entre le dernier crochet fermant et le premier chiffre après le titre
+    string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
 
-    // Extraire le titre
-    string seriesName = rdName.Substring(endIndex).Trim();
+    Console.WriteLine($"Nom de la série/film extrait : {seriesName}");
 
-    // Retourner le numéro et le titre
-    if (!string.IsNullOrWhiteSpace(seriesNumber))
-    {
-        return seriesNumber + " " + seriesName;
-    }
-    else
-    {
-        return seriesName;
-    }
+    return seriesName;
 }
 
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
