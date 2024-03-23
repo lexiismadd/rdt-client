@@ -950,7 +950,7 @@ private string ExtractSeriesNameByParsing(string rdName, string category)
     return seriesName;
 }
 
-private string ExtractSeriesNameWithTagLib(string rdName, string category)
+private string ExtractSeriesNameWithTagLib(string rdName)
 {
     if (string.IsNullOrWhiteSpace(rdName))
     {
