@@ -909,6 +909,8 @@ public class TvMazeExternals
     public string TheTvdb { get; set; }
 }
 
+using System.Diagnostics;
+
 private string ExtractSeriesNameFromRdName(string rdName, string category)
 {
     if (string.IsNullOrWhiteSpace(rdName))
@@ -916,25 +918,39 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
         return null;
     }
 
-    // Remplacer les points par des espaces
-    rdName = rdName.Replace(".", " ");
+    // Appel de MediaInfo pour obtenir les informations sur le fichier
+    ProcessStartInfo psi = new ProcessStartInfo("mediainfo");
+    psi.Arguments = "\"" + rdName + "\"";
+    psi.RedirectStandardOutput = true;
+    psi.UseShellExecute = false;
+    psi.CreateNoWindow = true;
 
-    // Recherche de la première occurrence d'un crochet fermant
-    int lastBracketIndex = rdName.LastIndexOf(']');
-
-    // Déterminer l'indice de début pour extraire le titre
-    int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
-
-    // Rechercher le premier chiffre ou 'S' après le crochet fermant
-    int endIndex = startIndex;
-    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S')
+    using (Process process = Process.Start(psi))
     {
-        endIndex++;
+        // Lecture de la sortie de MediaInfo
+        string mediaInfoOutput = process.StandardOutput.ReadToEnd();
+
+        // Extraction du titre de la série
+        string seriesName = null;
+        int titleIndex = mediaInfoOutput.IndexOf("Title : ");
+        if (titleIndex != -1)
+        {
+            int newlineIndex = mediaInfoOutput.IndexOf('\n', titleIndex);
+            if (newlineIndex != -1)
+            {
+                seriesName = mediaInfoOutput.Substring(titleIndex + 8, newlineIndex - titleIndex - 8).Trim();
+                
+                // Si le titre contient des informations sur l'épisode (SxxExx), les supprimer
+                int episodeIndex = seriesName.IndexOf("S");
+                if (episodeIndex != -1)
+                {
+                    seriesName = seriesName.Substring(0, episodeIndex).Trim();
+                }
+            }
+        }
+
+        return seriesName;
     }
-
-    string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
-
-    return seriesName;
 }
 
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
