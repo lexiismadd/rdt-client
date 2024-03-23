@@ -924,33 +924,28 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     rdName = rdName.Replace(".", " ");
     _logger.LogInformation($"Nom du fichier après remplacement des points : {rdName}");
 
-    // Recherche de la dernière occurrence d'un crochet fermant
-    int lastBracketIndex = rdName.LastIndexOf(']');
-    if (lastBracketIndex == -1)
-    {
-        _logger.LogError("Aucun crochet fermant trouvé dans le nom de fichier.");
-        return null;
-    }
+    // Initialiser les indices de début et de fin
+    int startIndex = 0;
+    int endIndex = 0;
 
-    // Déterminer l'indice de début pour extraire le titre
-    int startIndex = lastBracketIndex + 1; // Commencer après le dernier crochet fermant
-    _logger.LogInformation($"Indice de début : {startIndex}");
-
-    // Recherche du premier chiffre après le crochet fermant
-    int endIndex = startIndex;
-    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]))
+    // Trouver le premier chiffre après l'indice 0
+    for (int i = 0; i < rdName.Length; i++)
     {
-        endIndex++;
+        if (char.IsDigit(rdName[i]))
+        {
+            endIndex = i;
+            break;
+        }
     }
 
     // Si aucun chiffre n'est trouvé, retourner null
-    if (endIndex == rdName.Length)
+    if (endIndex == 0)
     {
-        _logger.LogError("Aucun chiffre trouvé après le crochet fermant.");
+        _logger.LogError("Aucun chiffre trouvé dans le nom de fichier.");
         return null;
     }
 
-    // Extraire le titre entre le dernier crochet fermant et le premier chiffre trouvé
+    // Extraire le titre entre l'indice de début et l'indice de fin
     string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
     _logger.LogInformation($"Série extraite : {seriesName}");
 
