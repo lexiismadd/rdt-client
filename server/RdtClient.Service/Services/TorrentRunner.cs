@@ -914,23 +914,17 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
 {
     if (string.IsNullOrWhiteSpace(rdName))
     {
-        Console.WriteLine("Le nom du fichier est vide ou nul.");
         return null;
     }
 
-    Console.WriteLine("Nom du fichier : " + rdName);
-
     // Remplacer les points par des espaces
     rdName = rdName.Replace(".", " ");
-    Console.WriteLine("Nom du fichier après remplacement des points : " + rdName);
 
     // Recherche de la première occurrence d'un crochet fermant
     int lastBracketIndex = rdName.LastIndexOf(']');
-    Console.WriteLine("Indice du dernier crochet fermant : " + lastBracketIndex);
 
     // Déterminer l'indice de début pour extraire le titre
     int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
-    Console.WriteLine("Indice de début : " + startIndex);
 
     // Rechercher le premier chiffre ou 'S' après le crochet fermant
     int endIndex = startIndex;
@@ -938,12 +932,32 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     {
         endIndex++;
     }
-    Console.WriteLine("Indice de fin : " + endIndex);
 
-    string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
-    Console.WriteLine("Nom de la série extrait : " + seriesName);
+    // Extraire le numéro s'il est présent avant le titre
+    string seriesNumber = null;
+    if (endIndex > startIndex)
+    {
+        seriesNumber = rdName.Substring(startIndex, endIndex - startIndex).Trim();
+    }
 
-    return seriesName;
+    // Rechercher le début du titre
+    while (endIndex < rdName.Length && (char.IsDigit(rdName[endIndex]) || rdName[endIndex] == 'S'))
+    {
+        endIndex++;
+    }
+
+    // Extraire le titre
+    string seriesName = rdName.Substring(endIndex).Trim();
+
+    // Retourner le numéro et le titre
+    if (!string.IsNullOrWhiteSpace(seriesNumber))
+    {
+        return seriesNumber + " " + seriesName;
+    }
+    else
+    {
+        return seriesName;
+    }
 }
 
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
