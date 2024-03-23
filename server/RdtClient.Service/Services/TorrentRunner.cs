@@ -911,33 +911,51 @@ public class TvMazeExternals
 }
 
 
-private string ExtractSeriesNameFromRdName(string rdName, string category)
+using System;
+using System.Text.RegularExpressions;
+using Microsoft.Extensions.Logging;
+
+public class TorrentHelper
 {
-    if (string.IsNullOrWhiteSpace(rdName))
+    private readonly ILogger<TorrentHelper> _logger;
+
+    public TorrentHelper(ILogger<TorrentHelper> logger)
     {
-        _logger.LogError("Le nom du fichier est vide ou null.");
-        return null;
+        _logger = logger;
     }
 
-    _logger.LogInformation($"Nom du fichier : {rdName}");
-
-    // Utiliser une expression régulière pour extraire le titre
-    Regex regex = new Regex(@"(?<=\])[^\d]*(.+?)\d{4}");
-    Match match = regex.Match(rdName);
-
-    string seriesName = null;
-
-    if (match.Success)
+    public string ExtractSeriesNameFromRdName(string rdName)
     {
-        seriesName = match.Groups[1].Value.Trim();
-        _logger.LogInformation($"Série extraite : \"{seriesName}\"");
-    }
-    else
-    {
-        _logger.LogError("Aucune série trouvée dans le nom de fichier.");
-    }
+        if (string.IsNullOrWhiteSpace(rdName))
+        {
+            _logger.LogError("Le nom du fichier est vide ou null.");
+            return null;
+        }
 
-    return seriesName;
+        _logger.LogInformation($"Nom du fichier : {rdName}");
+
+        // Trouver l'indice du dernier crochet fermant
+        int lastBracketIndex = rdName.LastIndexOf(']');
+        int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Établir l'indice 0 après le crochet fermant
+
+        // Utiliser une expression régulière pour extraire le titre
+        Regex regex = new Regex(@"\b(\S.*)\b"); // Recherche du premier mot après l'indice 0
+        Match match = regex.Match(rdName, startIndex);
+
+        string seriesName = null;
+
+        if (match.Success)
+        {
+            seriesName = match.Groups[1].Value;
+            _logger.LogInformation($"Série extraite : \"{seriesName}\"");
+        }
+        else
+        {
+            _logger.LogError("Aucune série trouvée dans le nom de fichier.");
+        }
+
+        return seriesName;
+    }
 }
 
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
