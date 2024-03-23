@@ -916,46 +916,34 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
         return null;
     }
 
-    // Ajouter un message de débogage pour indiquer la catégorie
-    _logger.LogDebug($"ExtractSeriesNameFromRdName - Category: {category}");
+    // Remplacer les points par des espaces
+    rdName = rdName.Replace(".", " ");
 
-    string[] parts = rdName.Split('.');
-    List<string> seriesParts = new List<string>();
+    // Recherche de la première occurrence d'un crochet ou d'une parenthèse
+    int lastBracketIndex = rdName.LastIndexOf(']');
+    int parenthesisIndex = rdName.IndexOf('(');
 
-    bool foundBracket = false;
-    bool foundDigitAfterBracket = false;
+    // Déterminer l'indice de début et de fin pour extraire le titre
+    int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
+    int endIndex = rdName.Length; // Par défaut, utiliser la fin de la chaîne
 
-    foreach (string part in parts)
+    if (parenthesisIndex != -1 && parenthesisIndex > lastBracketIndex)
     {
-        if (part.Contains("]"))
+        endIndex = parenthesisIndex; // Terminer avant la première parenthèse
+    }
+    else
+    {
+        // Si aucune parenthèse n'est trouvée ou si la parenthèse est avant le crochet fermant,
+        // chercher le premier chiffre après le crochet fermant
+        int digitIndex = startIndex;
+        while (digitIndex < rdName.Length && !char.IsDigit(rdName[digitIndex]))
         {
-            foundBracket = true;
+            digitIndex++;
         }
-
-        if (foundBracket)
-        {
-            if (Regex.IsMatch(part, @"\d"))
-            {
-                foundDigitAfterBracket = true;
-                break;
-            }
-        }
-
-        if (!foundBracket || foundDigitAfterBracket)
-        {
-            seriesParts.Add(part);
-        }
+        endIndex = digitIndex;
     }
 
-    // Le nom de série est le résultat de la jointure des parties sans suffixe
-    string seriesName = string.Join(" ", seriesParts);
-
-    if (category.ToLower() != "sonarr" && category.ToLower() != "radarr")
-    {
-        // Si la catégorie n'est ni "sonarr" ni "radarr", retourner null
-        _logger.LogWarning($"ExtractSeriesNameFromRdName - Unknown category: {category}");
-        return null;
-    }
+    string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
 
     return seriesName;
 }
