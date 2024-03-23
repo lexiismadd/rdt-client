@@ -926,27 +926,20 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
 
     // Initialiser les indices de début et de fin
     int startIndex = 0;
-    int endIndex = 0;
+    int endIndex = rdName.Length - 1;
 
-    // Trouver le premier chiffre après l'indice 0
+    // Trouver le premier chiffre
     for (int i = 0; i < rdName.Length; i++)
     {
         if (char.IsDigit(rdName[i]))
         {
-            endIndex = i;
+            endIndex = i - 1;
             break;
         }
     }
 
-    // Si aucun chiffre n'est trouvé, retourner null
-    if (endIndex == 0)
-    {
-        _logger.LogError("Aucun chiffre trouvé dans le nom de fichier.");
-        return null;
-    }
-
-    // Extraire le titre entre l'indice de début et l'indice de fin
-    string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
+    // Extraire les chiffres et le titre
+    string seriesName = rdName.Substring(startIndex, endIndex - startIndex + 1).Trim();
     _logger.LogInformation($"Série extraite : {seriesName}");
 
     return seriesName;
