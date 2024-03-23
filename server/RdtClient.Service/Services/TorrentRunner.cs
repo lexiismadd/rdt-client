@@ -19,7 +19,6 @@ using RdtClient.Data.Models.Internal;
 using RdtClient.Service.Helpers;
 using RdtClient.Service.Services.Downloaders;
 using Newtonsoft.Json.Linq;
-using GuessIt;
 
 namespace RdtClient.Service.Services;
 
@@ -909,22 +908,6 @@ public class TvMazeExternals
 {
     public string TheTvdb { get; set; }
 }
-
-public static string ExtractSeriesNameFromRdName(string rdName, string category)
-    {
-        if (string.IsNullOrWhiteSpace(rdName))
-        {
-            return null;
-        }
-
-        // Utilisation de GuessIt pour extraire les informations du nom de fichier
-        var metadata = Guesser.Guess(rdName);
-
-        // Récupération du titre s'il est disponible
-        string seriesName = metadata.Title;
-
-        return seriesName;
-    }
 
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
 
