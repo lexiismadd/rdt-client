@@ -911,19 +911,7 @@ public class TvMazeExternals
     public string TheTvdb { get; set; }
 }
 
-public static string ExtractSeriesNameFromRdName(string rdName, string category)
-{
-    string seriesName = ExtractSeriesNameByParsing(rdName);
-
-    if (string.IsNullOrEmpty(seriesName))
-    {
-        seriesName = ExtractSeriesNameWithTagLib(rdName);
-    }
-
-    return seriesName;
-}
-
-public static string ExtractSeriesNameByParsing(string rdName)
+private string ExtractSeriesNameFromRdName(string rdName, string category)
 {
     if (string.IsNullOrWhiteSpace(rdName))
     {
@@ -947,23 +935,6 @@ public static string ExtractSeriesNameByParsing(string rdName)
     }
 
     string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
-
-    return seriesName;
-}
-
-public static string ExtractSeriesNameWithTagLib(string rdName)
-{
-    string seriesName = null;
-    
-    try
-    {
-        TagLib.File file = TagLib.File.Create(rdName);
-        seriesName = file.Tag.Title;
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine("Erreur lors de l'extraction du titre avec TagLib : " + ex.Message);
-    }
 
     return seriesName;
 }
