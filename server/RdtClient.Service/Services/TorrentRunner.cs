@@ -909,6 +909,9 @@ public class TvMazeExternals
     public string TheTvdb { get; set; }
 }
 
+using System;
+using System.Diagnostics;
+
 private string ExtractSeriesNameFromRdName(string rdName, string category)
 {
     if (string.IsNullOrWhiteSpace(rdName))
@@ -928,26 +931,33 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
         // Lecture de la sortie de MediaInfo
         string mediaInfoOutput = process.StandardOutput.ReadToEnd();
 
-        // Extraction du titre de la série
-        string seriesName = null;
-        int titleIndex = mediaInfoOutput.IndexOf("Title : ");
-        if (titleIndex != -1)
+        // Recherche de la balise <complete_name>
+        int completeNameIndex = mediaInfoOutput.IndexOf("<complete_name>");
+        if (completeNameIndex != -1)
         {
-            int newlineIndex = mediaInfoOutput.IndexOf('\n', titleIndex);
-            if (newlineIndex != -1)
+            // Recherche de la fin de la balise
+            int endIndex = mediaInfoOutput.IndexOf("</complete_name>", completeNameIndex);
+            if (endIndex != -1)
             {
-                seriesName = mediaInfoOutput.Substring(titleIndex + 8, newlineIndex - titleIndex - 8).Trim();
-                
+                // Extrait le nom complet du fichier
+                string completeName = mediaInfoOutput.Substring(completeNameIndex + "<complete_name>".Length, endIndex - completeNameIndex - "<complete_name>".Length).Trim();
+
+                // Extrait le titre à partir du nom complet du fichier
+                string seriesName = System.IO.Path.GetFileNameWithoutExtension(completeName);
+
                 // Si le titre contient des informations sur l'épisode (SxxExx), les supprimer
                 int episodeIndex = seriesName.IndexOf("S");
                 if (episodeIndex != -1)
                 {
                     seriesName = seriesName.Substring(0, episodeIndex).Trim();
                 }
+
+                return seriesName;
             }
         }
 
-        return seriesName;
+        // Si aucune balise <complete_name> n'est trouvée, renvoyer null
+        return null;
     }
 }
 
