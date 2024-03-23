@@ -939,6 +939,12 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
             continue; // Ignore les caractères spéciaux et les espaces dans le titre
         }
 
+        if (rdName[endIndex] == '(' || rdName[endIndex] == '[')
+        {
+            // Si on rencontre une parenthèse ou un crochet avant de trouver le chiffre ou 'S', arrêter la recherche
+            break;
+        }
+
         endIndex++; // Avancer vers le prochain caractère
     }
 
