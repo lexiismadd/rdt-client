@@ -940,7 +940,7 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
 
     // Extraire les chiffres et le titre
     string seriesName = rdName.Substring(startIndex, endIndex - startIndex + 1).Trim();
-    _logger.LogInformation($"Série extraite : {seriesName}");
+    _logger.LogInformation($"Série extraite : \"{seriesName}\"");
 
     return seriesName;
 }
