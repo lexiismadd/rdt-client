@@ -910,7 +910,7 @@ public class TvMazeExternals
     public string TheTvdb { get; set; }
 }
 
-public static string ExtractSeriesNameFromRdName(string rdName, string category)
+public string ExtractSeriesNameFromRdName(string rdName, string category)
 {
     string seriesName = ExtractSeriesNameByParsing(rdName, category);
 
