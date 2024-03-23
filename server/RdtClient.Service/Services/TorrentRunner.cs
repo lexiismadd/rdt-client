@@ -919,24 +919,25 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     // Remplacer les points par des espaces
     rdName = rdName.Replace(".", " ");
 
-    // Recherche de la première occurrence d'un crochet ou d'une parenthèse
+    // Recherche de la première occurrence d'un crochet ou d'une parenthèse ou de la lettre "S"
     int lastBracketIndex = rdName.LastIndexOf(']');
     int parenthesisIndex = rdName.IndexOf('(');
+    int sIndex = rdName.IndexOf('S');
 
     // Déterminer l'indice de début et de fin pour extraire le titre
     int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
     int endIndex = rdName.Length; // Par défaut, utiliser la fin de la chaîne
 
-    if (parenthesisIndex != -1 && parenthesisIndex > lastBracketIndex)
+    if ((parenthesisIndex != -1 && parenthesisIndex > lastBracketIndex) || (sIndex != -1 && sIndex > lastBracketIndex))
     {
-        endIndex = parenthesisIndex; // Terminer avant la première parenthèse
+        endIndex = parenthesisIndex != -1 ? parenthesisIndex : sIndex; // Terminer avant la première parenthèse ou "S"
     }
     else
     {
-        // Si aucune parenthèse n'est trouvée ou si la parenthèse est avant le crochet fermant,
-        // chercher le premier chiffre après le crochet fermant
+        // Si aucune parenthèse ou "S" n'est trouvée après le crochet fermant,
+        // chercher le premier chiffre ou "S" après le crochet fermant
         int digitIndex = startIndex;
-        while (digitIndex < rdName.Length && !char.IsDigit(rdName[digitIndex]))
+        while (digitIndex < rdName.Length && !char.IsDigit(rdName[digitIndex]) && rdName[digitIndex] != 'S')
         {
             digitIndex++;
         }
