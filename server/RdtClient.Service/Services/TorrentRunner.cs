@@ -942,7 +942,7 @@ private string ExtractSeriesNameFromDecoupage(string rdName)
         endIndex++;
     }
 
-    // Vérifier si nous avons atteint la fin du nom du fichier sans trouver de chiffre ou de "S"
+    // Vérifier si nous avons atteint la fin du nom du fichier sans trouver de chiffre ou de "S" suivi d'un chiffre
     if (endIndex == rdName.Length)
     {
         _logger.LogError("Impossible de trouver l'indice de fin.");
