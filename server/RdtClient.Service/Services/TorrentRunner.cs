@@ -935,9 +935,9 @@ private string ExtractSeriesNameFromDecoupage(string rdName)
     int startIndex = 0;
     _logger.LogInformation($"Indice de début : {startIndex}");
 
-    // Trouver l'indice de fin en recherchant le premier chiffre après le titre
+    // Trouver l'indice de fin en recherchant le premier chiffre ou "S" après le titre
     int endIndex = startIndex;
-    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]))
+    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S')
     {
         endIndex++;
     }
@@ -949,6 +949,7 @@ private string ExtractSeriesNameFromDecoupage(string rdName)
 
     return seriesName;
 }
+
 
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
 
