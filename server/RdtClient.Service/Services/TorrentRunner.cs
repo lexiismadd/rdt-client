@@ -925,23 +925,17 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     rdName = rdName.Replace(".", " ");
     _logger.LogInformation($"Nom du fichier après remplacement des points : {rdName}");
 
-    // Trouver l'indice du premier chiffre ou de la première lettre significative après le nom du film
+    // Trouver l'indice de début pour extraire le titre : ici on commence à l'indice 0
     int startIndex = 0;
-    for (int i = 0; i < rdName.Length; i++)
-    {
-        if (char.IsDigit(rdName[i]) || char.IsLetter(rdName[i]))
-        {
-            startIndex = i;
-            break;
-        }
-    }
+    _logger.LogInformation($"Indice de début : {startIndex}");
 
-    // Trouver l'indice de fin en recherchant le premier espace ou caractère spécial après le titre
+    // Trouver l'indice de fin en recherchant le premier chiffre, la lettre 'S', une parenthèse ou un crochet après le titre
     int endIndex = startIndex;
-    while (endIndex < rdName.Length && !char.IsWhiteSpace(rdName[endIndex]) && !char.IsLetterOrDigit(rdName[endIndex]))
+    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S' && rdName[endIndex] != '(' && rdName[endIndex] != '[')
     {
         endIndex++;
     }
+    _logger.LogInformation($"Indice de fin : {endIndex}");
 
     // Extraire le titre entre les indices de début et de fin
     string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
