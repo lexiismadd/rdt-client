@@ -914,16 +914,6 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
 {
     string seriesName = ExtractSeriesNameFromDecoupage(rdName);
 
-    if (string.IsNullOrEmpty(seriesName))
-    {
-        seriesName = ExtractSeriesNameFromRdNumber(rdName);
-
-        if (string.IsNullOrEmpty(seriesName))
-        {
-            seriesName = ExtractSeriesNameFromRdYear(rdName);
-        }
-    }
-
     return seriesName;
 }
 
