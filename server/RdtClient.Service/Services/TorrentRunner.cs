@@ -917,6 +917,7 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     return seriesName;
 }
 
+
 private string ExtractSeriesNameFromDecoupage(string rdName)
 {
     if (string.IsNullOrWhiteSpace(rdName))
@@ -931,28 +932,17 @@ private string ExtractSeriesNameFromDecoupage(string rdName)
     rdName = rdName.Replace(".", " ");
     _logger.LogInformation($"Nom du fichier après remplacement des points : {rdName}");
 
-    // Trouver l'indice de début pour extraire le titre : ici on commence à l'indice 0
-    int startIndex = 0;
-    _logger.LogInformation($"Indice de début : {startIndex}");
+    // Utilisation d'une expression régulière pour extraire le titre de la série
+    string seriesPattern = @"^(.+?)(?:\d|S\d)";
+    Match match = Regex.Match(rdName, seriesPattern);
 
-    // Trouver l'indice de fin en recherchant le premier chiffre ou "S" après le titre
-    int endIndex = startIndex;
-    while (endIndex < rdName.Length && !(char.IsDigit(rdName[endIndex]) || (rdName[endIndex] == 'S' && (endIndex == 0 || rdName[endIndex - 1] == ' '))))
+    if (!match.Success)
     {
-        endIndex++;
-    }
-
-    // Vérifier si nous avons atteint la fin du nom du fichier sans trouver de chiffre ou de "S" suivi d'un chiffre
-    if (endIndex == rdName.Length)
-    {
-        _logger.LogError("Impossible de trouver l'indice de fin.");
+        _logger.LogError("Impossible de trouver le titre de la série.");
         return null;
     }
 
-    _logger.LogInformation($"Indice de fin : {endIndex}");
-
-    // Extraire le titre entre les indices de début et de fin
-    string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
+    string seriesName = match.Groups[1].Value.Trim();
     _logger.LogInformation($"Série extraite : \"{seriesName}\"");
 
     return seriesName;
