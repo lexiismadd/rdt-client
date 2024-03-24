@@ -931,11 +931,19 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     _logger.LogInformation($"Indice du dernier crochet fermant : {lastBracketIndex}");
     _logger.LogInformation($"Indice de début : {startIndex}");
 
-    // Trouver l'indice de fin en recherchant le premier chiffre ou 'S' après le titre
+    // Trouver l'indice de fin en recherchant le premier caractère non alphabétique après le crochet fermant
     int endIndex = startIndex;
-    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S')
+    if (lastBracketIndex != -1)
     {
-        endIndex++;
+        while (endIndex < rdName.Length && char.IsLetter(rdName[endIndex]))
+        {
+            endIndex++;
+        }
+    }
+    else
+    {
+        // Si aucun crochet fermant n'est trouvé, rechercher le premier espace après l'indice de début
+        endIndex = rdName.IndexOf(' ', startIndex);
     }
     _logger.LogInformation($"Indice de fin : {endIndex}");
 
