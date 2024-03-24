@@ -911,21 +911,27 @@ public class TvMazeExternals
 }
 
 
-private string ExtractSeriesNameFromRdName(string rdName, string category)
+private string ExtractSeriesNameFromRdName(string rdName)
 {
     if (string.IsNullOrWhiteSpace(rdName))
     {
+        Console.WriteLine("Le nom du fichier est vide ou null.");
         return null;
     }
 
+    Console.WriteLine($"Nom du fichier : {rdName}");
+
     // Remplacer les points par des espaces
     rdName = rdName.Replace(".", " ");
+    Console.WriteLine($"Nom du fichier après remplacement des points : {rdName}");
 
-    // Recherche de la première occurrence d'un crochet fermant
+    // Recherche de la dernière occurrence d'un crochet fermant
     int lastBracketIndex = rdName.LastIndexOf(']');
+    Console.WriteLine($"Indice du dernier crochet fermant : {lastBracketIndex}");
 
     // Déterminer l'indice de début pour extraire le titre
     int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
+    Console.WriteLine($"Indice de début : {startIndex}");
 
     // Rechercher le premier chiffre ou 'S' après le crochet fermant
     int endIndex = startIndex;
@@ -934,7 +940,10 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
         endIndex++;
     }
 
+    Console.WriteLine($"Indice de fin : {endIndex}");
+
     string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
+    Console.WriteLine($"Série extraite : \"{seriesName}\"");
 
     return seriesName;
 }
