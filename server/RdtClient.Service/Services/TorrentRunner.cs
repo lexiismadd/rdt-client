@@ -914,13 +914,6 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
 {
     string seriesName = ExtractSeriesNameFromDecoupage(rdName);
 
-    return seriesName;
-}
-
-public string ExtractSeriesNameFromRdName(string rdName, string category)
-{
-    string seriesName = ExtractSeriesNameFromDecoupage(rdName);
-
     if (string.IsNullOrEmpty(seriesName))
     {
         seriesName = ExtractSeriesNameFromCrochet(rdName);
