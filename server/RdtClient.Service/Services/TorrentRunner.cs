@@ -917,39 +917,36 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     return seriesName;
 }
 
-private string ExtractSeriesName(string rdName)
+private string ExtractSeriesNameFromDecoupage(string rdName)
 {
     if (string.IsNullOrWhiteSpace(rdName))
     {
         return null;
     }
 
-    Console.WriteLine($"Nom du fichier : {rdName}");
-
     // Remplacer les points par des espaces
     rdName = rdName.Replace(".", " ");
-    Console.WriteLine($"Nom du fichier après remplacement des points : {rdName}");
+    _logger.LogInformation($"Nom du fichier après remplacement des points : {rdName}");
 
-    // Trouver l'indice de début pour extraire le titre
-    int startIndex = 0;
-    int endIndex = rdName.Length;
+    // Recherche de la première occurrence d'un crochet fermant
+    int lastBracketIndex = rdName.LastIndexOf(']');
+    _logger.LogInformation($"Indice du dernier crochet fermant : {lastBracketIndex}");
 
-    // Trouver le premier chiffre ou "S" après un espace
-    for (int i = 0; i < rdName.Length; i++)
+    // Déterminer l'indice de début pour extraire le titre
+    int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
+    _logger.LogInformation($"Indice de début : {startIndex}");
+
+    // Rechercher le premier chiffre ou 'S' après le crochet fermant
+    int endIndex = startIndex;
+    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S')
     {
-        if (rdName[i] == ' ' && i < rdName.Length - 1 && (char.IsDigit(rdName[i + 1]) || rdName[i + 1] == 'S'))
-        {
-            endIndex = i;
-            break;
-        }
+        endIndex++;
     }
-
-    Console.WriteLine($"Indice de début : {startIndex}");
-    Console.WriteLine($"Indice de fin : {endIndex}");
+    _logger.LogInformation($"Indice de fin : {endIndex}");
 
     // Extraire le titre entre les indices de début et de fin
     string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
-    Console.WriteLine($"Série extraite : \"{seriesName}\"");
+    _logger.LogInformation($"Série extraite : \"{seriesName}\"");
 
     return seriesName;
 }
