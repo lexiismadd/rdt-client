@@ -950,7 +950,6 @@ private string ExtractSeriesNameFromDecoupage(string rdName)
     return seriesName;
 }
 
-
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
 
 {
