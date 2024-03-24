@@ -915,6 +915,7 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
 {
     if (string.IsNullOrWhiteSpace(rdName))
     {
+        _logger.LogError("Le nom du fichier est vide ou null.");
         return null;
     }
 
@@ -924,29 +925,17 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     rdName = rdName.Replace(".", " ");
     _logger.LogInformation($"Nom du fichier après remplacement des points : {rdName}");
 
-    // Recherche de la première occurrence d'un crochet fermant
+    // Trouver l'indice du dernier crochet fermant
     int lastBracketIndex = rdName.LastIndexOf(']');
+    int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Établir l'indice 0 après le crochet fermant
     _logger.LogInformation($"Indice du dernier crochet fermant : {lastBracketIndex}");
-
-    // Déterminer l'indice de début pour extraire le titre
-    int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
     _logger.LogInformation($"Indice de début : {startIndex}");
 
-    // Rechercher le premier chiffre ou 'S' après le crochet fermant
+    // Trouver l'indice de fin en recherchant le premier chiffre ou 'S' après le titre
     int endIndex = startIndex;
     while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S')
     {
         endIndex++;
-        // Ignorer les caractères spéciaux et les espaces dans le titre
-        if (char.IsWhiteSpace(rdName[endIndex]) || !char.IsLetterOrDigit(rdName[endIndex]))
-        {
-            continue;
-        }
-        // Si on rencontre une parenthèse ou un crochet avant de trouver le chiffre ou 'S', arrêter la recherche
-        if (rdName[endIndex] == '(' || rdName[endIndex] == '[')
-        {
-            break;
-        }
     }
     _logger.LogInformation($"Indice de fin : {endIndex}");
 
