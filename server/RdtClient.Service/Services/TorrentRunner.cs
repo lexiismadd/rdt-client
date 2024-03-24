@@ -929,15 +929,10 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     int startIndex = 0;
     _logger.LogInformation($"Indice de début : {startIndex}");
 
-    // Trouver l'indice de fin en recherchant le premier espace après le titre principal
+    // Trouver l'indice de fin en recherchant le premier chiffre après le titre
     int endIndex = startIndex;
-    while (endIndex < rdName.Length && !char.IsWhiteSpace(rdName[endIndex]))
+    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]))
     {
-        // Vérifier si le caractère est un chiffre pour détecter la fin du titre principal suivi de la date
-        if (char.IsDigit(rdName[endIndex]))
-        {
-            break;
-        }
         endIndex++;
     }
     _logger.LogInformation($"Indice de fin : {endIndex}");
