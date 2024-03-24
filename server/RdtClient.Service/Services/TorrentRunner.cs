@@ -929,27 +929,17 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     int startIndex = 0;
     _logger.LogInformation($"Indice de début : {startIndex}");
 
-    // Trouver l'indice de fin en recherchant le premier caractère non alphabétique après le titre
+    // Trouver l'indice de fin en recherchant le premier espace après le titre principal
     int endIndex = startIndex;
-    while (endIndex < rdName.Length && char.IsLetter(rdName[endIndex]))
+    while (endIndex < rdName.Length && !char.IsWhiteSpace(rdName[endIndex]))
     {
-        endIndex++;
-    }
-    
-    // Si le premier caractère non alphabétique est un espace, utilisez-le comme indicateur de fin du titre
-    if (endIndex < rdName.Length && rdName[endIndex] == ' ')
-    {
-        endIndex++;
-    }
-    else
-    {
-        // Sinon, continuez la recherche jusqu'à trouver le premier espace après le titre principal
-        while (endIndex < rdName.Length && !char.IsWhiteSpace(rdName[endIndex]))
+        // Vérifier si le caractère est un chiffre pour détecter la fin du titre principal suivi de la date
+        if (char.IsDigit(rdName[endIndex]))
         {
-            endIndex++;
+            break;
         }
+        endIndex++;
     }
-
     _logger.LogInformation($"Indice de fin : {endIndex}");
 
     // Extraire le titre entre les indices de début et de fin
