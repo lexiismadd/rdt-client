@@ -917,30 +917,39 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     return seriesName;
 }
 
-private string ExtractSeriesNameFromDecoupage(string rdName)
+private string ExtractSeriesName(string rdName)
 {
     if (string.IsNullOrWhiteSpace(rdName))
     {
         return null;
     }
 
+    Console.WriteLine($"Nom du fichier : {rdName}");
+
     // Remplacer les points par des espaces
     rdName = rdName.Replace(".", " ");
+    Console.WriteLine($"Nom du fichier après remplacement des points : {rdName}");
 
-    // Recherche de la première occurrence d'un crochet fermant
-    int lastBracketIndex = rdName.LastIndexOf(']');
+    // Trouver l'indice de début pour extraire le titre
+    int startIndex = 0;
+    int endIndex = rdName.Length;
 
-    // Déterminer l'indice de début pour extraire le titre
-    int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
-
-    // Rechercher le premier chiffre ou 'S' après le crochet fermant, en tenant compte des espaces
-    int endIndex = startIndex;
-    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && char.ToUpper(rdName[endIndex]) != 'S' && rdName[endIndex] != ' ')
+    // Trouver le premier chiffre ou "S" après un espace
+    for (int i = 0; i < rdName.Length; i++)
     {
-        endIndex++;
+        if (rdName[i] == ' ' && i < rdName.Length - 1 && (char.IsDigit(rdName[i + 1]) || rdName[i + 1] == 'S'))
+        {
+            endIndex = i;
+            break;
+        }
     }
 
+    Console.WriteLine($"Indice de début : {startIndex}");
+    Console.WriteLine($"Indice de fin : {endIndex}");
+
+    // Extraire le titre entre les indices de début et de fin
     string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
+    Console.WriteLine($"Série extraite : \"{seriesName}\"");
 
     return seriesName;
 }
