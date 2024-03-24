@@ -936,14 +936,17 @@ private string ExtractSeriesNameFromDecoupage(string rdName)
     _logger.LogInformation($"Indice de début : {startIndex}");
 
     // Trouver l'indice de fin en recherchant le premier chiffre ou "S" après le titre
-    int endIndex = 0;
-    for (int i = startIndex; i < rdName.Length; i++)
+    int endIndex = startIndex;
+    while (endIndex < rdName.Length && !(char.IsDigit(rdName[endIndex]) || (rdName[endIndex] == 'S' && (endIndex == 0 || char.IsWhiteSpace(rdName[endIndex - 1])))))
     {
-        if (char.IsDigit(rdName[i]) || (rdName[i] == 'S' && (i == 0 || char.IsWhiteSpace(rdName[i - 1]))))
-        {
-            endIndex = i;
-            break;
-        }
+        endIndex++;
+    }
+
+    // Vérifier si nous avons atteint la fin du nom du fichier sans trouver de chiffre ou de "S"
+    if (endIndex == rdName.Length)
+    {
+        _logger.LogError("Impossible de trouver l'indice de fin.");
+        return null;
     }
 
     _logger.LogInformation($"Indice de fin : {endIndex}");
