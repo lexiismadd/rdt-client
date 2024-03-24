@@ -936,10 +936,11 @@ private string ExtractSeriesNameFromDecoupage(string rdName)
     _logger.LogInformation($"Indice de début : {startIndex}");
 
     // Trouver l'indice de fin en recherchant le premier chiffre ou "S" après le titre
-    int endIndex = startIndex;
-    while (endIndex < rdName.Length && !(char.IsDigit(rdName[endIndex]) || (rdName[endIndex] == 'S' && char.IsUpper(rdName[endIndex]))))
+    int endIndex = rdName.IndexOfAny("0123456789S".ToCharArray(), startIndex);
+    if (endIndex == -1)
     {
-        endIndex++;
+        _logger.LogError("Impossible de trouver l'indice de fin.");
+        return null;
     }
     _logger.LogInformation($"Indice de fin : {endIndex}");
 
