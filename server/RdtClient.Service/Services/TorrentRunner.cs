@@ -927,25 +927,16 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
 
     // Trouver l'indice du dernier crochet fermant
     int lastBracketIndex = rdName.LastIndexOf(']');
-    int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Établir l'indice 0 après le crochet fermant
-    _logger.LogInformation($"Indice du dernier crochet fermant : {lastBracketIndex}");
-    _logger.LogInformation($"Indice de début : {startIndex}");
+    
+    // Établir l'indice de début pour extraire le titre
+    int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Si aucun crochet fermant n'est trouvé, l'indice de début est 0
 
-    // Trouver l'indice de fin en recherchant le premier caractère non alphabétique après le crochet fermant
+    // Trouver l'indice de fin en recherchant le premier chiffre ou 'S' après le titre
     int endIndex = startIndex;
-    if (lastBracketIndex != -1)
+    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S')
     {
-        while (endIndex < rdName.Length && char.IsLetter(rdName[endIndex]))
-        {
-            endIndex++;
-        }
+        endIndex++;
     }
-    else
-    {
-        // Si aucun crochet fermant n'est trouvé, rechercher le premier espace après l'indice de début
-        endIndex = rdName.IndexOf(' ', startIndex);
-    }
-    _logger.LogInformation($"Indice de fin : {endIndex}");
 
     // Extraire le titre entre les indices de début et de fin
     string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
