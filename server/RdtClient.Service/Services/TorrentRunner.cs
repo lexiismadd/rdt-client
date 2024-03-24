@@ -925,18 +925,17 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
     rdName = rdName.Replace(".", " ");
     _logger.LogInformation($"Nom du fichier après remplacement des points : {rdName}");
 
-    // Trouver l'indice du dernier crochet fermant
-    int lastBracketIndex = rdName.LastIndexOf(']');
-    
-    // Établir l'indice de début pour extraire le titre
-    int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Si aucun crochet fermant n'est trouvé, l'indice de début est 0
+    // Trouver l'indice de début pour extraire le titre : ici on commence à l'indice 0
+    int startIndex = 0;
+    _logger.LogInformation($"Indice de début : {startIndex}");
 
-    // Trouver l'indice de fin en recherchant le premier chiffre ou 'S' après le titre
+    // Trouver l'indice de fin en recherchant le premier chiffre, la lettre 'S', une parenthèse ou un crochet après le titre
     int endIndex = startIndex;
-    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S')
+    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S' && rdName[endIndex] != '(' && rdName[endIndex] != '[')
     {
         endIndex++;
     }
+    _logger.LogInformation($"Indice de fin : {endIndex}");
 
     // Extraire le titre entre les indices de début et de fin
     string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
