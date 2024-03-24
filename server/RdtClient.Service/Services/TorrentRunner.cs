@@ -933,9 +933,9 @@ private string ExtractSeriesNameFromDecoupage(string rdName)
     // Déterminer l'indice de début pour extraire le titre
     int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
 
-    // Rechercher le premier chiffre ou 'S' après le crochet fermant
+    // Rechercher le premier chiffre ou 'S' après le crochet fermant, en tenant compte des espaces
     int endIndex = startIndex;
-    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S')
+    while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && char.ToUpper(rdName[endIndex]) != 'S' && rdName[endIndex] != ' ')
     {
         endIndex++;
     }
