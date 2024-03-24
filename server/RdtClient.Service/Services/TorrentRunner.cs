@@ -915,35 +915,44 @@ private string ExtractSeriesNameFromRdName(string rdName, string category)
 {
     if (string.IsNullOrWhiteSpace(rdName))
     {
-        Console.WriteLine("Le nom du fichier est vide ou null.");
         return null;
     }
 
-    Console.WriteLine($"Nom du fichier : {rdName}");
+    _logger.LogInformation($"Nom du fichier : {rdName}");
 
     // Remplacer les points par des espaces
     rdName = rdName.Replace(".", " ");
-    Console.WriteLine($"Nom du fichier après remplacement des points : {rdName}");
+    _logger.LogInformation($"Nom du fichier après remplacement des points : {rdName}");
 
-    // Recherche de la dernière occurrence d'un crochet fermant
+    // Recherche de la première occurrence d'un crochet fermant
     int lastBracketIndex = rdName.LastIndexOf(']');
-    Console.WriteLine($"Indice du dernier crochet fermant : {lastBracketIndex}");
+    _logger.LogInformation($"Indice du dernier crochet fermant : {lastBracketIndex}");
 
     // Déterminer l'indice de début pour extraire le titre
     int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
-    Console.WriteLine($"Indice de début : {startIndex}");
+    _logger.LogInformation($"Indice de début : {startIndex}");
 
     // Rechercher le premier chiffre ou 'S' après le crochet fermant
     int endIndex = startIndex;
     while (endIndex < rdName.Length && !char.IsDigit(rdName[endIndex]) && rdName[endIndex] != 'S')
     {
         endIndex++;
+        // Ignorer les caractères spéciaux et les espaces dans le titre
+        if (char.IsWhiteSpace(rdName[endIndex]) || !char.IsLetterOrDigit(rdName[endIndex]))
+        {
+            continue;
+        }
+        // Si on rencontre une parenthèse ou un crochet avant de trouver le chiffre ou 'S', arrêter la recherche
+        if (rdName[endIndex] == '(' || rdName[endIndex] == '[')
+        {
+            break;
+        }
     }
+    _logger.LogInformation($"Indice de fin : {endIndex}");
 
-    Console.WriteLine($"Indice de fin : {endIndex}");
-
+    // Extraire le titre entre les indices de début et de fin
     string seriesName = rdName.Substring(startIndex, endIndex - startIndex).Trim();
-    Console.WriteLine($"Série extraite : \"{seriesName}\"");
+    _logger.LogInformation($"Série extraite : \"{seriesName}\"");
 
     return seriesName;
 }
