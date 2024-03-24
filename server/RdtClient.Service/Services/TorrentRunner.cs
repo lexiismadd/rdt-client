@@ -937,7 +937,7 @@ private string ExtractSeriesNameFromDecoupage(string rdName)
 
     // Trouver l'indice de fin en recherchant le premier chiffre ou "S" après le titre
     int endIndex = startIndex;
-    while (endIndex < rdName.Length && !(char.IsDigit(rdName[endIndex]) || (rdName[endIndex] == 'S' && (endIndex == 0 || char.IsWhiteSpace(rdName[endIndex - 1])))))
+    while (endIndex < rdName.Length && !(char.IsDigit(rdName[endIndex]) || (rdName[endIndex] == 'S' && (endIndex == 0 || rdName[endIndex - 1] == ' '))))
     {
         endIndex++;
     }
