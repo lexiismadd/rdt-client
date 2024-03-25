@@ -613,7 +613,7 @@ public class TorrentRunner
 if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
 {
     // Appel de TryRefreshMonitoredDownloadsAsync pour obtenir les valeurs de host et apiKey
-    var (host, apiKey) = await TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath);
+    var (host, apiKey) = await TryRefreshMonitoredDownloadsAsync(categoryInstance, configFilePath);
 
     // Vérifier si les valeurs de host et apiKey ne sont pas nulles ou vides
     if (!string.IsNullOrEmpty(host) && !string.IsNullOrEmpty(apiKey))
