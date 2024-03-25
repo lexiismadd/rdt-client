@@ -610,17 +610,12 @@ public class TorrentRunner
 
 
 
-// Vérifier si le chemin du fichier de configuration n'est pas vide ou nul
 if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
 {
-    // Appeler TryRefreshMonitoredDownloadsAsync pour obtenir les valeurs de Host et ApiKey
-    var result = await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+    // Appel de TryRefreshMonitoredDownloadsAsync pour obtenir les valeurs de host et apiKey
+    var (host, apiKey) = await TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath);
 
-    // Extraire les valeurs de host et apiKey à partir du tuple retourné
-    string host = result.Item1;
-    string apiKey = result.Item2;
-
-    // Vérifier si les valeurs de Host et ApiKey ne sont pas nulles ou vides
+    // Vérifier si les valeurs de host et apiKey ne sont pas nulles ou vides
     if (!string.IsNullOrEmpty(host) && !string.IsNullOrEmpty(apiKey))
     {
         // Appeler UtiliserHostEtApiKey avec les valeurs récupérées
@@ -628,11 +623,10 @@ if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPa
     }
     else
     {
-        // Gérer le cas où Host ou ApiKey est vide
+        // Gérer le cas où host ou apiKey est vide
         _logger.LogError("Host ou ApiKey est vide.");
     }
 }
-
 
 
 
@@ -992,7 +986,7 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     return seriesName;
 }
 
-private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
+private async Task<(string host, string apiKey)> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
 {
     try
     {
@@ -1014,40 +1008,25 @@ private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstan
                 if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
                 {
                     _logger.LogError("Host ou ApiKey est vide.");
-                    return false;
+                    return (null, null); // Retourner un tuple avec des valeurs nulles
                 }
 
                 _logger.LogDebug($"Host : {host}");
                 _logger.LogDebug($"ApiKey : {apiKey}");
 
-                var data = new StringContent("{\"name\":\"RefreshMonitoredDownloads\"}", Encoding.UTF8, "application/json");
-                _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
-                var response = await _httpClient.PostAsync($"{host}/api/v3/command", data);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseBody = await response.Content.ReadAsStringAsync();
-                    _logger.LogInformation($"Réponse de l'API : {responseBody}");
-                    return true;
-                }
-                else
-                {
-                    _logger.LogError("La requête API a échoué.");
-                    return false;
-                }
+                return (host, apiKey); // Retourner le tuple avec les valeurs de host et apiKey
             }
             else
             {
                 _logger.LogError($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
-                return false;
+                return (null, null); // Retourner un tuple avec des valeurs nulles
             }
         }
     }
     catch (Exception ex)
     {
         _logger.LogError($"Une erreur est survenue lors de la lecture du fichier de configuration ou de l'appel API: {ex.Message}");
-        return false;
+        return (null, null); // Retourner un tuple avec des valeurs nulles
     }
 }
 
