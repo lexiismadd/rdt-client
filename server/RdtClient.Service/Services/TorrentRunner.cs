@@ -611,6 +611,12 @@ public class TorrentRunner
                             await TryRefreshMonitored(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
 
+                        if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
+                        {
+                            await TryRefreshMaman(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                        }
+
+
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
                         {
                             var sourceFilePath = Path.Combine(Settings.Get.DownloadClient.MappedPath, "tempTorrentsFiles", $"{torrent.RdName}.torrent");
@@ -928,6 +934,58 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
 
     return seriesName;
 }
+
+private async Task<bool> TryRefreshMaman(string categoryInstance, string configFilePath)
+
+{
+    try
+    {
+        var jsonString = await File.ReadAllTextAsync(configFilePath);
+        using (JsonDocument doc = JsonDocument.Parse(jsonString))
+        {
+            if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
+            {
+                var host = category.GetProperty("Host").GetString();
+                var apiKey = category.GetProperty("ApiKey").GetString();
+
+                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
+                {
+                    _logger.LogError("Host ou ApiKey est vide.");
+                    return false;
+                }
+
+                var data = new StringContent("{\"name\":\"RefreshMonitoredDownloads\"}", Encoding.UTF8, "application/json");
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
+                var response = await _httpClient.PostAsync($"{host}/api/v3/command", data);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseBody = await response.Content.ReadAsStringAsync();
+                    _logger.LogInformation($"Réponse de l'API : {responseBody}");
+                    return true;
+                }
+                else
+                {
+                    _logger.LogError("La requête API a échoué.");
+                    return false;
+                }
+            }
+            else
+            {
+                _logger.LogError($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
+                return false;
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Une erreur est survenue lors de la lecture du fichier de configuration ou de l'appel API: {ex.Message}");
+        return false;
+    }
+}
+
+
 
 private async Task<bool> TryRefreshMonitored(string categoryInstance, string configFilePath)
 
