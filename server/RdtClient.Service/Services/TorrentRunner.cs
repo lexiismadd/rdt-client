@@ -710,6 +710,7 @@ private async Task<bool> GetHostAndApiKeyFromConfig(string categoryInstance, str
             {
                 var host = category.GetProperty("Host").GetString();
                 var apiKey = category.GetProperty("ApiKey").GetString();
+                return (host, apiKey);
         
             }
             else
