@@ -588,7 +588,7 @@ public class TorrentRunner
                         }
                         else if (torrent.Category.ToLower() == "radarr")
                         {
-
+                            var (host, apiKey) = await TryRefreshMaman(categoryInstance, configFilePath);
                             string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
                             Log($"Nom du Films (Radarr) : {seriesName}");
                             int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
@@ -696,6 +696,8 @@ private async Task<(string host, string apiKey)> TryRefreshMaman(string category
     try
     {
         var jsonString = await File.ReadAllTextAsync(configFilePath);
+        _logger.LogInformation($"Contenu du fichier JSON : {jsonString}");
+
         using (JsonDocument doc = JsonDocument.Parse(jsonString))
         {
             if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
@@ -707,6 +709,11 @@ private async Task<(string host, string apiKey)> TryRefreshMaman(string category
                 {
                     // Log an error if host or apiKey is empty or null
                     _logger.LogError("Host or ApiKey is empty.");
+                }
+                else
+                {
+                    // Log host and apiKey
+                    _logger.LogInformation($"Host: {host}, ApiKey: {apiKey}");
                 }
             }
             else
