@@ -697,12 +697,45 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName)
             return false;
         }
 
+
+
+// -----------------------------------------------------------------------
+    try
+    {
+        var jsonString = await File.ReadAllTextAsync(configFilePath);
+        using (JsonDocument doc = JsonDocument.Parse(jsonString))
+        {
+            if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
+            {
+                var host = category.GetProperty("Host").GetString();
+                var apiKey = category.GetProperty("ApiKey").GetString();
+
+                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
+                {
+                    _logger.LogError("Host ou ApiKey est vide.");
+                    return false;
+                }
+            }
+            else
+            {
+                _logger.LogError($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
+                return false;
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Une erreur est survenue lors de la lecture du fichier de configuration: {ex.Message}");
+        return false;
+    }
+// ---------------------------------------------------------------------
+
         // Remplacez "VOTRE_CLE_API_RADARR" par votre clé d'API Radarr
-        var radarrApiKey = "bf78203e8ad548c79d7b499b63989782";
-        var radarrUrl = "http://radarr:7878/api/v3";
+//        var radarrApiKey = "bf78203e8ad548c79d7b499b63989782";
+//        var radarrUrl = "http://radarr:7878/api/v3";
 
         var httpClient = new HttpClient();
-        httpClient.DefaultRequestHeaders.Add("X-Api-Key", radarrApiKey);
+        httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
 
         var requestData = new
         {
@@ -716,7 +749,7 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName)
         var json = JsonSerializer.Serialize(requestData);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var response = await httpClient.PostAsync($"{radarrUrl}/movie", content);
+        var response = await httpClient.PostAsync($"{host}/movie", content);
 
         if (response.IsSuccessStatusCode)
         {
