@@ -595,7 +595,6 @@ public class TorrentRunner
                             int? theTvdbId = null;
                             theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                             Log($"Numero ID TMDB : {theTvdbId }");
-                            //await AddMovieToRadarr(theTvdbId, seriesName, host, apiKey);
 
                         }
 
@@ -746,55 +745,6 @@ private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstan
     }
 }
 
-private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName)
-{
-    try
-    {
-        if (!theTvdbId.HasValue || string.IsNullOrWhiteSpace(seriesName))
-        {
-            _logger.LogError("Impossible d'ajouter le film à Radarr : ID TheTVDB ou nom du film manquant.");
-            return false;
-        }
-
-        // Remplacez "VOTRE_CLE_API_RADARR" par votre clé d'API Radarr
-        var radarrApiKey = "bf78203e8ad548c79d7b499b63989782";
-        var radarrUrl = "http://radarr:7878/api/v3";
-
-        var httpClient = new HttpClient();
-        httpClient.DefaultRequestHeaders.Add("X-Api-Key", radarrApiKey);
-
-        var requestData = new
-        {
-            tmdbId = theTvdbId.Value,
-            title = seriesName,
-            qualityProfileId = 1,
-            RootFolderPath = "/home/ubuntu/Medias/Series",
-            monitored = true
-        };
-
-        var json = JsonSerializer.Serialize(requestData);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        var response = await httpClient.PostAsync($"{radarrUrl}/movie", content);
-
-        if (response.IsSuccessStatusCode)
-        {
-            _logger.LogInformation("Film ajouté avec succès à Radarr.");
-            return true;
-        }
-        else
-        {
-            var responseContent = await response.Content.ReadAsStringAsync();
-            _logger.LogError($"Échec de l'ajout du film à Radarr : {response.ReasonPhrase}. Contenu de la réponse : {responseContent}");
-            return false;
-        }
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError($"Erreur lors de l'ajout du film à Radarr : {ex.Message}");
-        return false;
-    }
-}
 
 private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName)
 {
