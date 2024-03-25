@@ -690,9 +690,6 @@ public class TorrentRunner
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
 
 {
-    string host = null;
-    string apiKey = null;
-
     try
     {
         var jsonString = await File.ReadAllTextAsync(configFilePath);
@@ -702,8 +699,8 @@ private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstan
         {
             if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
             {
-                host = category.GetProperty("Host").GetString();
-                apiKey = category.GetProperty("ApiKey").GetString();
+                var host = category.GetProperty("Host").GetString();
+                var apiKey = category.GetProperty("ApiKey").GetString();
 
                 if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
                 {
