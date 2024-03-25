@@ -611,12 +611,6 @@ public class TorrentRunner
                             await TryRefreshMonitored(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
 
-                        if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
-                        {
-                            await TryRefreshMaman(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
-                        }
-
-
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
                         {
                             var sourceFilePath = Path.Combine(Settings.Get.DownloadClient.MappedPath, "tempTorrentsFiles", $"{torrent.RdName}.torrent");
@@ -729,7 +723,6 @@ private async Task<(string host, string apiKey)> TryRefreshMaman(string category
 
     return (host, apiKey);
 }
-
 
 private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, string categoryInstance, string configFilePath)
 {
