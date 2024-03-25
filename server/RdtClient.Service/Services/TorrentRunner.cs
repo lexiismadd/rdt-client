@@ -609,21 +609,22 @@ public class TorrentRunner
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
                         {
                             await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                           // Vérifier si les valeurs de Host et ApiKey ne sont pas nulles ou vides
+                           if (!string.IsNullOrEmpty(host) && !string.IsNullOrEmpty(apiKey))
+                            {
+                           // Appeler UtiliserHostEtApiKey avec les valeurs récupérées
+                           await UtiliserHostEtApiKey(host, apiKey);
+                            }
+                           else
+                           {
+                          // Gérer le cas où Host ou ApiKey est vide
+                         _logger.LogError("Host ou ApiKey est vide.");
+                            }
+
                         }
 
 
 
-// Vérifier si les valeurs de Host et ApiKey ne sont pas nulles ou vides
-if (!string.IsNullOrEmpty(host) && !string.IsNullOrEmpty(apiKey))
-{
-    // Appeler UtiliserHostEtApiKey avec les valeurs récupérées
-    await UtiliserHostEtApiKey(host, apiKey);
-}
-else
-{
-    // Gérer le cas où Host ou ApiKey est vide
-    _logger.LogError("Host ou ApiKey est vide.");
-}
 
 
 
