@@ -710,17 +710,17 @@ private async Task<bool> GetHostAndApiKeyFromConfig(string categoryInstance, str
     try
     {
         // Lire le contenu du fichier de configuration
-        var jsonString = File.ReadAllText(configFilePath);
+        var jsonString = await File.ReadAllTextAsync(configFilePath);
         
         // Analyser le contenu JSON pour obtenir les valeurs de host et apiKey
         using (JsonDocument doc = JsonDocument.Parse(jsonString))
         {
             if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
             {
-                var hostValue = category.GetProperty("Host").GetString();
-                var apiKeyValue = category.GetProperty("ApiKey").GetString();
+                var host = category.GetProperty("Host").GetString();
+                var apiKey = category.GetProperty("ApiKey").GetString();
         
-                return (hostValue, apiKeyValue);
+                return (host, apiKey);
             }
             else
             {
