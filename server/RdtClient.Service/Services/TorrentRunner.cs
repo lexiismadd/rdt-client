@@ -620,19 +620,18 @@ public class TorrentRunner
                     if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
                      {
                          // Appel de la méthode GetHostAndApiKeyFromConfig et récupération de l'host et de l'apiKey
-(string host, string apiKey) = await GetHostAndApiKeyFromConfig(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+bool isSuccess = await GetHostAndApiKeyFromConfig(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
 
-// Vérification si l'host et l'apiKey ne sont pas null
-if (!string.IsNullOrEmpty(host) && !string.IsNullOrEmpty(apiKey))
+if (isSuccess)
 {
-    // Faites quelque chose avec l'host et l'apiKey
-    Console.WriteLine($"Host: {host}, ApiKey: {apiKey}");
+    // Faites quelque chose si l'opération réussit
+    Console.WriteLine("Opération réussie !");
 }
 else
 {
-    // Traitez le cas où l'host ou l'apiKey est null ou vide
-    Console.WriteLine("L'host ou l'apiKey est null ou vide.");
-
+    // Faites quelque chose si l'opération échoue
+    Console.WriteLine("Opération échouée !");
+}
 
                        }
 
