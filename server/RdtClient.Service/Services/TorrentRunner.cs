@@ -721,33 +721,46 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName)
         if (response.IsSuccessStatusCode)
         {
             _logger.LogInformation("Film ajouté avec succès à Radarr.");
+            _logger.LogDebug($"Contenu JSON retourné : {await response.Content.ReadAsStringAsync()}");
             return true;
         }
         else
         {
             var responseContent = await response.Content.ReadAsStringAsync();
-            
+            _logger.LogError($"Échec de l'ajout du film à Radarr : {response.ReasonPhrase}. Contenu de la réponse : {responseContent}");
+
+            // Ajouter le contenu JSON retourné dans les logs
+            _logger.LogDebug($"Contenu JSON retourné : {responseContent}");
+
             // Vérifier si l'erreur est due au fait que le film existe déjà
             if (response.StatusCode == HttpStatusCode.BadRequest)
             {
                 var responseObject = JsonSerializer.Deserialize<dynamic>(responseContent);
-                var severity = responseObject[0].severity;
 
-                // Si c'est une erreur, loguer en mode débogage
-                if (severity == "error")
+                // Vérifier si l'objet responseObject contient la propriété "severity"
+                if (responseObject.ContainsKey("severity"))
                 {
-                    _logger.LogDebug("La film existe déjà dans Radarr.");
-                    return true;
+                    var severity = responseObject["severity"];
+
+                    // Si c'est une erreur, loguer en mode débogage
+                    if (severity == "error")
+                    {
+                        _logger.LogDebug("La film existe déjà dans Radarr.");
+                        return true;
+                    }
                 }
             }
-            
-            _logger.LogError($"Échec de l'ajout du film à Radarr : {response.ReasonPhrase}. Contenu de la réponse : {responseContent}");
+
             return false;
         }
     }
     catch (Exception ex)
     {
         _logger.LogError($"Erreur lors de l'ajout du film à Radarr : {ex.Message}");
+
+        // Ajouter les détails de l'exception dans les logs
+        _logger.LogDebug($"Détails de l'exception : {ex.ToString()}");
+
         return false;
     }
 }
