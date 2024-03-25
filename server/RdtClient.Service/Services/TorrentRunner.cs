@@ -618,24 +618,10 @@ public class TorrentRunner
 
 
                     if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
-                     {
-                         // Appel de la méthode GetHostAndApiKeyFromConfig et récupération de l'host et de l'apiKey
-bool isSuccess = await GetHostAndApiKeyFromConfig(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                       {
+await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
 
-if (isSuccess)
-{
-    // Faites quelque chose si l'opération réussit
-    Console.WriteLine("Opération réussie !");
 }
-else
-{
-    // Faites quelque chose si l'opération échoue
-    Console.WriteLine("Opération échouée !");
-}
-
-                       }
-
-
 
 
 
