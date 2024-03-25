@@ -595,7 +595,9 @@ public class TorrentRunner
                             int? theTvdbId = null;
                             theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                             Log($"Numero ID TMDB : {theTvdbId }");
+                            var (host, apiKey) = GetHostAndApiKeyFromConfig(categoryInstance, configFilePath);
                             await AddMovieToRadarr(theTvdbId.Value, seriesName, host, apiKey);
+
 
                         // Ajouter un message de débogage pour indiquer que rien ne se passe pour la catégorie "radarr"
                         Log($"Torrent dans la catégorie Radarr, aucune action requise.");
@@ -686,6 +688,26 @@ public class TorrentRunner
             Log($"TorrentRunner Tick End (took {sw.ElapsedMilliseconds}ms)");
         }
     }
+
+
+private (string host, string apiKey) GetHostAndApiKeyFromConfig(string categoryInstance, string configFilePath)
+{
+    var jsonString = File.ReadAllText(configFilePath);
+    using (JsonDocument doc = JsonDocument.Parse(jsonString))
+    {
+        if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
+        {
+            var host = category.GetProperty("Host").GetString();
+            var apiKey = category.GetProperty("ApiKey").GetString();
+            return (host, apiKey);
+        }
+        else
+        {
+            // Gérer le cas où la catégorie n'est pas trouvée dans le fichier de configuration
+            throw new Exception($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
+        }
+    }
+}
 
 private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, string host, string apiKey)
 {
