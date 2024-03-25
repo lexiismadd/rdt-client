@@ -597,36 +597,15 @@ public class TorrentRunner
                             Log($"Numero ID TMDB : {theTvdbId }");
                             await AddMovieToRadarr(theTvdbId.Value, seriesName);
 
-                        // Ajouter un message de débogage pour indiquer que rien ne se passe pour la catégorie "radarr"
-                        Log($"Torrent dans la catégorie Radarr, aucune action requise.");
-                        }
-                        else
+                        if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
                         {
-                        // Ajouter un message de débogage pour indiquer une catégorie inconnue
-                        Log($"Catégorie de torrent inconnue : {torrent.Category}");
+                            await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
 
 
+                           var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath);
 
 
-
-if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
-{
-    // Appel de TryRefreshMonitoredDownloadsAsync pour obtenir les valeurs de host et apiKey
-    var (host, apiKey) = await TryRefreshMonitoredDownloadsAsync(categoryInstance, configFilePath);
-
-    // Vérifier si les valeurs de host et apiKey ne sont pas nulles ou vides
-    if (!string.IsNullOrEmpty(host) && !string.IsNullOrEmpty(apiKey))
-    {
-        // Appeler UtiliserHostEtApiKey avec les valeurs récupérées
-        await UtiliserHostEtApiKey(host, apiKey);
-    }
-    else
-    {
-        // Gérer le cas où host ou apiKey est vide
-        _logger.LogError("Host ou ApiKey est vide.");
-    }
-}
 
 
 
@@ -707,42 +686,45 @@ if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPa
         }
     }
 
-// Définir une fonction qui utilise les valeurs de Host et ApiKey
-private async Task<bool> UtiliserHostEtApiKey(string host, string apiKey)
+public struct ApiConfig 
+{
+    public string Host [ get; set; }
+    public string ApiKey { get; set; }
+}
+
+private async Task<ApiConfig?> GetApiConfigAsync(string categoryInstance, string configFilePath)
 {
     try
     {
-        // Débogage : Affichage de Host et ApiKey
-        _logger.LogDebug($"Utilisation de Host : {host}");
-        _logger.LogDebug($"Utilisation de ApiKey : {apiKey}");
-
-        // Utiliser les valeurs de host et apiKey ici
-        // Par exemple, faire une requête HTTP à l'aide de ces valeurs
-        
-        var httpClient = new HttpClient();
-        httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
-
-        var response = await httpClient.GetAsync($"{host}/quelque-chose");
-
-        if (response.IsSuccessStatusCode)
+        var jsonString = await File.ReadAllTextAsync(configFilePath);
+        using (JsonDocument doc = JsonDocument.Parse(jsonString))
         {
-            var responseBody = await response.Content.ReadAsStringAsync();
-            _logger.LogInformation($"Réponse de l'API : {responseBody}");
-            return true;
-        }
-        else
-        {
-            _logger.LogError("La requête API a échoué.");
-            return false;
+            if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
+            {
+                var host = category.GetProperty("Host").GetString();
+                var apiKey = category.GetProperty("ApiKey").GetString();
+
+                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
+                {
+                    _logger.LogError("Host ou ApiKey est vide.");
+                    return null;
+                }
+
+                return new ApiConfig { Host = host, ApiKey = apiKey };
+            }
+            else
+            {
+                _logger.LogError($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
+                return null;
+            }
         }
     }
     catch (Exception ex)
     {
-        _logger.LogError($"Une erreur est survenue lors de l'appel API: {ex.Message}");
-        return false;
+        _logger.LogError($"Une erreur est survenue lors de la lecture du fichier de configuration : {ex.Message}");
+        return null;
     }
 }
-
 
 private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName)
 {
@@ -986,47 +968,37 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     return seriesName;
 }
 
-private async Task<(string host, string apiKey)> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
+private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
 {
     try
     {
-        _logger.LogInformation($"Tentative de rafraîchissement des téléchargements surveillés pour la catégorie : {categoryInstance}");
-
-        var jsonString = await File.ReadAllTextAsync(configFilePath);
-        _logger.LogDebug($"Contenu du fichier de configuration : {jsonString}");
-
-        using (JsonDocument doc = JsonDocument.Parse(jsonString))
+        var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // load comme ça
+        if (apiConfig == null)
         {
-            if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
-            {
-                var host = category.GetProperty("Host").GetString();
-                var apiKey = category.GetProperty("ApiKey").GetString();
+            return false;
+        }
 
-                _logger.LogInformation($"Host récupéré à partir du fichier de configuration : {host}");
-                _logger.LogInformation($"ApiKey récupéré à partir du fichier de configuration : {apiKey}");
+        var data = new StringContent("{\"name\":\"RefreshMonitoredDownloads\"}", Encoding.UTF8, "application/json");
+        _httpClient.DefaultRequestHeaders.Clear();
+        _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiConfig.Value.ApiKey); // utilisé comme ça ici
+        var response = await _httpClient.PostAsync($"{apiConfig.Value.Host}/api/v3/command", data); // et ici pour host
 
-                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
-                {
-                    _logger.LogError("Host ou ApiKey est vide.");
-                    return (null, null); // Retourner un tuple avec des valeurs nulles
-                }
-
-                _logger.LogDebug($"Host : {host}");
-                _logger.LogDebug($"ApiKey : {apiKey}");
-
-                return (host, apiKey); // Retourner le tuple avec les valeurs de host et apiKey
-            }
-            else
-            {
-                _logger.LogError($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
-                return (null, null); // Retourner un tuple avec des valeurs nulles
-            }
+        if (response.IsSuccessStatusCode)
+        {
+            var responseBody = await response.Content.ReadAsStringAsync();
+            _logger.LogInformation($"Réponse de l'API : {responseBody}");
+            return true;
+        }
+        else
+        {
+            _logger.LogError("La requête API a échoué.");
+            return false;
         }
     }
     catch (Exception ex)
     {
-        _logger.LogError($"Une erreur est survenue lors de la lecture du fichier de configuration ou de l'appel API: {ex.Message}");
-        return (null, null); // Retourner un tuple avec des valeurs nulles
+        _logger.LogError($"Une erreur est survenue : {ex.Message}");
+        return false;
     }
 }
 
