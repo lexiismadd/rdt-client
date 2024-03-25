@@ -597,7 +597,7 @@ public class TorrentRunner
                             Log($"Numero ID TMDB : {theTvdbId }");
                             //await AddMovieToRadarr(theTvdbId, seriesName, host, apiKey);
 
-}
+                        }
 
 
 
@@ -706,7 +706,6 @@ private async Task<bool> GetHostAndApiKeyFromConfig(string categoryInstance, str
 {
     try
     {
-        // Lire le contenu du fichier de configuration
         var jsonString = await File.ReadAllTextAsync(configFilePath);
         using (JsonDocument doc = JsonDocument.Parse(jsonString))
         {
@@ -714,19 +713,41 @@ private async Task<bool> GetHostAndApiKeyFromConfig(string categoryInstance, str
             {
                 var host = category.GetProperty("Host").GetString();
                 var apiKey = category.GetProperty("ApiKey").GetString();
-                return (host, apiKey);
-        
+
+                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
+                {
+                    _logger.LogError("Host ou ApiKey est vide.");
+                    return false;
+                }
+
+                var data = new StringContent("{\"name\":\"RefreshMonitoredDownloads\"}", Encoding.UTF8, "application/json");
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
+                var response = await _httpClient.PostAsync($"{host}/api/v3/command", data);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseBody = await response.Content.ReadAsStringAsync();
+                    _logger.LogInformation($"Réponse de l'API : {responseBody}");
+                    return true;
+                }
+                else
+                {
+                    _logger.LogError("La requête API a échoué.");
+                    return false;
+                }
             }
             else
             {
-                throw new Exception($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
+                _logger.LogError($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
+                return false;
             }
         }
     }
     catch (Exception ex)
     {
-        // Gérer les erreurs de lecture du fichier de configuration ou d'analyse JSON
-        throw new Exception($"Une erreur est survenue lors de la récupération de l'host et de l'apiKey à partir du fichier de configuration : {ex.Message}");
+        _logger.LogError($"Une erreur est survenue lors de la lecture du fichier de configuration ou de l'appel API: {ex.Message}");
+        return false;
     }
 }
 
