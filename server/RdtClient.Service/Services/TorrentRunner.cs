@@ -697,42 +697,45 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, str
             return false;
         }
 
+        // Déclaration des variables host et apiKey en dehors du bloc try-catch pour qu'elles soient accessibles dans toute la méthode
+        string host = null;
+        string apiKey = null;
 
-
-// -----------------------------------------------------------------------
-    try
-    {
-        var jsonString = await File.ReadAllTextAsync(configFilePath);
-        using (JsonDocument doc = JsonDocument.Parse(jsonString))
+        try
         {
-            if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
+            var jsonString = await File.ReadAllTextAsync(configFilePath);
+            using (JsonDocument doc = JsonDocument.Parse(jsonString))
             {
-                var host = category.GetProperty("Host").GetString();
-                var apiKey = category.GetProperty("ApiKey").GetString();
-
-                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
+                if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
                 {
-                    _logger.LogError("Host ou ApiKey est vide.");
+                    host = category.GetProperty("Host").GetString();
+                    apiKey = category.GetProperty("ApiKey").GetString();
+
+                    if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
+                    {
+                        _logger.LogError("Host ou ApiKey est vide.");
+                        return false;
+                    }
+                }
+                else
+                {
+                    _logger.LogError($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
                     return false;
                 }
             }
-            else
-            {
-                _logger.LogError($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
-                return false;
-            }
         }
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError($"Une erreur est survenue lors de la lecture du fichier de configuration: {ex.Message}");
-        return false;
-    }
-// ---------------------------------------------------------------------
+        catch (Exception ex)
+        {
+            _logger.LogError($"Erreur lors de la lecture du fichier de configuration : {ex.Message}");
+            return false;
+        }
 
-        // Remplacez "VOTRE_CLE_API_RADARR" par votre clé d'API Radarr
-//        var radarrApiKey = "bf78203e8ad548c79d7b499b63989782";
-//        var radarrUrl = "http://radarr:7878/api/v3";
+        // Vérification que les variables host et apiKey sont correctement initialisées
+        if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
+        {
+            _logger.LogError("Host ou ApiKey non initialisées.");
+            return false;
+        }
 
         var httpClient = new HttpClient();
         httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
