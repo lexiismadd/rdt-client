@@ -574,10 +574,6 @@ public class TorrentRunner
 
                         await _torrents.UpdateComplete(torrent.TorrentId, null, DateTimeOffset.UtcNow, true);
 
-                        if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
-                        {
-                            await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
-                        }
 
                         Log($"All downloads complete, marking torrent as complete", torrent);
 
@@ -608,6 +604,11 @@ public class TorrentRunner
                         {
                         // Ajouter un message de débogage pour indiquer une catégorie inconnue
                         Log($"Catégorie de torrent inconnue : {torrent.Category}");
+                        }
+
+                        if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
+                        {
+                            await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
@@ -687,14 +688,10 @@ public class TorrentRunner
     }
 
 
-private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
-
 {
     try
     {
         var jsonString = await File.ReadAllTextAsync(configFilePath);
-        _logger.LogInformation($"Contenu du fichier JSON : {jsonString}");
-
         using (JsonDocument doc = JsonDocument.Parse(jsonString))
         {
             if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
@@ -704,29 +701,39 @@ private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstan
 
                 if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
                 {
-                    // Log an error if host or apiKey is empty or null
-                    _logger.LogError("Host or ApiKey is empty.");
+                    _logger.LogError("Host ou ApiKey est vide.");
+                    return false;
+                }
+
+                var data = new StringContent("{\"name\":\"RefreshMonitoredDownloads\"}", Encoding.UTF8, "application/json");
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
+                var response = await _httpClient.PostAsync($"{host}/api/v3/command", data);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseBody = await response.Content.ReadAsStringAsync();
+                    _logger.LogInformation($"Réponse de l'API : {responseBody}");
+                    return true;
                 }
                 else
                 {
-                    // Log host and apiKey
-                    _logger.LogInformation($"Host: {host}, ApiKey: {apiKey}");
+                    _logger.LogError("La requête API a échoué.");
+                    return false;
                 }
             }
             else
             {
-                // Log an error if the categoryInstance is not found in the configuration file
-                _logger.LogError($"The category {categoryInstance} is not found in the configuration file.");
+                _logger.LogError($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
+                return false;
             }
         }
     }
     catch (Exception ex)
     {
-        // Log an error if an exception occurs during file reading or JSON parsing
-        _logger.LogError($"An error occurred while reading the configuration file or parsing JSON: {ex.Message}");
+        _logger.LogError($"Une erreur est survenue lors de la lecture du fichier de configuration ou de l'appel API: {ex.Message}");
+        return false;
     }
-
-    return (host, apiKey);
 }
 
 private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName)
