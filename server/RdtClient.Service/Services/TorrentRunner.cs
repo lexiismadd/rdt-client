@@ -596,7 +596,6 @@ public class TorrentRunner
                             theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                             Log($"Numero ID TMDB : {theTvdbId }");
                             //await AddMovieToRadarr(theTvdbId, seriesName, host, apiKey);
-                            var (host, apiKey) = GetHostAndApiKeyFromConfig(categoryInstance, configFilePath);
 
 
 
@@ -615,10 +614,10 @@ public class TorrentRunner
                     //    }
 
 
-                       if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
-                        {
-                            await GetHostAndApiKeyFromConfig(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
-                        }
+             //          if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
+               //         {
+                 //           await GetHostAndApiKeyFromConfig(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                   //     }
 
 
 
@@ -700,14 +699,11 @@ public class TorrentRunner
 
 
 private async Task<bool> GetHostAndApiKeyFromConfig(string categoryInstance, string configFilePath)
-
 {
     try
     {
         // Lire le contenu du fichier de configuration
         var jsonString = await File.ReadAllTextAsync(configFilePath);
-        
-        // Analyser le contenu JSON pour obtenir les valeurs de host et apiKey
         using (JsonDocument doc = JsonDocument.Parse(jsonString))
         {
             if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
@@ -715,7 +711,6 @@ private async Task<bool> GetHostAndApiKeyFromConfig(string categoryInstance, str
                 var host = category.GetProperty("Host").GetString();
                 var apiKey = category.GetProperty("ApiKey").GetString();
         
-                return (host, apiKey);
             }
             else
             {
