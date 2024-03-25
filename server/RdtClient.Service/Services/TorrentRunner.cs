@@ -616,8 +616,11 @@ public class TorrentRunner
 
                     if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
                      {
-                         await GetHostAndApiKeyFromConfig(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                         var (host, apiKey) = await GetHostAndApiKeyFromConfig(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+
                        }
+
+
 
 
 
