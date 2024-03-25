@@ -933,39 +933,6 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     return seriesName;
 }
 
-{
-    if (string.IsNullOrWhiteSpace(rdName))
-    {
-        _logger.LogError("Le nom du fichier est vide ou null.");
-        return null;
-    }
-
-    _logger.LogInformation($"Nom du fichier : {rdName}");
-
-    // Remplacer les points par des espaces
-    rdName = rdName.Replace(".", " ");
-    _logger.LogInformation($"Nom du fichier après remplacement des points : {rdName}");
-
-    // Exclure le contenu entre crochets
-    rdName = Regex.Replace(rdName, @"\[.*?\]", "");
-    _logger.LogInformation($"Nom du fichier après exclusion du contenu entre crochets : {rdName}");
-
-    // Utilisation d'une expression régulière pour extraire le titre de la série
-    string seriesPattern = @"^(.+?)(?:\d|S\d)";
-    Match match = Regex.Match(rdName, seriesPattern);
-
-    if (!match.Success)
-    {
-        _logger.LogError("Impossible de trouver le titre de la série.");
-        return null;
-    }
-
-    string seriesName = match.Groups[1].Value.Trim();
-    _logger.LogInformation($"Série extraite : \"{seriesName}\"");
-
-    return seriesName;
-}
-
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
 
 {
