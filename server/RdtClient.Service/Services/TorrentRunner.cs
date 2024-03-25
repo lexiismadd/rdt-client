@@ -588,13 +588,14 @@ public class TorrentRunner
                         }
                         else if (torrent.Category.ToLower() == "radarr")
                         {
+
                             string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
                             Log($"Nom du Films (Radarr) : {seriesName}");
                             int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                             int? theTvdbId = null;
                             theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                             Log($"Numero ID TMDB : {theTvdbId }");
-                            await AddMovieToRadarr(theTvdbId.Value, seriesName, categoryInstance, configFilePath);
+                            await AddMovieToRadarr(theTvdbId.Value, seriesName);
 
                         // Ajouter un message de débogage pour indiquer que rien ne se passe pour la catégorie "radarr"
                         Log($"Torrent dans la catégorie Radarr, aucune action requise.");
@@ -607,10 +608,8 @@ public class TorrentRunner
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
                         {
-                            await TryRefreshMonitored(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                            await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
-
-
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
                         {
@@ -688,6 +687,7 @@ public class TorrentRunner
         }
     }
 
+
 private async Task<(string host, string apiKey)> TryRefreshMaman(string categoryInstance, string configFilePath)
 {
     string host = null;
@@ -725,32 +725,22 @@ private async Task<(string host, string apiKey)> TryRefreshMaman(string category
     return (host, apiKey);
 }
 
-private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, string categoryInstance, string configFilePath)
+private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName)
 {
     try
     {
-        // Appeler TryRefreshMaman pour obtenir les valeurs de host et apiKey
-        // (string host, string apiKey) = await TryRefreshMaman(categoryInstance, configFilePath);
-
-        // Vérifier si les valeurs de host et apiKey sont valides
-        // if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
-        // {
-       //     _logger.LogError("Impossible d'ajouter le film à Radarr : host ou apiKey est vide.");
-       //     return false;
-       // }
-
-            var sonarrApiKey = "610d8bd7b8f946518ab6374e0ad11f91";
-            var sonarrUrl = "http://sonarr:8989/api/v3";
-
-
         if (!theTvdbId.HasValue || string.IsNullOrWhiteSpace(seriesName))
         {
             _logger.LogError("Impossible d'ajouter le film à Radarr : ID TheTVDB ou nom du film manquant.");
             return false;
         }
 
+        // Remplacez "VOTRE_CLE_API_RADARR" par votre clé d'API Radarr
+        var radarrApiKey = "bf78203e8ad548c79d7b499b63989782";
+        var radarrUrl = "http://radarr:7878/api/v3";
+
         var httpClient = new HttpClient();
-        httpClient.DefaultRequestHeaders.Add("X-Api-Key", sonarrApiKey);
+        httpClient.DefaultRequestHeaders.Add("X-Api-Key", radarrApiKey);
 
         var requestData = new
         {
@@ -764,7 +754,7 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, str
         var json = JsonSerializer.Serialize(requestData);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var response = await httpClient.PostAsync($"{sonarrUrl}/movie", content);
+        var response = await httpClient.PostAsync($"{radarrUrl}/movie", content);
 
         if (response.IsSuccessStatusCode)
         {
@@ -975,6 +965,56 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     _logger.LogInformation($"Série extraite : \"{seriesName}\"");
 
     return seriesName;
+}
+
+private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
+
+{
+    try
+    {
+        var jsonString = await File.ReadAllTextAsync(configFilePath);
+        using (JsonDocument doc = JsonDocument.Parse(jsonString))
+        {
+            if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
+            {
+                var host = category.GetProperty("Host").GetString();
+                var apiKey = category.GetProperty("ApiKey").GetString();
+
+                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
+                {
+                    _logger.LogError("Host ou ApiKey est vide.");
+                    return false;
+                }
+
+                var data = new StringContent("{\"name\":\"RefreshMonitoredDownloads\"}", Encoding.UTF8, "application/json");
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
+                var response = await _httpClient.PostAsync($"{host}/api/v3/command", data);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseBody = await response.Content.ReadAsStringAsync();
+                    _logger.LogInformation($"Réponse de l'API : {responseBody}");
+                    return true;
+                }
+                else
+                {
+                    _logger.LogError("La requête API a échoué.");
+                    return false;
+                }
+            }
+            else
+            {
+                _logger.LogError($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
+                return false;
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Une erreur est survenue lors de la lecture du fichier de configuration ou de l'appel API: {ex.Message}");
+        return false;
+    }
 }
 
     private void Log(String message, Download? download, Torrent? torrent)
