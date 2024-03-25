@@ -613,10 +613,10 @@ public class TorrentRunner
                     //    }
 
 
-                        if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
-                        {
-                            await GetHostAndApiKeyFromConfig(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
-                        }
+                 //       if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
+                   //     {
+                     //       await GetHostAndApiKeyFromConfig(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                       // }
 
 
 
