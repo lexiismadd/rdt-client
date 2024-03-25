@@ -613,10 +613,12 @@ public class TorrentRunner
                             await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
 
-                        if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
-                        {
-                            await GetHostAndApiKeyFromConfig(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
-                        }
+if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
+{
+    var (host, apiKey) = await GetHostAndApiKeyFromConfig(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+    
+    // Maintenant, vous avez les valeurs de host et apiKey pour utiliser dans votre logique
+}
 
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
@@ -698,17 +700,31 @@ public class TorrentRunner
 
 private (string host, string apiKey) GetHostAndApiKeyFromConfig(string categoryInstance, string configFilePath)
 {
-
-    // Lire le contenu du fichier de configuration
-        var jsonString = await File.ReadAllTextAsync(configFilePath);
-    
-    // Analyser le contenu JSON pour obtenir les valeurs de host et apiKey
-    using (JsonDocument doc = JsonDocument.Parse(jsonString))
+    try
     {
+        // Lire le contenu du fichier de configuration
+        var jsonString = File.ReadAllText(configFilePath);
+        
+        // Analyser le contenu JSON pour obtenir les valeurs de host et apiKey
+        using (JsonDocument doc = JsonDocument.Parse(jsonString))
+        {
+            if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
+            {
                 var host = category.GetProperty("Host").GetString();
                 var apiKey = category.GetProperty("ApiKey").GetString();
         
-        return (host, apiKey);
+                return (host, apiKey);
+            }
+            else
+            {
+                throw new Exception($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        // Gérer les erreurs de lecture du fichier de configuration ou d'analyse JSON
+        throw new Exception($"Une erreur est survenue lors de la récupération de l'host et de l'apiKey à partir du fichier de configuration : {ex.Message}");
     }
 }
 
