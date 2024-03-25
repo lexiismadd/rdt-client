@@ -596,14 +596,6 @@ public class TorrentRunner
                             theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                             Log($"Numero ID TMDB : {theTvdbId }");
 
-                            // Obtenez les valeurs de host et apiKey à partir de la même source que dans TryRefreshMonitoredDownloadsAsync
-                            string categoryInstance = torrent.Category; // Obtenez la catégorie de torrent pertinente
-                            string configFilePath = Settings.Get.General.RadarrSonarrInstanceConfigPath; // Obtenez le chemin d'accès au fichier de configuration
-
-                             // Obtenez host et apiKey en appelant TryRefreshMonitoredDownloadsAsync
-                            (string host, string apiKey) = await TryRefreshMonitoredDownloadsAsync(categoryInstance, configFilePath);
-
-                            // Appelez AddMovieToRadarr avec les valeurs récupérées
                             await AddMovieToRadarr(theTvdbId, seriesName, host, apiKey);
 
 
@@ -697,6 +689,23 @@ public class TorrentRunner
         }
     }
 
+
+private (string host, string apiKey) GetHostAndApiKeyFromConfig(string configFilePath)
+{
+    // Lire le contenu du fichier de configuration
+    var jsonString = File.ReadAllText(configFilePath);
+    
+    // Analyser le contenu JSON pour obtenir les valeurs de host et apiKey
+    using (JsonDocument doc = JsonDocument.Parse(jsonString))
+    {
+        var host = doc.RootElement.GetProperty("Host").GetString();
+        var apiKey = doc.RootElement.GetProperty("ApiKey").GetString();
+        
+        return (host, apiKey);
+    }
+}
+
+
 private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, string host, string apiKey)
 {
     try
@@ -706,6 +715,20 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, str
             _logger.LogError("Impossible d'ajouter le film à Radarr : ID TheTVDB, nom du film, host ou ApiKey manquant.");
             return false;
         }
+
+    try
+    {
+        // Obtenez les valeurs de host et apiKey à partir du fichier de configuration
+        var (host, apiKey) = GetHostAndApiKeyFromConfig(configFilePath);
+
+        // Votre logique pour ajouter le film à Radarr en utilisant host et apiKey
+        // ...
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Erreur lors de l'ajout du film à Radarr : {ex.Message}");
+        return false;
+    }
 
         var httpClient = new HttpClient();
         httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
