@@ -697,36 +697,6 @@ public class TorrentRunner
     }
 
 
-private async Task<bool> GetHostAndApiKeyFromConfig(string categoryInstance, string configFilePath)
-
-{
-    try
-    {
-        // Lire le contenu du fichier de configuration
-        var jsonString = await File.ReadAllTextAsync(configFilePath);
-        
-        // Analyser le contenu JSON pour obtenir les valeurs de host et apiKey
-        using (JsonDocument doc = JsonDocument.Parse(jsonString))
-        {
-            if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
-            {
-                var host = category.GetProperty("Host").GetString();
-                var apiKey = category.GetProperty("ApiKey").GetString();
-        
-                return (host, apiKey);
-            }
-            else
-            {
-                throw new Exception($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
-            }
-        }
-    }
-    catch (Exception ex)
-    {
-        // Gérer les erreurs de lecture du fichier de configuration ou d'analyse JSON
-        throw new Exception($"Une erreur est survenue lors de la récupération de l'host et de l'apiKey à partir du fichier de configuration : {ex.Message}");
-    }
-}
 
 private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, string host, string apiKey)
 {
