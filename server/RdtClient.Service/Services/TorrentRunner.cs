@@ -574,6 +574,11 @@ public class TorrentRunner
 
                         await _torrents.UpdateComplete(torrent.TorrentId, null, DateTimeOffset.UtcNow, true);
 
+                        if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
+                        {
+                            await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                        }
+
                         Log($"All downloads complete, marking torrent as complete", torrent);
 
                         if (torrent.Category.ToLower() == "sonarr")
@@ -588,7 +593,6 @@ public class TorrentRunner
                         }
                         else if (torrent.Category.ToLower() == "radarr")
                         {
-                            var (host, apiKey) = await TryRefreshMaman(categoryInstance, configFilePath);
                             string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
                             Log($"Nom du Films (Radarr) : {seriesName}");
                             int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
@@ -688,7 +692,8 @@ public class TorrentRunner
     }
 
 
-private async Task<(string host, string apiKey)> TryRefreshMaman(string categoryInstance, string configFilePath)
+private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
+
 {
     string host = null;
     string apiKey = null;
