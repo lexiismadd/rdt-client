@@ -708,7 +708,7 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName)
         {
             tmdbId = theTvdbId.Value,
             title = seriesName,
-            qualityProfileId = 4,
+            qualityProfileId = 1,
             RootFolderPath = "/home/ubuntu/Medias/Series",
             monitored = true
         };
