@@ -606,6 +606,10 @@ public class TorrentRunner
                         Log($"Catégorie de torrent inconnue : {torrent.Category}");
                         }
 
+
+
+
+
 // Vérifier si le chemin du fichier de configuration n'est pas vide ou nul
 if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
 {
@@ -624,6 +628,8 @@ if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPa
         _logger.LogError("Host ou ApiKey est vide.");
     }
 }
+
+
 
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
