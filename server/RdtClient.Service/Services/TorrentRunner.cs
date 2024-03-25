@@ -913,9 +913,13 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     rdName = Regex.Replace(rdName, @"\[.*?\]", "");
     _logger.LogInformation($"Nom du fichier après exclusion du contenu entre crochets : {rdName}");
 
-    // Exclure le mot "mkv"
-    rdName = rdName.Replace("mkv", "");
-    _logger.LogInformation($"Nom du fichier après exclusion du mot 'mkv' : {rdName}");
+    // Recherche de "mkv" pour déterminer la fin du titre de la série
+    int mkvIndex = rdName.IndexOf("mkv", StringComparison.OrdinalIgnoreCase);
+    if (mkvIndex != -1)
+    {
+        rdName = rdName.Substring(0, mkvIndex);
+        _logger.LogInformation($"Nom du fichier après exclusion du contenu après 'mkv' : {rdName}");
+    }
 
     // Utilisation d'une expression régulière pour extraire le titre de la série
     string seriesPattern = @"^(.+?)(?:\d|S\d)";
