@@ -688,7 +688,7 @@ public class TorrentRunner
 
 public struct ApiConfig 
 {
-    public string Host [ get; set; }
+    public string Host { get; set; }
     public string ApiKey { get; set; }
 }
 
