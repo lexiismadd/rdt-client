@@ -704,7 +704,8 @@ if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPa
     }
 
 
-private (string host, string apiKey) GetHostAndApiKeyFromConfig(string categoryInstance, string configFilePath)
+private async Task<bool> GetHostAndApiKeyFromConfig(string categoryInstance, string configFilePath)
+
 {
     try
     {
