@@ -588,7 +588,6 @@ public class TorrentRunner
                         }
                         else if (torrent.Category.ToLower() == "radarr")
                         {
-                            (string host, string apiKey) = await TryRefreshMaman(categoryInstance, configFilePath);
                             string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
                             Log($"Nom du Films (Radarr) : {seriesName}");
                             int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
@@ -731,14 +730,18 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, str
     try
     {
         // Appeler TryRefreshMaman pour obtenir les valeurs de host et apiKey
-        (string host, string apiKey) = await TryRefreshMaman(categoryInstance, configFilePath);
+        // (string host, string apiKey) = await TryRefreshMaman(categoryInstance, configFilePath);
 
         // Vérifier si les valeurs de host et apiKey sont valides
-        if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
-        {
-            _logger.LogError("Impossible d'ajouter le film à Radarr : host ou apiKey est vide.");
-            return false;
-        }
+        // if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
+        // {
+       //     _logger.LogError("Impossible d'ajouter le film à Radarr : host ou apiKey est vide.");
+       //     return false;
+       // }
+
+            var sonarrApiKey = "610d8bd7b8f946518ab6374e0ad11f91";
+            var sonarrUrl = "http://sonarr:8989/api/v3";
+
 
         if (!theTvdbId.HasValue || string.IsNullOrWhiteSpace(seriesName))
         {
@@ -747,7 +750,7 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, str
         }
 
         var httpClient = new HttpClient();
-        httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
+        httpClient.DefaultRequestHeaders.Add("X-Api-Key", sonarrApiKey);
 
         var requestData = new
         {
@@ -761,7 +764,7 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, str
         var json = JsonSerializer.Serialize(requestData);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var response = await httpClient.PostAsync($"{host}/movie", content);
+        var response = await httpClient.PostAsync($"{sonarrUrl}/movie", content);
 
         if (response.IsSuccessStatusCode)
         {
