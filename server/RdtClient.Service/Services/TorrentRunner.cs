@@ -614,7 +614,11 @@ public class TorrentRunner
 if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
 {
     // Appeler TryRefreshMonitoredDownloadsAsync pour obtenir les valeurs de Host et ApiKey
-    var (host, apiKey) = await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+    var result = await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+
+    // Extraire les valeurs de host et apiKey à partir du tuple retourné
+    string host = result.Item1;
+    string apiKey = result.Item2;
 
     // Vérifier si les valeurs de Host et ApiKey ne sont pas nulles ou vides
     if (!string.IsNullOrEmpty(host) && !string.IsNullOrEmpty(apiKey))
@@ -628,6 +632,7 @@ if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPa
         _logger.LogError("Host ou ApiKey est vide.");
     }
 }
+
 
 
 
