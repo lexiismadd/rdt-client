@@ -731,7 +731,7 @@ private async Task<(string host, string apiKey)> TryRefreshMaman(string category
 }
 
 
-private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, categoryInstance, configFilePath )
+private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, string categoryInstance, string configFilePath)
 {
     try
     {
