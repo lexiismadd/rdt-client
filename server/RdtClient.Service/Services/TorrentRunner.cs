@@ -735,15 +735,21 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName)
 {
     try
     {
+        // Appeler TryRefreshMaman pour obtenir les valeurs de host et apiKey
+        (string host, string apiKey) = await TryRefreshMaman(categoryInstance, configFilePath);
+
+        // Vérifier si les valeurs de host et apiKey sont valides
+        if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
+        {
+            _logger.LogError("Impossible d'ajouter le film à Radarr : host ou apiKey est vide.");
+            return false;
+        }
+
         if (!theTvdbId.HasValue || string.IsNullOrWhiteSpace(seriesName))
         {
             _logger.LogError("Impossible d'ajouter le film à Radarr : ID TheTVDB ou nom du film manquant.");
             return false;
         }
-
-        // Remplacez "VOTRE_CLE_API_RADARR" par votre clé d'API Radarr
-        var radarrApiKey = "bf78203e8ad548c79d7b499b63989782";
-        var radarrUrl = "http://radarr:7878/api/v3";
 
         var httpClient = new HttpClient();
         httpClient.DefaultRequestHeaders.Add("X-Api-Key", radarrApiKey);
