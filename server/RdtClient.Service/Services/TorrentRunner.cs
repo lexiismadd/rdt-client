@@ -595,11 +595,7 @@ public class TorrentRunner
                             int? theTvdbId = null;
                             theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                             Log($"Numero ID TMDB : {theTvdbId }");
-
-                        }
-
-
-
+                            await AddMovieToRadarr(theTvdbId.Value, seriesName);
 
                         // Ajouter un message de débogage pour indiquer que rien ne se passe pour la catégorie "radarr"
                         Log($"Torrent dans la catégorie Radarr, aucune action requise.");
@@ -612,12 +608,8 @@ public class TorrentRunner
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
                         {
-                            await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                            await TryRefreshMonitored(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
-
-
-
-
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
                         {
@@ -695,56 +687,55 @@ public class TorrentRunner
         }
     }
 
-
-private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
+private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName)
 {
     try
     {
-        var jsonString = await File.ReadAllTextAsync(configFilePath);
-        using (JsonDocument doc = JsonDocument.Parse(jsonString))
+        if (!theTvdbId.HasValue || string.IsNullOrWhiteSpace(seriesName))
         {
-            if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
-            {
-                var host = category.GetProperty("Host").GetString();
-                var apiKey = category.GetProperty("ApiKey").GetString();
+            _logger.LogError("Impossible d'ajouter le film à Radarr : ID TheTVDB ou nom du film manquant.");
+            return false;
+        }
 
-                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
-                {
-                    _logger.LogError("Host ou ApiKey est vide.");
-                    return false;
-                }
+        // Remplacez "VOTRE_CLE_API_RADARR" par votre clé d'API Radarr
+        var radarrApiKey = "bf78203e8ad548c79d7b499b63989782";
+        var radarrUrl = "http://radarr:7878/api/v3";
 
-                var data = new StringContent("{\"name\":\"RefreshMonitoredDownloads\"}", Encoding.UTF8, "application/json");
-                _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
-                var response = await _httpClient.PostAsync($"{host}/api/v3/command", data);
+        var httpClient = new HttpClient();
+        httpClient.DefaultRequestHeaders.Add("X-Api-Key", radarrApiKey);
 
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseBody = await response.Content.ReadAsStringAsync();
-                    _logger.LogInformation($"Réponse de l'API : {responseBody}");
-                    return true;
-                }
-                else
-                {
-                    _logger.LogError("La requête API a échoué.");
-                    return false;
-                }
-            }
-            else
-            {
-                _logger.LogError($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
-                return false;
-            }
+        var requestData = new
+        {
+            tmdbId = theTvdbId.Value,
+            title = seriesName,
+            qualityProfileId = 1,
+            RootFolderPath = "/home/ubuntu/Medias/Series",
+            monitored = true
+        };
+
+        var json = JsonSerializer.Serialize(requestData);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await httpClient.PostAsync($"{radarrUrl}/movie", content);
+
+        if (response.IsSuccessStatusCode)
+        {
+            _logger.LogInformation("Film ajouté avec succès à Radarr.");
+            return true;
+        }
+        else
+        {
+            var responseContent = await response.Content.ReadAsStringAsync();
+            _logger.LogError($"Échec de l'ajout du film à Radarr : {response.ReasonPhrase}. Contenu de la réponse : {responseContent}");
+            return false;
         }
     }
     catch (Exception ex)
     {
-        _logger.LogError($"Une erreur est survenue lors de la lecture du fichier de configuration ou de l'appel API: {ex.Message}");
+        _logger.LogError($"Erreur lors de l'ajout du film à Radarr : {ex.Message}");
         return false;
     }
 }
-
 
 private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName)
 {
@@ -904,7 +895,6 @@ public class TvMazeExternals
     public string TheTvdb { get; set; }
 }
 
-
 public string ExtractSeriesNameFromRdName(string rdName, string category)
 {
     if (string.IsNullOrWhiteSpace(rdName))
@@ -937,6 +927,56 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     _logger.LogInformation($"Série extraite : \"{seriesName}\"");
 
     return seriesName;
+}
+
+private async Task<bool> TryRefreshMonitored(string categoryInstance, string configFilePath)
+
+{
+    try
+    {
+        var jsonString = await File.ReadAllTextAsync(configFilePath);
+        using (JsonDocument doc = JsonDocument.Parse(jsonString))
+        {
+            if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
+            {
+                var host = category.GetProperty("Host").GetString();
+                var apiKey = category.GetProperty("ApiKey").GetString();
+
+                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
+                {
+                    _logger.LogError("Host ou ApiKey est vide.");
+                    return false;
+                }
+
+                var data = new StringContent("{\"name\":\"RefreshMonitoredDownloads\"}", Encoding.UTF8, "application/json");
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
+                var response = await _httpClient.PostAsync($"{host}/api/v3/command", data);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseBody = await response.Content.ReadAsStringAsync();
+                    _logger.LogInformation($"Réponse de l'API : {responseBody}");
+                    return true;
+                }
+                else
+                {
+                    _logger.LogError("La requête API a échoué.");
+                    return false;
+                }
+            }
+            else
+            {
+                _logger.LogError($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
+                return false;
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Une erreur est survenue lors de la lecture du fichier de configuration ou de l'appel API: {ex.Message}");
+        return false;
+    }
 }
 
     private void Log(String message, Download? download, Torrent? torrent)
