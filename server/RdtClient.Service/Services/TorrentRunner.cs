@@ -611,6 +611,24 @@ public class TorrentRunner
                             await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
 
+
+// Appeler TryRefreshMonitoredDownloadsAsync pour obtenir les valeurs de Host et ApiKey
+var (host, apiKey) = await TryRefreshMonitoredDownloadsAsync(categoryInstance, configFilePath);
+
+// Vérifier si les valeurs de Host et ApiKey ne sont pas nulles ou vides
+if (!string.IsNullOrEmpty(host) && !string.IsNullOrEmpty(apiKey))
+{
+    // Appeler UtiliserHostEtApiKey avec les valeurs récupérées
+    await UtiliserHostEtApiKey(host, apiKey);
+}
+else
+{
+    // Gérer le cas où Host ou ApiKey est vide
+    _logger.LogError("Host ou ApiKey est vide.");
+}
+
+
+
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
                         {
                             var sourceFilePath = Path.Combine(Settings.Get.DownloadClient.MappedPath, "tempTorrentsFiles", $"{torrent.RdName}.torrent");
@@ -686,6 +704,43 @@ public class TorrentRunner
             Log($"TorrentRunner Tick End (took {sw.ElapsedMilliseconds}ms)");
         }
     }
+
+// Définir une fonction qui utilise les valeurs de Host et ApiKey
+private async Task<bool> UtiliserHostEtApiKey(string host, string apiKey)
+{
+    try
+    {
+        // Débogage : Affichage de Host et ApiKey
+        _logger.LogDebug($"Utilisation de Host : {host}");
+        _logger.LogDebug($"Utilisation de ApiKey : {apiKey}");
+
+        // Utiliser les valeurs de host et apiKey ici
+        // Par exemple, faire une requête HTTP à l'aide de ces valeurs
+        
+        var httpClient = new HttpClient();
+        httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
+
+        var response = await httpClient.GetAsync($"{host}/quelque-chose");
+
+        if (response.IsSuccessStatusCode)
+        {
+            var responseBody = await response.Content.ReadAsStringAsync();
+            _logger.LogInformation($"Réponse de l'API : {responseBody}");
+            return true;
+        }
+        else
+        {
+            _logger.LogError("La requête API a échoué.");
+            return false;
+        }
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Une erreur est survenue lors de l'appel API: {ex.Message}");
+        return false;
+    }
+}
+
 
 private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName)
 {
