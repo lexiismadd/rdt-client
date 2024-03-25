@@ -595,7 +595,7 @@ public class TorrentRunner
                             int? theTvdbId = null;
                             theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                             Log($"Numero ID TMDB : {theTvdbId }");
-
+                            var (host, apiKey) = GetHostAndApiKeyFromConfig(categoryInstance, configFilePath);
                             await AddMovieToRadarr(theTvdbId, seriesName, host, apiKey);
 
 
@@ -619,10 +619,6 @@ if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPa
     {
         // Obtenez les valeurs de host et apiKey à partir du fichier de configuration
         var (host, apiKey) = GetHostAndApiKeyFromConfig(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
-
-        // Utilisez les valeurs de host et apiKey comme vous le souhaitez
-        Console.WriteLine($"Host : {host}");
-        Console.WriteLine($"ApiKey : {apiKey}");
     }
     catch (Exception ex)
     {
