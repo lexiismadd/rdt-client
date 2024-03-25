@@ -613,10 +613,10 @@ public class TorrentRunner
                     //    }
 
 
-                 //       if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
-                   //     {
-                     //       await GetHostAndApiKeyFromConfig(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
-                       // }
+                       if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
+                        {
+                            await GetHostAndApiKeyFromConfig(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                        }
 
 
 
@@ -697,6 +697,86 @@ public class TorrentRunner
     }
 
 
+private async Task<bool> GetHostAndApiKeyFromConfig(string categoryInstance, string configFilePath)
+
+{
+    try
+    {
+        // Lire le contenu du fichier de configuration
+        var jsonString = await File.ReadAllTextAsync(configFilePath);
+        
+        // Analyser le contenu JSON pour obtenir les valeurs de host et apiKey
+        using (JsonDocument doc = JsonDocument.Parse(jsonString))
+        {
+            if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
+            {
+                var host = category.GetProperty("Host").GetString();
+                var apiKey = category.GetProperty("ApiKey").GetString();
+        
+                return (host, apiKey);
+            }
+            else
+            {
+                throw new Exception($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        // Gérer les erreurs de lecture du fichier de configuration ou d'analyse JSON
+        throw new Exception($"Une erreur est survenue lors de la récupération de l'host et de l'apiKey à partir du fichier de configuration : {ex.Message}");
+    }
+}
+
+private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName)
+{
+    try
+    {
+        if (!theTvdbId.HasValue || string.IsNullOrWhiteSpace(seriesName))
+        {
+            _logger.LogError("Impossible d'ajouter le film à Radarr : ID TheTVDB ou nom du film manquant.");
+            return false;
+        }
+
+        // Remplacez "VOTRE_CLE_API_RADARR" par votre clé d'API Radarr
+        var radarrApiKey = "bf78203e8ad548c79d7b499b63989782";
+        var radarrUrl = "http://radarr:7878/api/v3";
+
+        var httpClient = new HttpClient();
+        httpClient.DefaultRequestHeaders.Add("X-Api-Key", radarrApiKey);
+
+        var requestData = new
+        {
+            tmdbId = theTvdbId.Value,
+            title = seriesName,
+            qualityProfileId = 1,
+            RootFolderPath = "/home/ubuntu/Medias/Series",
+            monitored = true
+        };
+
+        var json = JsonSerializer.Serialize(requestData);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await httpClient.PostAsync($"{radarrUrl}/movie", content);
+
+        if (response.IsSuccessStatusCode)
+        {
+            _logger.LogInformation("Film ajouté avec succès à Radarr.");
+            return true;
+        }
+        else
+        {
+            var responseContent = await response.Content.ReadAsStringAsync();
+            _logger.LogError($"Échec de l'ajout du film à Radarr : {response.ReasonPhrase}. Contenu de la réponse : {responseContent}");
+            return false;
+        }
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Erreur lors de l'ajout du film à Radarr : {ex.Message}");
+        return false;
+    }
+}
 
 private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName)
 {
