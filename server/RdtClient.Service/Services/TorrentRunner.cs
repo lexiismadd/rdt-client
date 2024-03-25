@@ -613,19 +613,13 @@ public class TorrentRunner
                     //        await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                     //    }
 
-if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
-{
-    try
-    {
-        // Obtenez les valeurs de host et apiKey à partir du fichier de configuration
-        var (host, apiKey) = GetHostAndApiKeyFromConfig(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
-    }
-    catch (Exception ex)
-    {
-        // Gérez toute exception qui pourrait survenir lors de l'appel à la fonction GetHostAndApiKeyFromConfig
-        Console.WriteLine($"Une erreur est survenue : {ex.Message}");
-    }
-}
+
+                        if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
+                        {
+                            await GetHostAndApiKeyFromConfig(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                        }
+
+
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
                         {
