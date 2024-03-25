@@ -613,6 +613,12 @@ public class TorrentRunner
                             await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
 
+                        if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
+                        {
+                            await GetHostAndApiKeyFromConfig(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                        }
+
+
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
                         {
                             var sourceFilePath = Path.Combine(Settings.Get.DownloadClient.MappedPath, "tempTorrentsFiles", $"{torrent.RdName}.torrent");
@@ -690,7 +696,7 @@ public class TorrentRunner
     }
 
 
-private (string host, string apiKey) GetHostAndApiKeyFromConfig(string configFilePath)
+private (string host, string apiKey) GetHostAndApiKeyFromConfig(string categoryInstance, string configFilePath)
 {
     // Lire le contenu du fichier de configuration
     var jsonString = File.ReadAllText(configFilePath);
