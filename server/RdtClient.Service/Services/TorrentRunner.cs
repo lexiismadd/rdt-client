@@ -693,6 +693,44 @@ public class TorrentRunner
         }
     }
 
+private async Task<(string host, string apiKey)> GetHostAndApiKeyFromConfig(string categoryInstance, string configFilePath)
+{
+    string host = null;
+    string apiKey = null;
+
+    try
+    {
+        var jsonString = await File.ReadAllTextAsync(configFilePath);
+        using (JsonDocument doc = JsonDocument.Parse(jsonString))
+        {
+            if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
+            {
+                host = category.GetProperty("Host").GetString();
+                apiKey = category.GetProperty("ApiKey").GetString();
+
+                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
+                {
+                    // Log an error if host or apiKey is empty or null
+                    _logger.LogError("Host or ApiKey is empty.");
+                }
+            }
+            else
+            {
+                // Log an error if the categoryInstance is not found in the configuration file
+                _logger.LogError($"The category {categoryInstance} is not found in the configuration file.");
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        // Log an error if an exception occurs during file reading or JSON parsing
+        _logger.LogError($"An error occurred while reading the configuration file or parsing JSON: {ex.Message}");
+    }
+
+    return (host, apiKey);
+}
+
+
 private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName)
 {
     try
@@ -934,57 +972,6 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
 
     return seriesName;
 }
-
-private async Task<bool> TryRefreshMaman(string categoryInstance, string configFilePath)
-
-{
-    try
-    {
-        var jsonString = await File.ReadAllTextAsync(configFilePath);
-        using (JsonDocument doc = JsonDocument.Parse(jsonString))
-        {
-            if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
-            {
-                var host = category.GetProperty("Host").GetString();
-                var apiKey = category.GetProperty("ApiKey").GetString();
-
-                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
-                {
-                    _logger.LogError("Host ou ApiKey est vide.");
-                    return false;
-                }
-
-                var data = new StringContent("{\"name\":\"RefreshMonitoredDownloads\"}", Encoding.UTF8, "application/json");
-                _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
-                var response = await _httpClient.PostAsync($"{host}/api/v3/command", data);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseBody = await response.Content.ReadAsStringAsync();
-                    _logger.LogInformation($"Réponse de l'API : {responseBody}");
-                    return true;
-                }
-                else
-                {
-                    _logger.LogError("La requête API a échoué.");
-                    return false;
-                }
-            }
-            else
-            {
-                _logger.LogError($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
-                return false;
-            }
-        }
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError($"Une erreur est survenue lors de la lecture du fichier de configuration ou de l'appel API: {ex.Message}");
-        return false;
-    }
-}
-
 
 
 private async Task<bool> TryRefreshMonitored(string categoryInstance, string configFilePath)
