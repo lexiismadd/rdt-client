@@ -600,8 +600,8 @@ public class TorrentRunner
                             string categoryInstance = torrent.Category; // Obtenez la catégorie de torrent pertinente
                             string configFilePath = Settings.Get.General.RadarrSonarrInstanceConfigPath; // Obtenez le chemin d'accès au fichier de configuration
 
-                            // Obtenez host et apiKey en appelant TryRefreshMonitoredDownloadsAsync
-                            var (host, apiKey) = await TryRefreshMonitoredDownloadsAsync(categoryInstance, configFilePath);
+                             // Obtenez host et apiKey en appelant TryRefreshMonitoredDownloadsAsync
+                            (string host, string apiKey) = await TryRefreshMonitoredDownloadsAsync(categoryInstance, configFilePath);
 
                             // Appelez AddMovieToRadarr avec les valeurs récupérées
                             await AddMovieToRadarr(theTvdbId, seriesName, host, apiKey);
