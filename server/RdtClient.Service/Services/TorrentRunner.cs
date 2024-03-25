@@ -595,7 +595,7 @@ public class TorrentRunner
                             int? theTvdbId = null;
                             theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                             Log($"Numero ID TMDB : {theTvdbId }");
-                            await AddMovieToRadarr(theTvdbId.Value, seriesName);
+                            await AddMovieToRadarr(theTvdbId.Value, seriesName, host, apiKey);
 
                         // Ajouter un message de débogage pour indiquer que rien ne se passe pour la catégorie "radarr"
                         Log($"Torrent dans la catégorie Radarr, aucune action requise.");
@@ -687,53 +687,13 @@ public class TorrentRunner
         }
     }
 
-private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, string categoryInstance, string configFilePath)
+private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, string host, string apiKey)
 {
     try
     {
-        if (!theTvdbId.HasValue || string.IsNullOrWhiteSpace(seriesName))
+        if (!theTvdbId.HasValue || string.IsNullOrWhiteSpace(seriesName) || string.IsNullOrWhiteSpace(host) || string.IsNullOrWhiteSpace(apiKey))
         {
-            _logger.LogError("Impossible d'ajouter le film à Radarr : ID TheTVDB ou nom du film manquant.");
-            return false;
-        }
-
-        // Déclaration des variables host et apiKey en dehors du bloc try-catch pour qu'elles soient accessibles dans toute la méthode
-        string host = null;
-        string apiKey = null;
-
-        try
-        {
-            var jsonString = await File.ReadAllTextAsync(configFilePath);
-            using (JsonDocument doc = JsonDocument.Parse(jsonString))
-            {
-                if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
-                {
-                    host = category.GetProperty("Host").GetString();
-                    apiKey = category.GetProperty("ApiKey").GetString();
-
-                    if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
-                    {
-                        _logger.LogError("Host ou ApiKey est vide.");
-                        return false;
-                    }
-                }
-                else
-                {
-                    _logger.LogError($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
-                    return false;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Erreur lors de la lecture du fichier de configuration : {ex.Message}");
-            return false;
-        }
-
-        // Vérification que les variables host et apiKey sont correctement initialisées
-        if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
-        {
-            _logger.LogError("Host ou ApiKey non initialisées.");
+            _logger.LogError("Impossible d'ajouter le film à Radarr : ID TheTVDB, nom du film, host ou ApiKey manquant.");
             return false;
         }
 
