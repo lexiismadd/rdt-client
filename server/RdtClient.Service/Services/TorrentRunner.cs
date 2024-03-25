@@ -606,26 +606,24 @@ public class TorrentRunner
                         Log($"Catégorie de torrent inconnue : {torrent.Category}");
                         }
 
-                        if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
-                        {
-                            await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
-                           // Vérifier si les valeurs de Host et ApiKey ne sont pas nulles ou vides
-                           if (!string.IsNullOrEmpty(host) && !string.IsNullOrEmpty(apiKey))
-                            {
-                           // Appeler UtiliserHostEtApiKey avec les valeurs récupérées
-                           await UtiliserHostEtApiKey(host, apiKey);
-                            }
-                           else
-                           {
-                          // Gérer le cas où Host ou ApiKey est vide
-                         _logger.LogError("Host ou ApiKey est vide.");
-                            }
+// Vérifier si le chemin du fichier de configuration n'est pas vide ou nul
+if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
+{
+    // Appeler TryRefreshMonitoredDownloadsAsync pour obtenir les valeurs de Host et ApiKey
+    var (host, apiKey) = await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
 
-                        }
-
-
-
-
+    // Vérifier si les valeurs de Host et ApiKey ne sont pas nulles ou vides
+    if (!string.IsNullOrEmpty(host) && !string.IsNullOrEmpty(apiKey))
+    {
+        // Appeler UtiliserHostEtApiKey avec les valeurs récupérées
+        await UtiliserHostEtApiKey(host, apiKey);
+    }
+    else
+    {
+        // Gérer le cas où Host ou ApiKey est vide
+        _logger.LogError("Host ou ApiKey est vide.");
+    }
+}
 
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
