@@ -895,7 +895,7 @@ public class TvMazeExternals
     public string TheTvdb { get; set; }
 }
 
-public string ExtractSeriesNameFromRdName(string rdName, string category)
+private string ExtractSeriesNameFromDecoupage(string rdName)
 {
     if (string.IsNullOrWhiteSpace(rdName))
     {
@@ -912,6 +912,10 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     // Exclure le contenu entre crochets
     rdName = Regex.Replace(rdName, @"\[.*?\]", "");
     _logger.LogInformation($"Nom du fichier après exclusion du contenu entre crochets : {rdName}");
+
+    // Exclure le mot "mkv"
+    rdName = rdName.Replace("mkv", "");
+    _logger.LogInformation($"Nom du fichier après exclusion du mot 'mkv' : {rdName}");
 
     // Utilisation d'une expression régulière pour extraire le titre de la série
     string seriesPattern = @"^(.+?)(?:\d|S\d)";
