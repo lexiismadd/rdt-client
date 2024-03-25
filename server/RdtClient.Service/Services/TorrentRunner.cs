@@ -752,7 +752,7 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName)
         }
 
         var httpClient = new HttpClient();
-        httpClient.DefaultRequestHeaders.Add("X-Api-Key", radarrApiKey);
+        httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
 
         var requestData = new
         {
@@ -766,7 +766,7 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName)
         var json = JsonSerializer.Serialize(requestData);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var response = await httpClient.PostAsync($"{radarrUrl}/movie", content);
+        var response = await httpClient.PostAsync($"{host}/movie", content);
 
         if (response.IsSuccessStatusCode)
         {
