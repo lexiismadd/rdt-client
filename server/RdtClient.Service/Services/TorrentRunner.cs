@@ -595,8 +595,7 @@ public class TorrentRunner
                             int? theTvdbId = null;
                             theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                             Log($"Numero ID TMDB : {theTvdbId }");
-                            var (host, apiKey) = GetHostAndApiKeyFromConfig(categoryInstance, configFilePath);
-                            await AddMovieToRadarr(theTvdbId, seriesName, host, apiKey);
+                            //await AddMovieToRadarr(theTvdbId, seriesName, host, apiKey);
 
 
                         // Ajouter un message de débogage pour indiquer que rien ne se passe pour la catégorie "radarr"
