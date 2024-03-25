@@ -687,7 +687,7 @@ public class TorrentRunner
         }
     }
 
-private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName)
+private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, string categoryInstance, string configFilePath)
 {
     try
     {
