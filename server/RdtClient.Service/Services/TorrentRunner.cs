@@ -589,6 +589,11 @@ public class TorrentRunner
                         else if (torrent.Category.ToLower() == "radarr")
                         {
 
+                        if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
+                        {
+                            await TryRefreshMaman(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                        }
+
                             string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
                             Log($"Nom du Films (Radarr) : {seriesName}");
                             int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
@@ -605,11 +610,6 @@ public class TorrentRunner
                         {
                         // Ajouter un message de débogage pour indiquer une catégorie inconnue
                         Log($"Catégorie de torrent inconnue : {torrent.Category}");
-                        }
-
-                        if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
-                        {
-                            await TryRefreshMonitored(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
@@ -973,56 +973,6 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     return seriesName;
 }
 
-
-private async Task<bool> TryRefreshMonitored(string categoryInstance, string configFilePath)
-
-{
-    try
-    {
-        var jsonString = await File.ReadAllTextAsync(configFilePath);
-        using (JsonDocument doc = JsonDocument.Parse(jsonString))
-        {
-            if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
-            {
-                var host = category.GetProperty("Host").GetString();
-                var apiKey = category.GetProperty("ApiKey").GetString();
-
-                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
-                {
-                    _logger.LogError("Host ou ApiKey est vide.");
-                    return false;
-                }
-
-                var data = new StringContent("{\"name\":\"RefreshMonitoredDownloads\"}", Encoding.UTF8, "application/json");
-                _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
-                var response = await _httpClient.PostAsync($"{host}/api/v3/command", data);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseBody = await response.Content.ReadAsStringAsync();
-                    _logger.LogInformation($"Réponse de l'API : {responseBody}");
-                    return true;
-                }
-                else
-                {
-                    _logger.LogError("La requête API a échoué.");
-                    return false;
-                }
-            }
-            else
-            {
-                _logger.LogError($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
-                return false;
-            }
-        }
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError($"Une erreur est survenue lors de la lecture du fichier de configuration ou de l'appel API: {ex.Message}");
-        return false;
-    }
-}
 
     private void Log(String message, Download? download, Torrent? torrent)
     {
