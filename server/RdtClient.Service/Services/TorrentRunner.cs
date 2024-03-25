@@ -924,14 +924,15 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     rdName = rdName.Replace(".", " ");
     _logger.LogInformation($"Nom du fichier après remplacement des points : {rdName}");
 
+    // Recherche de la première occurrence d'un crochet fermant
+    int lastBracketIndex = rdName.LastIndexOf(']');
+
+    // Déterminer l'indice de début pour extraire le titre
+    int startIndex = lastBracketIndex == -1 ? 0 : lastBracketIndex + 1; // Commencer après le dernier crochet
+
     // Utilisation d'une expression régulière pour extraire le titre de la série
-    // string seriesPattern = @"^(.+?)(?:\d|S\d)";
-    //string seriesPattern = @"^((?:(?!\[).)+?)(?:\d|S\d)";
-    // string seriesPattern = @"^([^[\]]+)(?:\d|S\d)";
-    string seriesPattern = @"^([^[\]]+?)(?=\d|S\d)";
-
-
-    Match match = Regex.Match(rdName, seriesPattern);
+    string seriesPattern = @"(?:\d|S\d)";
+    Match match = Regex.Match(rdName.Substring(startIndex), seriesPattern);
 
     if (!match.Success)
     {
