@@ -693,7 +693,7 @@ public class TorrentRunner
         }
     }
 
-private async Task<(string host, string apiKey)> GetHostAndApiKeyFromConfig(string categoryInstance, string configFilePath)
+private async Task<(string host, string apiKey)> TryRefreshMaman(string categoryInstance, string configFilePath)
 {
     string host = null;
     string apiKey = null;
