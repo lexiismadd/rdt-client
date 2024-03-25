@@ -698,14 +698,15 @@ public class TorrentRunner
 
 private (string host, string apiKey) GetHostAndApiKeyFromConfig(string categoryInstance, string configFilePath)
 {
+
     // Lire le contenu du fichier de configuration
-    var jsonString = File.ReadAllText(configFilePath);
+        var jsonString = await File.ReadAllTextAsync(configFilePath);
     
     // Analyser le contenu JSON pour obtenir les valeurs de host et apiKey
     using (JsonDocument doc = JsonDocument.Parse(jsonString))
     {
-        var host = doc.RootElement.GetProperty("Host").GetString();
-        var apiKey = doc.RootElement.GetProperty("ApiKey").GetString();
+                var host = category.GetProperty("Host").GetString();
+                var apiKey = category.GetProperty("ApiKey").GetString();
         
         return (host, apiKey);
     }
