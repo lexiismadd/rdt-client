@@ -62,7 +62,17 @@ public class Startup : IHostedService
                 //  -H 'accept: application/json' \
                 //  -H 'X-Api-Key: api_sonarr'
             };
-            var json = JsonSerializer.Serialize(defaultConfig, new JsonSerializerOptions { WriteIndented = true });
+
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                IgnoreNullValues = true,
+                Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
+                IgnoreReadOnlyProperties = true,
+                PropertyNameCaseInsensitive = true
+            };
+
+            var json = JsonSerializer.Serialize(defaultConfig, options);
             await File.WriteAllTextAsync(exampleConfigPath, json, cancellationToken);
         }
 
