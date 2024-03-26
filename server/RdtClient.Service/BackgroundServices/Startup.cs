@@ -47,6 +47,20 @@ public class Startup : IHostedService
             {
                 Category = new { Host = "http://host:port", ApiKey = "api_key"},
                 OtherCategory = new { Host = "http://other_host:port", ApiKey = "other_api_key" }
+
+                // Valeur de qualityProfileId 
+
+                // radarr
+                // curl -X 'GET' \
+                //  'http://localhost:7878/api/v3/qualityprofile' \
+                //  -H 'accept: application/json' \
+                //  -H 'X-Api-Key: api_radarr'
+
+                // sonarr
+                // curl -X 'GET' \
+                //  'http://localhost:8989/api/v3/qualityprofile' \
+                //  -H 'accept: application/json' \
+                //  -H 'X-Api-Key: api_sonarr'
             };
             var json = JsonSerializer.Serialize(defaultConfig, new JsonSerializerOptions { WriteIndented = true });
             await File.WriteAllTextAsync(exampleConfigPath, json, cancellationToken);
