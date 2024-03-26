@@ -34,56 +34,51 @@ public class Startup : IHostedService
         await settings.Seed();
         await settings.ResetCache();
 
-
-
-
-            // Création du fichier readme.txt
-            var readmeFilePath = "/data/db/readme.txt";
-            var readmeContent = @"
+        // Création du fichier readme.txt
+        var readmeFilePath = "/data/db/readme.txt";
+        var readmeContent = @"
 *******************************************************************************
 *                            RdtClient Service                                 *
 *******************************************************************************
 
-This service initializes the RdtClient application upon startup.
-
-1. Database Migration:
-   - The service automatically migrates the database schema using Entity Framework Core upon startup.
-
-2. Settings Initialization:
-   - Seeds initial settings data.
-   - Resets cache to ensure data consistency.
-
-3. Example Configuration File Generation:
+Exemple de configuration du fichier de configuration:
    - If the example configuration file does not exist, it will be generated.
-   - Example configuration file path: `/data/db/instances.json.example`.
+   - Exemple configuration: `/data/db/instances.json.example`.
    - Format:
         {
             ""Category"": {
                 ""Host"": ""http://host:port"",
                 ""ApiKey"": ""api_key""
+                ""RootFolderPath"": ""root_folder""
+                ""qualityProfileId"": ""identitiant_profile""
+
+
             },
             ""OtherCategory"": {
                 ""Host"": ""http://other_host:port"",
                 ""ApiKey"": ""other_api_key""
+                ""RootFolderPath": "root_folder""
+                ""qualityProfileId"": ""identitiant_profile""
+
             }
         }
 
-4. Version Logging:
-   - Logs the current version of the application upon startup.
+Pour trouver la valeur de qualityProfileId 
+   - radarr
+     curl -X 'GET' \
+       'http://localhost:7878/api/v3/qualityprofile' \
+       -H 'accept: application/json' \
+       -H 'X-Api-Key: api_radarr'
 
-For further information, please refer to the source code or contact the developers.
-
-Author: [Your Name]
-Date: [Date]
+   - sonarr
+     curl -X 'GET' \
+        'http://localhost:8989/api/v3/qualityprofile' \
+        -H 'accept: application/json' \
+        -H 'X-Api-Key: api_sonarr'
 
 *******************************************************************************
 ";
-            await File.WriteAllTextAsync(readmeFilePath, readmeContent, cancellationToken);
-
-
-
-
-
+        await File.WriteAllTextAsync(readmeFilePath, readmeContent, cancellationToken);
 
         var exampleConfigPath = "/data/db/instances.json.example";
         if (!File.Exists(exampleConfigPath))
@@ -96,8 +91,8 @@ Date: [Date]
 
             var defaultConfig = new
             {
-                Category = new { Host = "http://host:port", ApiKey = "api_key" },
-                OtherCategory = new { Host = "http://other_host:port", ApiKey = "other_api_key" }
+                Category = new { Host = "http://host:port", ApiKey = "api_key", RootFolderPath = "root_folder", qualityProfileId = "identitiant_profile" },
+                OtherCategory = new { Host = "http://other_host:port", ApiKey = "other_api_key", , RootFolderPath = "root_folder", qualityProfileId = "identitiant_profile" }
             };
             var json = JsonSerializer.Serialize(defaultConfig, new JsonSerializerOptions { WriteIndented = true });
             await File.WriteAllTextAsync(exampleConfigPath, json, cancellationToken);
