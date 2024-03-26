@@ -596,6 +596,10 @@ public class TorrentRunner
                             Log($"Numero ID TMDB : {theTvdbId }");
                             await AddMovieToRadarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
+                        else
+                        {
+                        Log($"Catégorie de torrent inconnue : {torrent.Category}");
+                        }
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
                         {
