@@ -1007,7 +1007,7 @@ private async Task<ApiConfig?> GetApiConfigAsync(string categoryInstance, string
                     return null;
                 }
 
-                return new ApiConfig { Host = host, ApiKey = apiKey, RootFolderPath = folder};
+                return new ApiConfig { Host = host, ApiKey = apiKey, RootFolderPath = folder };
             }
             else
             {
