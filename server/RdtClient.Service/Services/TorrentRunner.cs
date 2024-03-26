@@ -694,7 +694,7 @@ private async Task<bool> GetSeriesIdFromNameAsync(string seriesName, string cate
         if (apiConfig == null)
         {
             _logger.LogError("La configuration API n'a pas pu être récupérée.");
-            return null;
+            return false;
         }
 
         if (category.ToLower() == "sonarr")
