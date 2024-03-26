@@ -41,8 +41,8 @@ public class Startup : IHostedService
 *                            RdtClient Service                                 *
 *******************************************************************************
 
-Exemple de configuration du fichier de configuration:
-   - If the example configuration file does not exist, it will be generated.
+Exemple de configuration:
+   - Si le fichier de configuration n'existe pas il sera généré.
    - Exemple configuration: `/data/db/instances.json.example`.
    - Format:
         {

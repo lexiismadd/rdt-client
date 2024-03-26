@@ -584,11 +584,10 @@ public class TorrentRunner
                             int? theTvdbId = null;
                             theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                             Log($"Numero ID TVDB : {theTvdbId }");
-                            await AddSeriesToSonarr(theTvdbId.Value, seriesName);
+                            await AddSeriesToSonarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
                         else if (torrent.Category.ToLower() == "radarr")
                         {
-
                             string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
                             Log($"Nom du Films (Radarr) : {seriesName}");
                             int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
@@ -597,14 +596,6 @@ public class TorrentRunner
                             Log($"Numero ID TMDB : {theTvdbId }");
                             await AddMovieToRadarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
 
-                        // Ajouter un message de débogage pour indiquer que rien ne se passe pour la catégorie "radarr"
-                        Log($"Torrent dans la catégorie Radarr, aucune action requise.");
-                        }
-                        else
-                        {
-                        // Ajouter un message de débogage pour indiquer une catégorie inconnue
-                        Log($"Catégorie de torrent inconnue : {torrent.Category}");
-                        }
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
                         {
@@ -687,61 +678,6 @@ public class TorrentRunner
             Log($"TorrentRunner Tick End (took {sw.ElapsedMilliseconds}ms)");
         }
     }
-
-private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName)
-{
-    try
-    {
-        if (theTvdbId.HasValue && !string.IsNullOrEmpty(seriesName))
-        {
-            var sonarrApiKey = "610d8bd7b8f946518ab6374e0ad11f91";
-            var sonarrUrl = "http://sonarr:8989/api/v3";
-
-            var httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.Add("X-Api-Key", sonarrApiKey);
-
-            var requestData = new
-            {
-                tvdbId = theTvdbId.Value,
-                qualityProfileId = 4,
-                title = seriesName,
-                RootFolderPath = "/home/ubuntu/Medias/Series",
-                monitored = true
-            };
-
-            var json = JsonSerializer.Serialize(requestData);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            var response = await httpClient.PostAsync($"{sonarrUrl}/series", content);
-
-            if (response.IsSuccessStatusCode)
-            {
-                _logger.LogInformation("Série ajoutée avec succès à Sonarr.");
-            }
-            else
-            {
-                var responseContent = await response.Content.ReadAsStringAsync();
-                
-                if(responseContent.Contains("This series has already been added"))
-                {
-                    _logger.LogDebug("La série existe déjà dans Sonarr.");
-                }
-                else
-                {
-                    _logger.LogError($"Échec de l'ajout de la série à Sonarr : {response.ReasonPhrase}. Contenu de la réponse : {responseContent}");
-                }
-            }
-        }
-        else
-        {
-            _logger.LogError("Impossible d'ajouter la série à Sonarr : ID TheTVDB ou nom de série manquant.");
-        }
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError($"Erreur lors de l'ajout de la série à Sonarr : {ex.Message}");
-    }
-}
 
 private async Task<int?> GetSeriesIdFromNameAsync(string seriesName, string category)
 {
@@ -878,6 +814,75 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     _logger.LogInformation($"Série extraite : \"{seriesName}\"");
 
     return seriesName;
+}
+
+private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, string categoryInstance, string configFilePath)
+{
+    try
+    {
+        var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // Charger la configuration API
+
+        if (apiConfig == null)
+        {
+            _logger.LogError("La configuration API n'a pas pu être récupérée.");
+            return false;
+        }
+
+        // Débogage : afficher les valeurs de ApiKey et Host
+        _logger.LogDebug($"ApiKey : {apiConfig.Value.ApiKey}");
+        _logger.LogDebug($"Host : {apiConfig.Value.Host}");
+        _logger.LogDebug($"RootFolderPath : {apiConfig.Value.RootFolderPath}");
+        _logger.LogDebug($"qualityProfileId : {apiConfig.Value.qualityProfileId}");
+
+        if (!theTvdbId.HasValue || string.IsNullOrWhiteSpace(seriesName))
+        {
+            _logger.LogError("Impossible d'ajouter la Série à Sonarr : ID TheTVDB ou nom dela Série manquante.");
+            return false;
+        }
+            var requestData = new
+            {
+                tvdbId = theTvdbId.Value,
+                qualityProfileId = 4,
+                title = seriesName,
+                RootFolderPath = "/home/ubuntu/Medias/Series",
+                monitored = true
+            };
+
+            var json = JsonSerializer.Serialize(requestData);
+            var data = new StringContent(json, Encoding.UTF8, "application/json");
+
+            _httpClient.DefaultRequestHeaders.Clear(); 
+            _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiConfig.Value.ApiKey);
+        
+            var response = await _httpClient.PostAsync($"{apiConfig.Value.Host}/api/v3/series", data);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation("Série ajoutée avec succès à Sonarr.");
+            }
+            else
+            {
+                var responseContent = await response.Content.ReadAsStringAsync();
+                
+                if(responseContent.Contains("This series has already been added"))
+                {
+                    _logger.LogDebug("La série existe déjà dans Sonarr.");
+                }
+                else
+                {
+                    _logger.LogError($"Échec de l'ajout de la série à Sonarr : {response.ReasonPhrase}. Contenu de la réponse : {responseContent}");
+                }
+            }
+        }
+        else
+        {
+            _logger.LogError("Impossible d'ajouter la série à Sonarr : ID TheTVDB ou nom de série manquant.");
+        }
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Erreur lors de l'ajout de la série à Sonarr : {ex.Message}");
+    }
 }
 
 private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, string categoryInstance, string configFilePath)
