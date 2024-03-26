@@ -595,7 +595,7 @@ public class TorrentRunner
                             int? theTvdbId = null;
                             theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                             Log($"Numero ID TMDB : {theTvdbId }");
-                            await AddMovieToRadarr(theTvdbId.Value, seriesName, configFilePath, categoryInstance);
+                            // await AddMovieToRadarr(theTvdbId.Value, seriesName, configFilePath, categoryInstance);
 
                         // Ajouter un message de débogage pour indiquer que rien ne se passe pour la catégorie "radarr"
                         Log($"Torrent dans la catégorie Radarr, aucune action requise.");
@@ -610,6 +610,12 @@ public class TorrentRunner
                         {
                             await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
+
+                        if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
+                        {
+                            await AddMovieToRadarr(theTvdbId.Value, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                        }
+
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
                         {
@@ -909,7 +915,6 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, str
 
         var json = JsonSerializer.Serialize(requestData);
         var data = new StringContent(json, Encoding.UTF8, "application/json");
-
         _httpClient.DefaultRequestHeaders.Clear();
         _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiConfig.Value.ApiKey); // utilisé comme ça ici
         var response = await _httpClient.PostAsync($"{apiConfig.Value.Host}/api/v3/movie", data); // et ici pour host
