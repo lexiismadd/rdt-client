@@ -985,6 +985,7 @@ public struct ApiConfig
 {
     public string Host { get; set; }
     public string ApiKey { get; set; }
+    public string RootFolderPath { get; set; }
 }
 
 private async Task<ApiConfig?> GetApiConfigAsync(string categoryInstance, string configFilePath)
