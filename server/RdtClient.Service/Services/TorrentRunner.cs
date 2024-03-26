@@ -907,7 +907,7 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, str
             tmdbId = theTvdbId.Value,
             title = seriesName,
             qualityProfileId = 1,
-            RootFolderPath = "/home/ubuntu/Medias/Series",
+            RootFolderPath = "/home/ubuntu/Medias/Films",
             monitored = true
         };
 
@@ -982,10 +982,7 @@ private async Task<ApiConfig?> GetApiConfigAsync(string categoryInstance, string
 {
     try
     {
-        _logger.LogInformation($"Lecture du fichier de configuration : {configFilePath}");
-
         var jsonString = await File.ReadAllTextAsync(configFilePath);
-        _logger.LogDebug($"Contenu du fichier de configuration : {jsonString}");
 
         using (JsonDocument doc = JsonDocument.Parse(jsonString))
         {
@@ -993,21 +990,14 @@ private async Task<ApiConfig?> GetApiConfigAsync(string categoryInstance, string
 
             if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
             {
-                _logger.LogDebug($"La catégorie {categoryInstance} a été trouvée dans le fichier de configuration.");
-
                 var host = category.GetProperty("Host").GetString();
                 var apiKey = category.GetProperty("ApiKey").GetString();
 
-                _logger.LogInformation($"Host récupéré : {host}");
-                _logger.LogInformation($"ApiKey récupérée : {apiKey}");
-
                 if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
                 {
-                    _logger.LogError("Host ou ApiKey est vide.");
                     return null;
                 }
 
-                _logger.LogInformation("Configuration API récupérée avec succès.");
                 return new ApiConfig { Host = host, ApiKey = apiKey };
             }
             else
