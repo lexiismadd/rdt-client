@@ -915,14 +915,14 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, str
             return false;
         }
 
-        var requestData = new
-        {
-            tmdbId = theTvdbId.Value,
-            title = seriesName,
-            qualityProfileId = apiConfig.Value.qualityProfileId,
-            RootFolderPath = apiConfig.Value.RootFolderPath,
-            monitored = true
-        };
+var requestData = new
+{
+    TvdbId = theTvdbId.Value,
+    title = seriesName,
+    qualityProfileId = apiConfig.Value.qualityProfileId,
+    RootFolderPath = apiConfig.Value.RootFolderPath,
+    monitored = true
+};
 
         var json = JsonSerializer.Serialize(requestData);
         var data = new StringContent(json, Encoding.UTF8, "application/json");
