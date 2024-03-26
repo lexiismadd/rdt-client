@@ -44,39 +44,36 @@ public class Startup : IHostedService
                 Directory.CreateDirectory(directoryPath);
             }
 
-            var defaultConfig = new
-            {
-                Category = new { Host = "http://host:port", ApiKey = "api_key"},
-                OtherCategory = new { Host = "http://other_host:port", ApiKey = "other_api_key" }
+                var defaultConfig = new
+                {
+                    Category = new { Host = "http://host:port", ApiKey = "api_key"},
+                    OtherCategory = new { Host = "http://other_host:port", ApiKey = "other_api_key" },
 
-                // Valeur de qualityProfileId 
+                    // Exemple de valeurs pour qualityProfileId
+                    // radarr
+                    // curl -X 'GET' \
+                    //  'http://localhost:7878/api/v3/qualityprofile' \
+                    //  -H 'accept: application/json' \
+                    //  -H 'X-Api-Key: api_radarr'
 
-                // radarr
-                // curl -X 'GET' \
-                //  'http://localhost:7878/api/v3/qualityprofile' \
-                //  -H 'accept: application/json' \
-                //  -H 'X-Api-Key: api_radarr'
+                    // sonarr
+                    // curl -X 'GET' \
+                    //  'http://localhost:8989/api/v3/qualityprofile' \
+                    //  -H 'accept: application/json' \
+                    //  -H 'X-Api-Key: api_sonarr'
+                };
 
-                // sonarr
-                // curl -X 'GET' \
-                //  'http://localhost:8989/api/v3/qualityprofile' \
-                //  -H 'accept: application/json' \
-                //  -H 'X-Api-Key: api_sonarr'
-            };
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    IgnoreNullValues = true,
+                    IgnoreReadOnlyProperties = true,
+                    PropertyNameCaseInsensitive = true
+                };
 
-            var options = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                IgnoreNullValues = true,
-                Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) },
-                IgnoreReadOnlyProperties = true,
-                PropertyNameCaseInsensitive = true
-            };
-
-            var json = JsonSerializer.Serialize(defaultConfig, options);
-            await File.WriteAllTextAsync(exampleConfigPath, json, cancellationToken);
-        }
-
+                var json = JsonSerializer.Serialize(defaultConfig, options);
+                await File.WriteAllTextAsync(exampleConfigPath, json, cancellationToken);
+            }
         Ready = true;
     }
 
