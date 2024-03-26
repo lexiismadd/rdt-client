@@ -827,11 +827,17 @@ private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName)
     {
         if (theTvdbId.HasValue && !string.IsNullOrEmpty(seriesName))
         {
-            var sonarrApiKey = "610d8bd7b8f946518ab6374e0ad11f91";
-            var sonarrUrl = "http://sonarr:8989/api/v3";
+
+            var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath);
+
+            // Débogage : afficher les valeurs de ApiKey et Host
+            _logger.LogDebug($"ApiKey : {apiConfig.Value.ApiKey}");
+            _logger.LogDebug($"Host : {apiConfig.Value.Host}");
+            _logger.LogDebug($"RootFolderPath : {apiConfig.Value.RootFolderPath}");
+            _logger.LogDebug($"qualityProfileId : {apiConfig.Value.qualityProfileId}");
 
             var httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.Add("X-Api-Key", sonarrApiKey);
+            httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiConfig.Value.ApiKey);
 
             var requestData = new
             {
@@ -845,7 +851,7 @@ private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName)
             var json = JsonSerializer.Serialize(requestData);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await httpClient.PostAsync($"{sonarrUrl}/series", content);
+            var response = await httpClient.PostAsync($"{apiConfig.Value.Host}/api/v3/series", content);
 
             if (response.IsSuccessStatusCode)
             {
