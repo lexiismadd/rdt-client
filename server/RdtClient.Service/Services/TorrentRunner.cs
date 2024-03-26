@@ -895,6 +895,7 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, str
         // Débogage : afficher les valeurs de ApiKey et Host
         _logger.LogDebug($"ApiKey : {apiConfig.Value.ApiKey}");
         _logger.LogDebug($"Host : {apiConfig.Value.Host}");
+        _logger.LogDebug($"RootFolderPath : {apiConfig.Value.RootFolderPath}");
 
         if (!theTvdbId.HasValue || string.IsNullOrWhiteSpace(seriesName))
         {
@@ -907,7 +908,7 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, str
             tmdbId = theTvdbId.Value,
             title = seriesName,
             qualityProfileId = 1,
-            RootFolderPath = "/home/ubuntu/Medias/Films",
+            RootFolderPath = {apiConfig.Value.RootFolderPath},
             monitored = true
         };
 
@@ -994,12 +995,11 @@ private async Task<ApiConfig?> GetApiConfigAsync(string categoryInstance, string
 
         using (JsonDocument doc = JsonDocument.Parse(jsonString))
         {
-            _logger.LogDebug("Analyse du contenu JSON du fichier de configuration...");
-
             if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
             {
                 var host = category.GetProperty("Host").GetString();
                 var apiKey = category.GetProperty("ApiKey").GetString();
+                var folder = category.GetProperty("RootFolderPath").GetString();
 
                 if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
                 {
