@@ -585,7 +585,7 @@ public class TorrentRunner
                             theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                             Log($"Numero ID TVDB : {theTvdbId }");
                             // await AddSeriesToSonarr(theTvdbId.Value, seriesName);
-                            // await AddSeriesToSonarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                            await AddSeriesToSonarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
                         else if (torrent.Category.ToLower() == "radarr")
                         {
@@ -829,12 +829,6 @@ private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, st
         {
 
             var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath);
-
-            if (apiConfig == null)
-            {
-                _logger.LogError("La configuration API n'a pas pu être récupérée.");
-                return false;
-            }
 
             // Débogage : afficher les valeurs de ApiKey et Host
             _logger.LogDebug($"ApiKey : {apiConfig.Value.ApiKey}");
