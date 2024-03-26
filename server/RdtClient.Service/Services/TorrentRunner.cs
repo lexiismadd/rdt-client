@@ -821,41 +821,56 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     return seriesName;
 }
 
-private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName)
+private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, string categoryInstance, string configFilePath)
 {
     try
     {
-        if (theTvdbId.HasValue && !string.IsNullOrEmpty(seriesName))
+        var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // Charger la configuration API
+
+        if (apiConfig == null)
         {
-            var sonarrApiKey = "610d8bd7b8f946518ab6374e0ad11f91";
-            var sonarrUrl = "http://sonarr:8989/api/v3";
+            _logger.LogError("La configuration API n'a pas pu être récupérée.");
+            return false;
+        }
 
-            var httpClient = new HttpClient();
-            httpClient.DefaultRequestHeaders.Add("X-Api-Key", sonarrApiKey);
+        // Débogage : afficher les valeurs de ApiKey et Host
+        _logger.LogDebug($"ApiKey : {apiConfig.Value.ApiKey}");
+        _logger.LogDebug($"Host : {apiConfig.Value.Host}");
+        _logger.LogDebug($"RootFolderPath : {apiConfig.Value.RootFolderPath}");
+        _logger.LogDebug($"qualityProfileId : {apiConfig.Value.qualityProfileId}");
 
-            var requestData = new
-            {
-                tvdbId = theTvdbId.Value,
-                qualityProfileId = 4,
-                title = seriesName,
-                RootFolderPath = "/home/ubuntu/Medias/Series",
-                monitored = true
-            };
+        if (!theTvdbId.HasValue || string.IsNullOrWhiteSpace(seriesName))
+        {
+            _logger.LogError("Impossible d'ajouter le film à Radarr : ID TheTVDB ou nom du film manquant.");
+            return false;
+        }
 
-            var json = JsonSerializer.Serialize(requestData);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
+        var httpClient = new HttpClient();
+        httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiConfig.Value.ApiKey);
 
-            var response = await httpClient.PostAsync($"{sonarrUrl}/series", content);
+        var requestData = new
+        {
+            tmdbId = theTvdbId.Value,
+            title = seriesName,
+            qualityProfileId = apiConfig.Value.qualityProfileId,
+            RootFolderPath = apiConfig.Value.RootFolderPath,
+            monitored = true
+        };
 
-            if (response.IsSuccessStatusCode)
-            {
-                _logger.LogInformation("Série ajoutée avec succès à Sonarr.");
-            }
-            else
-            {
-                var responseContent = await response.Content.ReadAsStringAsync();
-                
-                if(responseContent.Contains("This series has already been added"))
+        var json = JsonSerializer.Serialize(requestData);
+        var data = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await _httpClient.PostAsync($"{apiConfig.Value.Host}/api/v3/series", data);
+
+        if (response.IsSuccessStatusCode)
+        {
+            _logger.LogInformation("Film ajouté avec succès à Radarr.");
+            return true;
+        }
+        else
+        {
+            var responseContent = await response.Content.ReadAsStringAsync();
+                if(responseContent.Contains("This movie has already been added"))
                 {
                     _logger.LogDebug("La série existe déjà dans Sonarr.");
                 }
@@ -863,16 +878,14 @@ private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName)
                 {
                     _logger.LogError($"Échec de l'ajout de la série à Sonarr : {response.ReasonPhrase}. Contenu de la réponse : {responseContent}");
                 }
-            }
-        }
-        else
-        {
-            _logger.LogError("Impossible d'ajouter la série à Sonarr : ID TheTVDB ou nom de série manquant.");
+
+            return false;
         }
     }
     catch (Exception ex)
     {
-        _logger.LogError($"Erreur lors de l'ajout de la série à Sonarr : {ex.Message}");
+        _logger.LogError($"Erreur lors de l'ajout du film à Radarr : {ex.Message}");
+        return false;
     }
 }
 
