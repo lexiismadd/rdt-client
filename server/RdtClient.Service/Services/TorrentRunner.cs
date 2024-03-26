@@ -597,14 +597,19 @@ public class TorrentRunner
                             Log($"Numero ID TMDB : {theTvdbId }");
                             await AddMovieToRadarr(theTvdbId.Value, seriesName);
 
+                        // Ajouter un message de débogage pour indiquer que rien ne se passe pour la catégorie "radarr"
+                        Log($"Torrent dans la catégorie Radarr, aucune action requise.");
+                        }
+                        else
+                        {
+                        // Ajouter un message de débogage pour indiquer une catégorie inconnue
+                        Log($"Catégorie de torrent inconnue : {torrent.Category}");
+                        }
+
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
                         {
                             await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
-
-                           // var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath);
-
-
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
                         {
@@ -681,46 +686,6 @@ public class TorrentRunner
             Log($"TorrentRunner Tick End (took {sw.ElapsedMilliseconds}ms)");
         }
     }
-
-public struct ApiConfig 
-{
-    public string Host { get; set; }
-    public string ApiKey { get; set; }
-}
-
-private async Task<ApiConfig?> GetApiConfigAsync(string categoryInstance, string configFilePath)
-{
-    try
-    {
-        var jsonString = await File.ReadAllTextAsync(configFilePath);
-        using (JsonDocument doc = JsonDocument.Parse(jsonString))
-        {
-            if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
-            {
-                var host = category.GetProperty("Host").GetString();
-                var apiKey = category.GetProperty("ApiKey").GetString();
-
-                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
-                {
-                    _logger.LogError("Host ou ApiKey est vide.");
-                    return null;
-                }
-
-                return new ApiConfig { Host = host, ApiKey = apiKey };
-            }
-            else
-            {
-                _logger.LogError($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
-                return null;
-            }
-        }
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError($"Une erreur est survenue lors de la lecture du fichier de configuration : {ex.Message}");
-        return null;
-    }
-}
 
 private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName)
 {
@@ -964,6 +929,8 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     return seriesName;
 }
 
+
+
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
 {
     try
@@ -995,6 +962,46 @@ private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstan
     {
         _logger.LogError($"Une erreur est survenue : {ex.Message}");
         return false;
+    }
+}
+
+public struct ApiConfig 
+{
+    public string Host { get; set; }
+    public string ApiKey { get; set; }
+}
+
+private async Task<ApiConfig?> GetApiConfigAsync(string categoryInstance, string configFilePath)
+{
+    try
+    {
+        var jsonString = await File.ReadAllTextAsync(configFilePath);
+        using (JsonDocument doc = JsonDocument.Parse(jsonString))
+        {
+            if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
+            {
+                var host = category.GetProperty("Host").GetString();
+                var apiKey = category.GetProperty("ApiKey").GetString();
+
+                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
+                {
+                    _logger.LogError("Host ou ApiKey est vide.");
+                    return null;
+                }
+
+                return new ApiConfig { Host = host, ApiKey = apiKey };
+            }
+            else
+            {
+                _logger.LogError($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
+                return null;
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Une erreur est survenue lors de la lecture du fichier de configuration : {ex.Message}");
+        return null;
     }
 }
 
