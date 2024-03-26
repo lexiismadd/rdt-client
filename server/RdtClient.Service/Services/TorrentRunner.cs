@@ -613,7 +613,7 @@ public class TorrentRunner
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
                         {
-                            await AddMovieToRadarr(theTvdbId.Value, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                            await AddMovieToRadarr(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
 
 
