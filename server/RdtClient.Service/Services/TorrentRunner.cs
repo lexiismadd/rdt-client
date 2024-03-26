@@ -825,9 +825,6 @@ private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, st
 {
     try
     {
-        if (theTvdbId.HasValue && !string.IsNullOrEmpty(seriesName))
-        {
-
             var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath);
 
             // Débogage : afficher les valeurs de ApiKey et Host
@@ -870,11 +867,6 @@ private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, st
                     _logger.LogError($"Échec de l'ajout de la série à Sonarr : {response.ReasonPhrase}. Contenu de la réponse : {responseContent}");
                 }
             }
-        }
-        else
-        {
-            _logger.LogError("Impossible d'ajouter la série à Sonarr : ID TheTVDB ou nom de série manquant.");
-        }
     }
     catch (Exception ex)
     {
