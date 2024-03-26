@@ -45,7 +45,7 @@ public class Startup : IHostedService
 
             var defaultConfig = new
             {
-                Category = new { Host = "http://host:port", ApiKey = "api_key" },
+                Category = new { Host = "http://host:port", ApiKey = "api_key"},
                 OtherCategory = new { Host = "http://other_host:port", ApiKey = "other_api_key" }
             };
             var json = JsonSerializer.Serialize(defaultConfig, new JsonSerializerOptions { WriteIndented = true });
