@@ -692,12 +692,6 @@ private async Task<bool> GetSeriesIdFromNameAsync(string seriesName, string cate
     {
         var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // Charger la configuration API
 
-        if (apiConfig == null)
-        {
-            _logger.LogError("La configuration API n'a pas pu être récupérée.");
-            return false;
-        }
-
         // Débogage : afficher les valeurs de ApiKey et Host
         _logger.LogDebug($"ApiKey : {apiConfig.Value.ApiKey}");
         _logger.LogDebug($"Host : {apiConfig.Value.Host}");
