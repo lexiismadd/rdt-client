@@ -595,7 +595,6 @@ public class TorrentRunner
                             int? theTvdbId = null;
                             theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                             Log($"Numero ID TMDB : {theTvdbId }");
-                            // await AddMovieToRadarr(theTvdbId.Value, seriesName, configFilePath, categoryInstance);
                             await AddMovieToRadarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
 
                         // Ajouter un message de débogage pour indiquer que rien ne se passe pour la catégorie "radarr"
@@ -885,20 +884,23 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, str
 {
     try
     {
-        var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // load comme ça
+        var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // Charger la configuration API
+
         if (apiConfig == null)
         {
+            _logger.LogError("La configuration API n'a pas pu être récupérée.");
             return false;
         }
+
+        // Débogage : afficher les valeurs de ApiKey et Host
+        _logger.LogDebug($"ApiKey : {apiConfig.Value.ApiKey}");
+        _logger.LogDebug($"Host : {apiConfig.Value.Host}");
 
         if (!theTvdbId.HasValue || string.IsNullOrWhiteSpace(seriesName))
         {
             _logger.LogError("Impossible d'ajouter le film à Radarr : ID TheTVDB ou nom du film manquant.");
             return false;
         }
-
-        //var httpClient = new HttpClient();
-        //httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
 
         var requestData = new
         {
@@ -911,10 +913,11 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, str
 
         var json = JsonSerializer.Serialize(requestData);
         var data = new StringContent(json, Encoding.UTF8, "application/json");
-        _httpClient.DefaultRequestHeaders.Clear();
-        _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiConfig.Value.ApiKey); // utilisé comme ça ici
-        var response = await _httpClient.PostAsync($"{apiConfig.Value.Host}/api/v3/movie", data); // et ici pour host
 
+        _httpClient.DefaultRequestHeaders.Clear();
+        _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiConfig.Value.ApiKey);
+        
+        var response = await _httpClient.PostAsync($"{apiConfig.Value.Host}/api/v3/movie", data);
 
         if (response.IsSuccessStatusCode)
         {
