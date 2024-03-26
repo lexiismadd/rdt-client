@@ -584,7 +584,7 @@ public class TorrentRunner
                             int? theTvdbId = null;
                             theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                             Log($"Numero ID TVDB : {theTvdbId }");
-                            await AddSeriesToSonarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                            // await AddSeriesToSonarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
                         else if (torrent.Category.ToLower() == "radarr")
                         {
@@ -595,7 +595,7 @@ public class TorrentRunner
                             theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                             Log($"Numero ID TMDB : {theTvdbId }");
                             await AddMovieToRadarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
-
+                        }
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
                         {
@@ -842,9 +842,9 @@ private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, st
             var requestData = new
             {
                 tvdbId = theTvdbId.Value,
-                qualityProfileId = 4,
                 title = seriesName,
-                RootFolderPath = "/home/ubuntu/Medias/Series",
+                qualityProfileId = apiConfig.Value.qualityProfileId,
+                RootFolderPath = apiConfig.Value.RootFolderPath,
                 monitored = true
             };
 
