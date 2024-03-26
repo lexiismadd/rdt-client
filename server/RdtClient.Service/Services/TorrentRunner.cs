@@ -821,7 +821,7 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     return seriesName;
 }
 
-private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName, string categoryInstance, string configFilePath)
+private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, string categoryInstance, string configFilePath)
 {
     try
     {
