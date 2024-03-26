@@ -596,7 +596,7 @@ public class TorrentRunner
                             // Log($"Numero ID TMDB : {theTvdbId }");
                             // await AddMovieToRadarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
 
-                           var seriesId = await GetSeriesIdFromNameAsync(seriesName, category, categoryInstance, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                           var seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category, categoryInstance, Settings.Get.General.RadarrSonarrInstanceConfigPath);
 
                         }
                         else
