@@ -590,7 +590,7 @@ public class TorrentRunner
                         {
                             string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
                             Log($"Nom du Films (Radarr) : {seriesName}");
-                            int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                            // int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                             // int? theTvdbId = null;
                             // theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                             // Log($"Numero ID TMDB : {theTvdbId }");
@@ -688,6 +688,15 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName, string cate
 {
     try
     {
+
+        var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // Charger la configuration API
+
+        if (apiConfig == null)
+        {
+            _logger.LogError("La configuration API n'a pas pu être récupérée.");
+            return false;
+        }
+
         if (category.ToLower() == "sonarr")
         {
             string searchUrl = $"https://api.tvmaze.com/search/shows?q={HttpUtility.UrlEncode(seriesName)}";
