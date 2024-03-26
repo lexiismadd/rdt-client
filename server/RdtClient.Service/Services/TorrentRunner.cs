@@ -602,11 +602,7 @@ public class TorrentRunner
                             await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
 
-
-                           var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath);
-
-
-
+                           // var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath);
 
 
 
