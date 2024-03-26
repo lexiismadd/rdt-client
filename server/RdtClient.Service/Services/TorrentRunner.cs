@@ -844,6 +844,11 @@ private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, st
             return false;
         }
 
+
+        var httpClient = new HttpClient();
+        httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiConfig.Value.ApiKey);
+
+
         var requestData = new
         {
             tmdbId = theTvdbId.Value,
@@ -853,13 +858,9 @@ private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, st
             monitored = true
         };
 
-        var json = JsonSerializer.Serialize(requestData);
-        var data = new StringContent(json, Encoding.UTF8, "application/json");
-
-        _httpClient.DefaultRequestHeaders.Clear();
-        _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiConfig.Value.ApiKey);
-        
-        var response = await _httpClient.PostAsync($"{apiConfig.Value.Host}/api/v3/series", data);
+            var json = JsonSerializer.Serialize(requestData);
+            var data = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await httpClient.PostAsync($"{apiConfig.Value.Host}/api/v3/series", data);
 
         if (response.IsSuccessStatusCode)
         {
