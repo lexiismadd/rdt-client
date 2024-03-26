@@ -927,7 +927,15 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, str
         else
         {
             var responseContent = await response.Content.ReadAsStringAsync();
-            _logger.LogError($"Échec de l'ajout du film à Radarr : {response.ReasonPhrase}. Contenu de la réponse : {responseContent}");
+                if(responseContent.Contains("This series has already been added"))
+                {
+                    _logger.LogDebug("La série existe déjà dans Sonarr.");
+                }
+                else
+                {
+                    _logger.LogError($"Échec de l'ajout de la série à Sonarr : {response.ReasonPhrase}. Contenu de la réponse : {responseContent}");
+                }
+
             return false;
         }
     }
