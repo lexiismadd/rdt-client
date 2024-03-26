@@ -691,8 +691,8 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName, string cate
     try
     {
         if (category.ToLower() == "radarr")
-        var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // Charger la configuration API
         {
+            var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // Charger la configuration API
             string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key={apiConfig.Value.TmdbApi}&query={HttpUtility.UrlEncode(seriesName)}";
 
             using (HttpClient httpClient = new HttpClient())
