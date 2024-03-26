@@ -687,63 +687,6 @@ public class TorrentRunner
         }
     }
 
-private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName)
-{
-    try
-    {
-
-        var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // load comme ça
-        if (apiConfig == null)
-        {
-            return false;
-        }
-
-        if (!theTvdbId.HasValue || string.IsNullOrWhiteSpace(seriesName))
-        {
-            _logger.LogError("Impossible d'ajouter le film à Radarr : ID TheTVDB ou nom du film manquant.");
-            return false;
-        }
-
-                _logger.LogInformation($"Host récupéré : {host}");
-                _logger.LogInformation($"ApiKey récupérée : {apiKey}");
-
-
-        var httpClient = new HttpClient();
-        httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
-
-        var requestData = new
-        {
-            tmdbId = theTvdbId.Value,
-            title = seriesName,
-            qualityProfileId = 1,
-            RootFolderPath = "/home/ubuntu/Medias/Series",
-            monitored = true
-        };
-
-        var json = JsonSerializer.Serialize(requestData);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-        var response = await httpClient.PostAsync($"{host}/movie", content);
-
-        if (response.IsSuccessStatusCode)
-        {
-            _logger.LogInformation("Film ajouté avec succès à Radarr.");
-            return true;
-        }
-        else
-        {
-            var responseContent = await response.Content.ReadAsStringAsync();
-            _logger.LogError($"Échec de l'ajout du film à Radarr : {response.ReasonPhrase}. Contenu de la réponse : {responseContent}");
-            return false;
-        }
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError($"Erreur lors de l'ajout du film à Radarr : {ex.Message}");
-        return false;
-    }
-}
-
 private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName)
 {
     try
@@ -936,7 +879,57 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     return seriesName;
 }
 
+private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, string categoryInstance, string configFilePath)
+{
+    try
+    {
+        var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // load comme ça
+        if (apiConfig == null)
+        {
+            return false;
+        }
 
+        if (!theTvdbId.HasValue || string.IsNullOrWhiteSpace(seriesName))
+        {
+            _logger.LogError("Impossible d'ajouter le film à Radarr : ID TheTVDB ou nom du film manquant.");
+            return false;
+        }
+
+        var httpClient = new HttpClient();
+        httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
+
+        var requestData = new
+        {
+            tmdbId = theTvdbId.Value,
+            title = seriesName,
+            qualityProfileId = 1,
+            RootFolderPath = "/home/ubuntu/Medias/Series",
+            monitored = true
+        };
+
+        var json = JsonSerializer.Serialize(requestData);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await httpClient.PostAsync($"{host}/movie", content);
+
+        if (response.IsSuccessStatusCode)
+        {
+            _logger.LogInformation("Film ajouté avec succès à Radarr.");
+            return true;
+        }
+        else
+        {
+            var responseContent = await response.Content.ReadAsStringAsync();
+            _logger.LogError($"Échec de l'ajout du film à Radarr : {response.ReasonPhrase}. Contenu de la réponse : {responseContent}");
+            return false;
+        }
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Erreur lors de l'ajout du film à Radarr : {ex.Message}");
+        return false;
+    }
+}
 
 private async Task<bool> TryRefreshMonitoredDownloadsAsync(string categoryInstance, string configFilePath)
 {
