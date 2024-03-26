@@ -840,7 +840,7 @@ private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, st
 
         if (!theTvdbId.HasValue || string.IsNullOrWhiteSpace(seriesName))
         {
-            _logger.LogError("Impossible d'ajouter le film à Radarr : ID TheTVDB ou nom du film manquant.");
+            _logger.LogError("Impossible d'ajouter le film à Sonarr : ID TheTVDB ou nom du film manquant.");
             return false;
         }
 
@@ -859,17 +859,17 @@ private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, st
         _httpClient.DefaultRequestHeaders.Clear();
         _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiConfig.Value.ApiKey);
         
-        var response = await _httpClient.PostAsync($"{apiConfig.Value.Host}/api/v3/movie", data);
+        var response = await _httpClient.PostAsync($"{apiConfig.Value.Host}/api/v3/series", data);
 
         if (response.IsSuccessStatusCode)
         {
-            _logger.LogInformation("Film ajouté avec succès à Radarr.");
+            _logger.LogInformation("Série ajouté avec succès à Sonarr.");
             return true;
         }
         else
         {
             var responseContent = await response.Content.ReadAsStringAsync();
-                if(responseContent.Contains("This movie has already been added"))
+                if(responseContent.Contains("This show has already been added"))
                 {
                     _logger.LogDebug("La série existe déjà dans Sonarr.");
                 }
@@ -883,7 +883,7 @@ private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, st
     }
     catch (Exception ex)
     {
-        _logger.LogError($"Erreur lors de l'ajout du film à Radarr : {ex.Message}");
+        _logger.LogError($"Erreur lors de l'ajout de la Série : {ex.Message}");
         return false;
     }
 }
