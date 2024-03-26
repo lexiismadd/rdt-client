@@ -688,6 +688,13 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName, string cate
             var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // Charger la configuration API
             string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key=8d2878a6270062db1f7b75d550d46f16&query={HttpUtility.UrlEncode(seriesName)}";
 
+        // Débogage : afficher les valeurs de ApiKey et Host
+        _logger.LogDebug($"ApiKey : {apiConfig.Value.ApiKey}");
+        _logger.LogDebug($"Host : {apiConfig.Value.Host}");
+        _logger.LogDebug($"RootFolderPath : {apiConfig.Value.RootFolderPath}");
+        _logger.LogDebug($"qualityProfileId : {apiConfig.Value.qualityProfileId}");
+
+
             using (HttpClient httpClient = new HttpClient())
             {
                 HttpResponseMessage response = await httpClient.GetAsync(searchUrl);
