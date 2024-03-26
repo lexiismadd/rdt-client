@@ -57,7 +57,7 @@ Exemple de configuration du fichier de configuration:
             ""OtherCategory"": {
                 ""Host"": ""http://other_host:port"",
                 ""ApiKey"": ""other_api_key""
-                ""RootFolderPath": "root_folder""
+                ""RootFolderPath"": ""root_folder""
                 ""qualityProfileId"": ""identitiant_profile""
 
             }
@@ -92,7 +92,7 @@ Pour trouver la valeur de qualityProfileId
             var defaultConfig = new
             {
                 Category = new { Host = "http://host:port", ApiKey = "api_key", RootFolderPath = "root_folder", qualityProfileId = "identitiant_profile" },
-                OtherCategory = new { Host = "http://other_host:port", ApiKey = "other_api_key", , RootFolderPath = "root_folder", qualityProfileId = "identitiant_profile" }
+                OtherCategory = new { Host = "http://other_host:port", ApiKey = "other_api_key", RootFolderPath = "root_folder", qualityProfileId = "identitiant_profile" }
             };
             var json = JsonSerializer.Serialize(defaultConfig, new JsonSerializerOptions { WriteIndented = true });
             await File.WriteAllTextAsync(exampleConfigPath, json, cancellationToken);
