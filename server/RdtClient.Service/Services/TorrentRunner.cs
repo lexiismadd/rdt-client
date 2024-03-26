@@ -845,8 +845,8 @@ private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, st
             return false;
         }
 
-        var httpClient = new HttpClient();
-        httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiConfig.Value.ApiKey);
+        _httpClient.DefaultRequestHeaders.Clear();
+        _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiConfig.Value.ApiKey);
 
         var requestData = new
         {
