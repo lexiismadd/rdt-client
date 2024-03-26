@@ -690,15 +690,8 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName, string cate
 {
     try
     {
-        var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // Charger la configuration API
-
-        // Débogage : afficher les valeurs de ApiKey et Host
-        _logger.LogDebug($"ApiKey : {apiConfig.Value.ApiKey}");
-        _logger.LogDebug($"Host : {apiConfig.Value.Host}");
-        _logger.LogDebug($"RootFolderPath : {apiConfig.Value.RootFolderPath}");
-        _logger.LogDebug($"qualityProfileId : {apiConfig.Value.qualityProfileId}");
-
         if (category.ToLower() == "radarr")
+        var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // Charger la configuration API
         {
             string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key={apiConfig.Value.TmdbApi}&query={HttpUtility.UrlEncode(seriesName)}";
 
