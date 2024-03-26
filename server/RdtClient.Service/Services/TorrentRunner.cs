@@ -862,6 +862,7 @@ private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, st
 
         var response = await _httpClient.PostAsync($"{apiConfig.Value.Host}/api/v3/series", data);
 
+
         if (response.IsSuccessStatusCode)
         {
             _logger.LogInformation("Série ajouté avec succès à Sonarr.");
@@ -870,6 +871,7 @@ private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, st
         else
         {
             var responseContent = await response.Content.ReadAsStringAsync();
+            _logger.LogDebug($"Contenu de la réponse : {responseContent}");
                 if(responseContent.Contains("This movie has already been added"))
                 {
                     _logger.LogDebug("La série existe déjà dans Sonarr.");
