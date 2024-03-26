@@ -821,10 +821,24 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     return seriesName;
 }
 
-private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName)
+private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, string categoryInstance, string configFilePath)
 {
     try
     {
+        var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // Charger la configuration API
+
+        if (apiConfig == null)
+        {
+            _logger.LogError("La configuration API n'a pas pu être récupérée.");
+            return false;
+        }
+
+        // Débogage : afficher les valeurs de ApiKey et Host
+        _logger.LogDebug($"ApiKey : {apiConfig.Value.ApiKey}");
+        _logger.LogDebug($"Host : {apiConfig.Value.Host}");
+        _logger.LogDebug($"RootFolderPath : {apiConfig.Value.RootFolderPath}");
+        _logger.LogDebug($"qualityProfileId : {apiConfig.Value.qualityProfileId}");
+
         if (theTvdbId.HasValue && !string.IsNullOrEmpty(seriesName))
         {
             var sonarrApiKey = "610d8bd7b8f946518ab6374e0ad11f91";
