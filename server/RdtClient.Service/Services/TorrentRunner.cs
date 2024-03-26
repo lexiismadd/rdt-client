@@ -590,13 +590,11 @@ public class TorrentRunner
                         {
                             string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
                             Log($"Nom du Films (Radarr) : {seriesName}");
-                            // int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                            int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                             // int? theTvdbId = null;
                             // theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                             // Log($"Numero ID TMDB : {theTvdbId }");
                             // await AddMovieToRadarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
-
-                           var seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
 
                         }
                         else
@@ -745,8 +743,7 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName, string cate
         }
         else if (category.ToLower() == "radarr")
         {
-            // Remplacez "VOTRE_CLE_API_TMDB" par votre clé d'API TMDb
-            string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key=apiConfig.Value.TmdbApi&query={HttpUtility.UrlEncode(seriesName)}";
+            string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key=8d2878a6270062db1f7b75d550d46f16&query={HttpUtility.UrlEncode(seriesName)}";
 
             using (HttpClient httpClient = new HttpClient())
             {
