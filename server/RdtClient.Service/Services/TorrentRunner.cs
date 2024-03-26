@@ -691,18 +691,25 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName)
 {
     try
     {
+
+        var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // load comme ça
+        if (apiConfig == null)
+        {
+            return false;
+        }
+
         if (!theTvdbId.HasValue || string.IsNullOrWhiteSpace(seriesName))
         {
             _logger.LogError("Impossible d'ajouter le film à Radarr : ID TheTVDB ou nom du film manquant.");
             return false;
         }
 
-        // Remplacez "VOTRE_CLE_API_RADARR" par votre clé d'API Radarr
-        var radarrApiKey = "bf78203e8ad548c79d7b499b63989782";
-        var radarrUrl = "http://radarr:7878/api/v3";
+                _logger.LogInformation($"Host récupéré : {host}");
+                _logger.LogInformation($"ApiKey récupérée : {apiKey}");
+
 
         var httpClient = new HttpClient();
-        httpClient.DefaultRequestHeaders.Add("X-Api-Key", radarrApiKey);
+        httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
 
         var requestData = new
         {
@@ -716,7 +723,7 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName)
         var json = JsonSerializer.Serialize(requestData);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var response = await httpClient.PostAsync($"{radarrUrl}/movie", content);
+        var response = await httpClient.PostAsync($"{host}/movie", content);
 
         if (response.IsSuccessStatusCode)
         {
