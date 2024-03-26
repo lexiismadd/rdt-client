@@ -611,11 +611,6 @@ public class TorrentRunner
                             await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
 
-                        if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
-                        {
-                            await AddMovieToRadarr(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
-                        }
-
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
                         {
