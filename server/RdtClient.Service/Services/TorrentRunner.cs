@@ -821,11 +821,10 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     return seriesName;
 }
 
-private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName)
+private async Task AddSeriesToSonarr(int? theTvdbId, string seriesName)
 {
     try
     {
-
         if (theTvdbId.HasValue && !string.IsNullOrEmpty(seriesName))
         {
             var sonarrApiKey = "610d8bd7b8f946518ab6374e0ad11f91";
