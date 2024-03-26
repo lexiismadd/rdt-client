@@ -591,11 +591,11 @@ public class TorrentRunner
                         {
                             string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
                             Log($"Nom du Films (Radarr) : {seriesName}");
-                            int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
-                            int? theTvdbId = null;
-                            theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
-                            Log($"Numero ID TMDB : {theTvdbId }");
-                            await AddMovieToRadarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                            // int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
+                            // int? theTvdbId = null;
+                            // theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
+                            // Log($"Numero ID TMDB : {theTvdbId }");
+                            // await AddMovieToRadarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
                         else
                         {
@@ -684,7 +684,7 @@ public class TorrentRunner
         }
     }
 
-private async Task<int?> GetSeriesIdFromNameAsync(string seriesName, string category)
+private async Task<int?> GetSeriesIdFromNameAsync(string seriesName, string category, string categoryInstance, string configFilePath)
 {
     try
     {
@@ -735,8 +735,22 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName, string cate
         }
         else if (category.ToLower() == "radarr")
         {
+
+
+        var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // Charger la configuration API
+
+        if (apiConfig == null)
+        {
+            _logger.LogError("La configuration API n'a pas pu être récupérée.");
+            return false;
+        }
+
+
+
+
+
             // Remplacez "VOTRE_CLE_API_TMDB" par votre clé d'API TMDb
-            string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key=8d2878a6270062db1f7b75d550d46f16&query={HttpUtility.UrlEncode(seriesName)}";
+            string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key=apiConfig.Value.TmdbApi&query={HttpUtility.UrlEncode(seriesName)}";
 
             using (HttpClient httpClient = new HttpClient())
             {
@@ -999,6 +1013,7 @@ public struct ApiConfig
     public string ApiKey { get; set; }
     public string RootFolderPath { get; set; }
     public string qualityProfileId { get; set; }
+    public string TmdbApi { get; set; }
 }
 
 private async Task<ApiConfig?> GetApiConfigAsync(string categoryInstance, string configFilePath)
@@ -1015,13 +1030,14 @@ private async Task<ApiConfig?> GetApiConfigAsync(string categoryInstance, string
                 var apiKey = category.GetProperty("ApiKey").GetString();
                 var folder = category.GetProperty("RootFolderPath").GetString();
                 var quality = category.GetProperty("qualityProfileId").GetString();
+                var tmdbApi = category.GetProperty("TmdbApi").GetString();
 
-                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(folder) || string.IsNullOrEmpty(quality))
+                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(folder) || string.IsNullOrEmpty(quality) || string.IsNullOrEmpty(tmdbApi))
                 {
                     return null;
                 }
 
-                return new ApiConfig { Host = host, ApiKey = apiKey, RootFolderPath = folder, qualityProfileId = quality };
+                return new ApiConfig { Host = host, ApiKey = apiKey, RootFolderPath = folder, qualityProfileId = quality, TmdbApi = tmdbApi };
             }
             else
             {
