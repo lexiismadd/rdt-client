@@ -595,7 +595,7 @@ public class TorrentRunner
                             // theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                             // Log($"Numero ID TMDB : {theTvdbId }");
                             // await AddMovieToRadarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
-                            var seriesId = await GetSeriesIdFromNameAsync(seriesName, category, categoryInstance, configFilePath, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                            // await GetSeriesIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
 
 
                         }
@@ -686,67 +686,26 @@ public class TorrentRunner
         }
     }
 
-private async Task<int?> GetSeriesIdFromNameAsync(string seriesName, string category, string categoryInstance, string configFilePath)
+private async Task<bool> GetSeriesIdFromNameAsync(string seriesName, string category, string categoryInstance, string configFilePath)
 {
     try
     {
-
         var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // Charger la configuration API
 
         if (apiConfig == null)
         {
             _logger.LogError("La configuration API n'a pas pu être récupérée.");
-            return null;
+            return false;
         }
 
-        if (category.ToLower() == "sonarr")
+        // Débogage : afficher les valeurs de ApiKey et Host
+        _logger.LogDebug($"ApiKey : {apiConfig.Value.ApiKey}");
+        _logger.LogDebug($"Host : {apiConfig.Value.Host}");
+        _logger.LogDebug($"RootFolderPath : {apiConfig.Value.RootFolderPath}");
+        _logger.LogDebug($"qualityProfileId : {apiConfig.Value.qualityProfileId}");
+
+        if (category.ToLower() == "radarr")
         {
-            string searchUrl = $"https://api.tvmaze.com/search/shows?q={HttpUtility.UrlEncode(seriesName)}";
-
-            using (HttpClient httpClient = new HttpClient())
-            {
-                HttpResponseMessage response = await httpClient.GetAsync(searchUrl);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    string jsonResponse = await response.Content.ReadAsStringAsync();
-
-                    JsonDocument jsonDoc = JsonDocument.Parse(jsonResponse);
-                    JsonElement root = jsonDoc.RootElement;
-
-                    if (root.GetArrayLength() == 0)
-                    {
-                        return null;
-                    }
-
-                    JsonElement firstElement = root[0];
-
-                    if (firstElement.TryGetProperty("show", out JsonElement showElement))
-                    {
-                        if (showElement.TryGetProperty("externals", out JsonElement externalsElement))
-                        {
-                            if (externalsElement.TryGetProperty("thetvdb", out JsonElement tvdbElement))
-                            {
-                                if (tvdbElement.ValueKind == JsonValueKind.Number)
-                                {
-                                    return tvdbElement.GetInt32();
-                                }
-                            }
-                        }
-                    }
-
-                    return null;
-                }
-                else
-                {
-                    _logger.LogError($"La requête API TVMaze a échoué : {response.ReasonPhrase}");
-                    return null;
-                }
-            }
-        }
-        else if (category.ToLower() == "radarr")
-        {
-            // Remplacez "VOTRE_CLE_API_TMDB" par votre clé d'API TMDb
             string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key={apiConfig.Value.TmdbApi}&query={HttpUtility.UrlEncode(seriesName)}";
 
             using (HttpClient httpClient = new HttpClient())
