@@ -684,10 +684,18 @@ public class TorrentRunner
         }
     }
 
-private async Task<bool> GetSeriesIdFromNameAsync(string seriesName, string category, string categoryInstance, string configFilePath)
+private async Task<int?> GetSeriesIdFromNameAsync(string seriesName, string category, string categoryInstance, string configFilePath)
 {
     try
     {
+        var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // Charger la configuration API
+
+        if (apiConfig == null)
+        {
+            _logger.LogError("La configuration API n'a pas pu être récupérée.");
+            return false;
+        }
+
         if (category.ToLower() == "sonarr")
         {
             string searchUrl = $"https://api.tvmaze.com/search/shows?q={HttpUtility.UrlEncode(seriesName)}";
@@ -735,20 +743,6 @@ private async Task<bool> GetSeriesIdFromNameAsync(string seriesName, string cate
         }
         else if (category.ToLower() == "radarr")
         {
-
-
-        var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // Charger la configuration API
-
-        if (apiConfig == null)
-        {
-            _logger.LogError("La configuration API n'a pas pu être récupérée.");
-            return false;
-        }
-
-
-
-
-
             // Remplacez "VOTRE_CLE_API_TMDB" par votre clé d'API TMDb
             string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key=apiConfig.Value.TmdbApi&query={HttpUtility.UrlEncode(seriesName)}";
 
