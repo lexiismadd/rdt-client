@@ -1002,7 +1002,8 @@ private async Task<ApiConfig?> GetApiConfigAsync(string categoryInstance, string
                 var apiKey = category.GetProperty("ApiKey").GetString();
                 var folder = category.GetProperty("RootFolderPath").GetString();
 
-                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey))
+                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey)) || string.IsNullOrEmpty(folder))
+
                 {
                     return null;
                 }
