@@ -895,8 +895,8 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, str
             return false;
         }
 
-        var httpClient = new HttpClient();
-        httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
+        //var httpClient = new HttpClient();
+        //httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
 
         var requestData = new
         {
@@ -908,9 +908,12 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, str
         };
 
         var json = JsonSerializer.Serialize(requestData);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        var data = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var response = await httpClient.PostAsync($"{host}/movie", content);
+        _httpClient.DefaultRequestHeaders.Clear();
+        _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiConfig.Value.ApiKey); // utilisé comme ça ici
+        var response = await _httpClient.PostAsync($"{apiConfig.Value.Host}/api/v3/movie", data); // et ici pour host
+
 
         if (response.IsSuccessStatusCode)
         {
