@@ -595,7 +595,7 @@ public class TorrentRunner
                             // theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                             // Log($"Numero ID TMDB : {theTvdbId }");
                             // await AddMovieToRadarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
-                            int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                            int? seriesId = await GetSeriesIdFromNameAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
 
 
                         }
@@ -686,7 +686,7 @@ public class TorrentRunner
         }
     }
 
-private async Task<int?> GetSeriesIdFromNameAsync(string seriesName, string category, string categoryInstance, string configFilePath)
+private async Task<int?> GetSeriesIdFromNameAsync(string category, string categoryInstance, string configFilePath)
 {
     try
     {
