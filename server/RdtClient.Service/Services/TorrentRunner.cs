@@ -585,7 +585,7 @@ public class TorrentRunner
                             theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                             Log($"Numero ID TVDB : {theTvdbId }");
                             // await AddSeriesToSonarr(theTvdbId.Value, seriesName);
-                            // await AddSeriesToSonarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                            await AddSeriesToSonarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
                         else if (torrent.Category.ToLower() == "radarr")
                         {
@@ -841,7 +841,7 @@ private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, st
 
         if (!theTvdbId.HasValue || string.IsNullOrWhiteSpace(seriesName))
         {
-            _logger.LogError("Impossible d'ajouter le film à Radarr : ID TheTVDB ou nom du film manquant.");
+            _logger.LogError("Impossible d'ajouter la Série : ID TheTVDB ou nom de la Série manquante.");
             return false;
         }
 
@@ -864,7 +864,7 @@ private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, st
 
         if (response.IsSuccessStatusCode)
         {
-            _logger.LogInformation("Film ajouté avec succès à Radarr.");
+            _logger.LogInformation("Série ajouté avec succès à Sonarr.");
             return true;
         }
         else
