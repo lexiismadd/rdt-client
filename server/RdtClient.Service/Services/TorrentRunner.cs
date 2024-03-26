@@ -896,6 +896,7 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, str
         _logger.LogDebug($"ApiKey : {apiConfig.Value.ApiKey}");
         _logger.LogDebug($"Host : {apiConfig.Value.Host}");
         _logger.LogDebug($"RootFolderPath : {apiConfig.Value.RootFolderPath}");
+        _logger.LogDebug($"qualityProfileId : {apiConfig.Value.qualityProfileId}");
 
         if (!theTvdbId.HasValue || string.IsNullOrWhiteSpace(seriesName))
         {
@@ -907,7 +908,7 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, str
         {
             tmdbId = theTvdbId.Value,
             title = seriesName,
-            qualityProfileId = 1,
+            qualityProfileId = apiConfig.Value.qualityProfileId,
             RootFolderPath = apiConfig.Value.RootFolderPath,
             monitored = true
         };
@@ -986,6 +987,7 @@ public struct ApiConfig
     public string Host { get; set; }
     public string ApiKey { get; set; }
     public string RootFolderPath { get; set; }
+    public string qualityProfileId { get; set; }
 }
 
 private async Task<ApiConfig?> GetApiConfigAsync(string categoryInstance, string configFilePath)
@@ -1001,13 +1003,14 @@ private async Task<ApiConfig?> GetApiConfigAsync(string categoryInstance, string
                 var host = category.GetProperty("Host").GetString();
                 var apiKey = category.GetProperty("ApiKey").GetString();
                 var folder = category.GetProperty("RootFolderPath").GetString();
+                var quality = category.GetProperty("qualityProfileId").GetString();
 
-                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(folder))
+                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(folder) || string.IsNullOrEmpty(quality))
                 {
                     return null;
                 }
 
-                return new ApiConfig { Host = host, ApiKey = apiKey, RootFolderPath = folder };
+                return new ApiConfig { Host = host, ApiKey = apiKey, RootFolderPath = folder, qualityProfileId = quality };
             }
             else
             {
