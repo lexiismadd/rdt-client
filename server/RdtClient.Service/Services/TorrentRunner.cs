@@ -832,7 +832,7 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
         return null;
     }
 
-    string seriesName = match.Groups[1].Value.Trim();
+    seriesName = match.Groups[1].Value.Trim();
 
     return seriesName;
 }
