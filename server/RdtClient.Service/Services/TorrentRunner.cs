@@ -1020,7 +1020,7 @@ private async Task<ApiConfig?> GetApiConfigAsync(string categoryInstance, string
                 var quality = category.GetProperty("qualityProfileId").GetString();
                 // var tmdb = category.GetProperty("TmdbApi").GetString();
 
-                if (host == "http://radarr:8989")
+                if (host == "http://radarr:7878")
                 {
                     var tmdb = category.GetProperty("TmdbApi").GetString();
                     if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(folder) || string.IsNullOrEmpty(quality) || string.IsNullOrEmpty(tmdb))
