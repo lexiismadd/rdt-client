@@ -609,8 +609,7 @@ public class TorrentRunner
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
                         {
-                             string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
-
+                            string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
                             await GetSeriesIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
 
@@ -701,26 +700,39 @@ private async Task<bool> GetSeriesIdFromNameAsync(string seriesName, string cate
             return false;
         }
 
-         var data = new StringContent("{\"name\":\"RefreshMonitoredDownloads\"}", Encoding.UTF8, "application/json");
-        _httpClient.DefaultRequestHeaders.Clear();
-        _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiConfig.Value.ApiKey); // utilisé comme ça ici
-        var response = await _httpClient.PostAsync($"{apiConfig.Value.Host}/api/v3/command", data); // et ici pour host
+            // Remplacez "VOTRE_CLE_API_TMDB" par votre clé d'API TMDb
+            string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key=8d2878a6270062db1f7b75d550d46f16&query={HttpUtility.UrlEncode(seriesName)}";
 
-        if (response.IsSuccessStatusCode)
-        {
-            var responseBody = await response.Content.ReadAsStringAsync();
-            _logger.LogInformation($"Réponse de l'API : {responseBody}");
-            return true;
+            using (HttpClient httpClient = new HttpClient())
+            {
+                HttpResponseMessage response = await httpClient.GetAsync(searchUrl);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string jsonResponse = await response.Content.ReadAsStringAsync();
+
+                    // Analyser la réponse JSON pour extraire l'ID du premier résultat de la recherche
+                    dynamic result = JObject.Parse(jsonResponse);
+                    int? seriesId = result.results[0].id;
+
+                    return seriesId;
+                }
+                else
+                {
+                    _logger.LogError($"La requête API TMDb a échoué : {response.ReasonPhrase}");
+                    return false;
+                }
+            }
         }
         else
         {
-            _logger.LogError("La requête API a échoué.");
+            _logger.LogError($"La catégorie {category} n'est pas prise en charge.");
             return false;
         }
     }
     catch (Exception ex)
     {
-        _logger.LogError($"Une erreur est survenue : {ex.Message}");
+        _logger.LogError($"Une erreur est survenue lors de la recherche de l'ID de la série/film : {ex.Message}");
         return false;
     }
 }
