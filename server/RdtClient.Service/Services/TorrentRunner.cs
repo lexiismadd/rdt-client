@@ -610,7 +610,7 @@ public class TorrentRunner
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
                         {
-                            await GetSeriesIdFromNameAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                            await GetSeriesIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
 
 
@@ -694,7 +694,7 @@ private async Task<bool> GetSeriesIdFromNameAsync(string categoryInstance, strin
 {
     try
     {
-        var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // load comme ça
+        var apiConfig = await GetApiConfigAsync(string seriesName, categoryInstance, configFilePath); // load comme ça
         if (apiConfig == null)
         {
             return false;
