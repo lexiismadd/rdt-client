@@ -723,12 +723,6 @@ private async Task<bool> GetSeriesIdFromNameAsync(string seriesName, string cate
                     return false;
                 }
             }
-        }
-        else
-        {
-            _logger.LogError($"La catégorie {category} n'est pas prise en charge.");
-            return false;
-        }
     }
     catch (Exception ex)
     {
