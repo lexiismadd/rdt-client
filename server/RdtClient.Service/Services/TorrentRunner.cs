@@ -690,15 +690,15 @@ private async Task<int?> GetMovieIdFromNameAsync(string seriesName, string categ
 {
     try
     {
-        if (category.ToLower() == "radarr")
-        {
-
 
         var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // load comme ça
         if (apiConfig == null)
         {
             return null;
         }
+
+        if (category.ToLower() == "radarr")
+        {
 
         string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key=8d2878a6270062db1f7b75d550d46f16&query={HttpUtility.UrlEncode(seriesName)}";
 
