@@ -800,10 +800,6 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
 
     _logger.LogInformation($"Nom du fichier : {rdName}");
 
-    // Remplacer les points par des espaces
-    rdName = rdName.Replace(".", " ");
-    _logger.LogInformation($"Nom du fichier après remplacement des points : {rdName}");
-
     // Exclure le contenu entre crochets
     rdName = Regex.Replace(rdName, @"\[.*?\]", "");
     _logger.LogInformation($"Nom du fichier après exclusion du contenu entre crochets : {rdName}");
@@ -817,6 +813,16 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
 
     // Utilisation d'une expression régulière pour extraire le titre de la série
     string seriesPattern = @"^(.+?)(?:\d|S\d)";
+
+    // Condition pour extraire le titre de la série avec le mot-clé "Integrale"
+    int index = rdName.IndexOf("Integrale", StringComparison.OrdinalIgnoreCase);
+    if (index != -1)
+    {
+        string seriesName = rdName.Substring(0, index).Trim();
+        return seriesName;
+    }
+
+    // Utilisation de l'expression régulière pour l'extraction du titre de la série
     Match match = Regex.Match(rdName, seriesPattern);
 
     if (!match.Success)
