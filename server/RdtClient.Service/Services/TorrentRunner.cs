@@ -590,12 +590,12 @@ public class TorrentRunner
                         else if (torrent.Category.ToLower() == "radarr")
                         {
                             string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
-                            Log($"Nom du Films (Radarr) : {seriesName}");
+                            // Log($"Nom du Films (Radarr) : {seriesName}");
                             // int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
-                            int? theTvdbId = null;
-                            theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
-                            Log($"Numero ID TMDB : {theTvdbId }");
-                            await AddMovieToRadarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                            // int? theTvdbId = null;
+                            // theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
+                           //  Log($"Numero ID TMDB : {theTvdbId }");
+                            // await AddMovieToRadarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
                         else
                         {
@@ -688,7 +688,6 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName, string cate
 {
     try
     {
-
         var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // Charger la configuration API
 
         if (apiConfig == null)
