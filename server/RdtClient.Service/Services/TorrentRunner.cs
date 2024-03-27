@@ -686,7 +686,7 @@ public class TorrentRunner
         }
     }
 
-private async Task<int?> GetMovieIdFromNameAsync(string seriesName, string category, string categoryInstance, string configFilePath)
+private async Task<int?> GetMovieIdFromNameAsync(string seriesName, string categoryInstance, string configFilePath)
 {
     try
     {
