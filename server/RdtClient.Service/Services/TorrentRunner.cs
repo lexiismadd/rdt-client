@@ -690,14 +690,14 @@ public class TorrentRunner
         }
     }
 
-private async Task<int?> GetSeriesIdFromNameAsync(string categoryInstance, string configFilePath)
+private async Task<bool> GetSeriesIdFromNameAsync(string categoryInstance, string configFilePath)
 {
     try
     {
         var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // load comme ça
         if (apiConfig == null)
         {
-            return null;
+            return false;
         }
 
         var data = new StringContent("{\"name\":\"RefreshMonitoredDownloads\"}", Encoding.UTF8, "application/json");
