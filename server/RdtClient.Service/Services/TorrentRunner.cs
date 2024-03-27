@@ -589,7 +589,7 @@ public class TorrentRunner
                         }
                         else if (torrent.Category.ToLower() == "radarr")
                         {
-                             string seriesName = ExtractMovieNameFromRdName(torrent.RdName, torrent.Category);
+                             string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
                              Log($"Nom du Films (Radarr) : {seriesName}");
                              int? seriesId = await GetMovieIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                              int? theTvdbId = null;
