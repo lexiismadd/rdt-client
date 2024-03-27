@@ -697,8 +697,7 @@ private async Task<int?> GetMovieIdFromNameAsync(string seriesName, string categ
         }
         _logger.LogDebug($"numero TMDB : {apiConfig.Value.TmdbApi}");
 
-       // string searchUrl = $"https://api.themoviedb.org/3/search/movie?{apiConfig.Value.TmdbApi}&query={HttpUtility.UrlEncode(seriesName)}";
-        string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key=8d2878a6270062db1f7b75d550d46f16&query={HttpUtility.UrlEncode(seriesName)}";
+        string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key={apiConfig.Value.TmdbApi}&query={HttpUtility.UrlEncode(seriesName)}";
 
         _logger.LogDebug($"URL de recherche : {searchUrl}");
 
