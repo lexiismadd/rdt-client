@@ -614,7 +614,7 @@ public class TorrentRunner
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
                         {
                           string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
-                         int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                         int? seriesId = await GetSeriesIdFromNameAsync(seriesName, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                             // await GetSeriesIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
 
@@ -695,7 +695,7 @@ public class TorrentRunner
         }
     }
 
-private async Task<int?> GetSeriesIdFromNameAsync(string seriesName, string category, string categoryInstance, string configFilePath)
+private async Task<int?> GetSeriesIdFromNameAsync(string seriesName, string categoryInstance, string configFilePath)
 {
     try
     {
