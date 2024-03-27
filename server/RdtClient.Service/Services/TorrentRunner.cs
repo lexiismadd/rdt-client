@@ -700,29 +700,29 @@ private async Task<bool> GetSeriesIdFromNameAsync(string seriesName, string cate
             return false;
         }
 
-            // Remplacez "VOTRE_CLE_API_TMDB" par votre clé d'API TMDb
-            string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key=8d2878a6270062db1f7b75d550d46f16&query={HttpUtility.UrlEncode(seriesName)}";
+        // Remplacez "VOTRE_CLE_API_TMDB" par votre clé d'API TMDb
+        string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key=8d2878a6270062db1f7b75d550d46f16&query={HttpUtility.UrlEncode(seriesName)}";
 
-            using (HttpClient httpClient = new HttpClient())
+        using (HttpClient httpClient = new HttpClient())
+        {
+            HttpResponseMessage response = await httpClient.GetAsync(searchUrl);
+
+            if (response.IsSuccessStatusCode)
             {
-                HttpResponseMessage response = await httpClient.GetAsync(searchUrl);
+                string jsonResponse = await response.Content.ReadAsStringAsync();
 
-                if (response.IsSuccessStatusCode)
-                {
-                    string jsonResponse = await response.Content.ReadAsStringAsync();
+                // Analyser la réponse JSON pour extraire l'ID du premier résultat de la recherche
+                dynamic result = JObject.Parse(jsonResponse);
+                int? seriesId = result.results[0]?.id;
 
-                    // Analyser la réponse JSON pour extraire l'ID du premier résultat de la recherche
-                    dynamic result = JObject.Parse(jsonResponse);
-                    int? seriesId = result.results[0].id;
-
-                    return seriesId;
-                }
-                else
-                {
-                    _logger.LogError($"La requête API TMDb a échoué : {response.ReasonPhrase}");
-                    return false;
-                }
+                return seriesId.HasValue; // Retourne true si seriesId a une valeur, sinon false
             }
+            else
+            {
+                _logger.LogError($"La requête API TMDb a échoué : {response.ReasonPhrase}");
+                return false;
+            }
+        }
     }
     catch (Exception ex)
     {
