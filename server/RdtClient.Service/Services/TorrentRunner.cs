@@ -1008,42 +1008,28 @@ private async Task<ApiConfig?> GetApiConfigAsync(string categoryInstance, string
 {
     try
     {
-        var jsonString = await File.ReadAllTextAsync(configFilePath);
+        string jsonString = await File.ReadAllTextAsync(configFilePath);
+        JsonDocument doc = JsonDocument.Parse(jsonString);
 
-        using (JsonDocument doc = JsonDocument.Parse(jsonString))
+        if (!doc.RootElement.TryGetProperty(categoryInstance, out JsonElement category))
         {
-            if (doc.RootElement.TryGetProperty(categoryInstance, out var category))
-            {
-                var host = category.GetProperty("Host").GetString();
-                var apiKey = category.GetProperty("ApiKey").GetString();
-                var folder = category.GetProperty("RootFolderPath").GetString();
-                var quality = category.GetProperty("qualityProfileId").GetString();
-                // var tmdb = category.GetProperty("TmdbApi").GetString();
-
-                if (host == "http://radarr:7878")
-                {
-                    var tmdb = category.GetProperty("TmdbApi").GetString();
-                    if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(folder) || string.IsNullOrEmpty(quality) || string.IsNullOrEmpty(tmdb))
-                    {
-                        return null;
-                    }
-
-                    return new ApiConfig { Host = host, ApiKey = apiKey, RootFolderPath = folder, qualityProfileId = quality, TmdbApi = tmdb };
-                }
-
-                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(folder) || string.IsNullOrEmpty(quality))
-                {
-                    return null;
-                }
-
-                return new ApiConfig { Host = host, ApiKey = apiKey, RootFolderPath = folder, qualityProfileId = quality };
-            }
-            else
-            {
-                _logger.LogError($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
-                return null;
-            }
+            _logger.LogError($"La catégorie {categoryInstance} n'est pas trouvée dans le fichier de configuration.");
+            return null;
         }
+
+        var host = category.GetProperty("Host").GetString();
+        var apiKey = category.GetProperty("ApiKey").GetString();
+        var folder = category.GetProperty("RootFolderPath").GetString();
+        var quality = category.GetProperty("qualityProfileId").GetString();
+        var tmdb = category.GetProperty("TmdbApi").GetString();
+
+        if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(folder) || string.IsNullOrEmpty(quality) ||
+            (host == "http://radarr:7878" && string.IsNullOrEmpty(tmdb)))
+        {
+            return null;
+        }
+
+        return new ApiConfig { Host = host, ApiKey = apiKey, RootFolderPath = folder, qualityProfileId = quality, TmdbApi = tmdb };
     }
     catch (Exception ex)
     {
