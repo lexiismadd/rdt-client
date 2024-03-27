@@ -700,6 +700,9 @@ private async Task<bool> GetSeriesIdFromNameAsync(string seriesName, string cate
             return false;
         }
 
+    _logger.LogInformation($"Série extraite : \"{seriesName}\"");
+
+
         var data = new StringContent("{\"name\":\"RefreshMonitoredDownloads\"}", Encoding.UTF8, "application/json");
         _httpClient.DefaultRequestHeaders.Clear();
         _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiConfig.Value.ApiKey); // utilisé comme ça ici
