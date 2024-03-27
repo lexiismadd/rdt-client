@@ -690,7 +690,7 @@ public class TorrentRunner
         }
     }
 
-private async Task<bool> GetSeriesIdFromNameAsync(string seriesName, string categoryInstance, string configFilePath)
+private async Task<bool> GetSeriesIdFromNameAsync(string categoryInstance, string configFilePath)
 {
     try
     {
@@ -700,9 +700,7 @@ private async Task<bool> GetSeriesIdFromNameAsync(string seriesName, string cate
             return false;
         }
 
-        
-        var seriesName = "toto";
-        var data = new StringContent("{\"name\":\"RefreshMonitoredDownloads\"}", Encoding.UTF8, "application/json");
+         var data = new StringContent("{\"name\":\"RefreshMonitoredDownloads\"}", Encoding.UTF8, "application/json");
         _httpClient.DefaultRequestHeaders.Clear();
         _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiConfig.Value.ApiKey); // utilisé comme ça ici
         var response = await _httpClient.PostAsync($"{apiConfig.Value.Host}/api/v3/command", data); // et ici pour host
