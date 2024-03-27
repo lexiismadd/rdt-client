@@ -686,10 +686,14 @@ public class TorrentRunner
         }
     }
 
-private async Task<int?> GetMovieIdFromNameAsync(string seriesName, string categoryInstance, string configFilePath)
+private async Task<int?> GetMovieIdFromNameAsync(string seriesName, string category, string categoryInstance, string configFilePath)
 {
     try
     {
+        if (category.ToLower() == "radarr")
+        {
+
+
         var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // load comme ça
         if (apiConfig == null)
         {
@@ -717,12 +721,15 @@ private async Task<int?> GetMovieIdFromNameAsync(string seriesName, string categ
                 return null; // Retourne null en cas d'échec de la requête
             }
         }
+       }
     }
     catch (Exception ex)
     {
         _logger.LogError($"Une erreur est survenue lors de la recherche de l'ID de la série/film : {ex.Message}");
         return null; // Retourne null en cas d'erreur
     }
+
+   
 }
 
 public class TvMazeSearchResult
