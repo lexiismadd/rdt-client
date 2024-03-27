@@ -589,10 +589,9 @@ public class TorrentRunner
                         }
                         else if (torrent.Category.ToLower() == "radarr")
                         {
-                             string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
+                             string seriesName = ExtractMovieNameFromRdName(torrent.RdName, torrent.Category);
                              Log($"Nom du Films (Radarr) : {seriesName}");
                              int? seriesId = await GetMovieIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
-                             Log($"seriesId  : {seriesId}");
                              int? theTvdbId = null;
                              theTvdbId = await GetMovieIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                              Log($"Numero ID TMDB : {theTvdbId }");
@@ -720,7 +719,7 @@ private async Task<int?> GetMovieIdFromNameAsync(string seriesName, string categ
     }
     catch (Exception ex)
     {
-        _logger.LogError($"Une erreur est survenue lors de la recherche de l'ID de la série/film : {ex.Message}");
+        _logger.LogError($"Une erreur est survenue lors de la recherche de l'ID du Film : {ex.Message}");
         return null; // Retourne null en cas d'erreur
     }
 }
@@ -838,7 +837,7 @@ private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, st
     }
     catch (Exception ex)
     {
-        _logger.LogError($"Erreur lors de l'ajout du film à Radarr : {ex.Message}");
+        _logger.LogError($"Erreur lors de l'ajout du film à Sonarr : {ex.Message}");
         return false;
     }
 }
