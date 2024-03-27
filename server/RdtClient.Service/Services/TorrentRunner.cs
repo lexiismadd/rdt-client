@@ -818,7 +818,7 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     int index = rdName.IndexOf("Integrale", StringComparison.OrdinalIgnoreCase);
     if (index != -1)
     {
-        string seriesName = rdName.Substring(0, index).Trim();
+        seriesName = rdName.Substring(0, index).Trim(); // Correction ici
         return seriesName;
     }
 
