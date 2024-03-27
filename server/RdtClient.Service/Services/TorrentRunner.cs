@@ -684,7 +684,7 @@ public class TorrentRunner
         }
     }
 
-private async Task<bool> GetSeriesIdFromNameAsync(string seriesName, string category, string categoryInstance, string configFilePath)
+private async Task<int?> GetSeriesIdFromNameAsync(string seriesName, string category, string categoryInstance, string configFilePath)
 {
     try
     {
@@ -694,7 +694,7 @@ private async Task<bool> GetSeriesIdFromNameAsync(string seriesName, string cate
         if (apiConfig == null)
         {
             _logger.LogError("La configuration API n'a pas pu être récupérée.");
-            return false;
+            return null;
         }
 
 
