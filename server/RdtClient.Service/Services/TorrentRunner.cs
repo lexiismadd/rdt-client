@@ -576,6 +576,12 @@ public class TorrentRunner
 
                         Log($"All downloads complete, marking torrent as complete", torrent);
 
+                            string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
+
+
+                            await GetSeriesIdFromNameAsync(seriesName, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+
+
                         if (torrent.Category.ToLower() == "sonarr")
                         {
                             // ing seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
@@ -588,8 +594,6 @@ public class TorrentRunner
                         }
                         else if (torrent.Category.ToLower() == "radarr")
                         {
-                            string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
-                            int? seriesId = await GetSeriesIdFromNameAsync(seriesName, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                             int? theTvdbId = null;
                             theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                         }
