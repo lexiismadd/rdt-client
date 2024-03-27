@@ -701,7 +701,7 @@ private async Task<bool> GetSeriesIdFromNameAsync(string seriesName, string cate
         }
 
         
-        var seriesName = "toto"
+        var seriesName = "toto";
         var data = new StringContent("{\"name\":\"RefreshMonitoredDownloads\"}", Encoding.UTF8, "application/json");
         _httpClient.DefaultRequestHeaders.Clear();
         _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiConfig.Value.ApiKey); // utilisé comme ça ici
