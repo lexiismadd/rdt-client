@@ -606,7 +606,7 @@ public class TorrentRunner
                         {
                             await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
-                        string seriesName = "NomDeVotreSerie"
+                        string seriesName = "NomDeVotreSerie";
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
                         {
