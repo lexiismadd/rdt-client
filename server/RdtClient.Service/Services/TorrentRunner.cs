@@ -695,11 +695,8 @@ private async Task<int?> GetMovieIdFromNameAsync(string seriesName, string categ
         {
             return null;
         }
-        _logger.LogDebug($"numero TMDB : {apiConfig.Value.TmdbApi}");
 
         string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key={apiConfig.Value.TmdbApi}&query={HttpUtility.UrlEncode(seriesName)}";
-
-        _logger.LogDebug($"URL de recherche : {searchUrl}");
 
         using (HttpClient httpClient = new HttpClient())
         {
@@ -772,7 +769,6 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     }
 
     string seriesName = match.Groups[1].Value.Trim();
-    _logger.LogInformation($"Série extraite : \"{seriesName}\"");
 
     return seriesName;
 }
@@ -898,11 +894,11 @@ private async Task<bool> AddMovieToRadarr(int? theTvdbId, string seriesName, str
             var responseContent = await response.Content.ReadAsStringAsync();
                 if(responseContent.Contains("This movie has already been added"))
                 {
-                    _logger.LogDebug("La série existe déjà dans Sonarr.");
+                    _logger.LogDebug("Le Film existe déjà dans Radarr.");
                 }
                 else
                 {
-                    _logger.LogError($"Échec de l'ajout de la série à Sonarr : {response.ReasonPhrase}. Contenu de la réponse : {responseContent}");
+                    _logger.LogError($"Échec de l'ajout de la série à Radarr : {response.ReasonPhrase}. Contenu de la réponse : {responseContent}");
                 }
 
             return false;
