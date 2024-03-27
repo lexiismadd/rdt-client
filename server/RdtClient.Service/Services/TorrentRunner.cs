@@ -697,7 +697,7 @@ private async Task<int?> GetMovieIdFromNameAsync(string seriesName, string categ
         }
         _logger.LogDebug($"numero TMDB : {apiConfig.Value.TmdbApi}");
 
-        string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key=apiConfig.Value.TmdbApi&query={HttpUtility.UrlEncode(seriesName)}";
+        string searchUrl = $"https://api.themoviedb.org/3/search/movie?{apiConfig.Value.TmdbApi}&query={HttpUtility.UrlEncode(seriesName)}";
 
         using (HttpClient httpClient = new HttpClient())
         {
