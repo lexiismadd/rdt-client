@@ -590,13 +590,12 @@ public class TorrentRunner
                         else if (torrent.Category.ToLower() == "radarr")
                         {
                              string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
-                            int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
-                            // Log($"Nom du Films (Radarr) : {seriesName}");
-                            // await GetSeriesIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
-                            // int? theTvdbId = null;
+                             Log($"Nom du Films (Radarr) : {seriesName}");
+                             int? seriesId = await GetMovieIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                             int? theTvdbId = null;
                             // theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
-                           //  Log($"Numero ID TMDB : {theTvdbId }");
-                            // await AddMovieToRadarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                             Log($"Numero ID TMDB : {theTvdbId }");
+                             await AddMovieToRadarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
                         else
                         {
@@ -686,17 +685,16 @@ public class TorrentRunner
         }
     }
 
-private async Task<int?> GetSeriesIdFromNameAsync(string seriesName, string categoryInstance, string configFilePath)
+private async Task<int?> GetMovieIdFromNameAsync(string seriesName, string categoryInstance, string configFilePath)
 {
     try
     {
         var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // load comme ça
         if (apiConfig == null)
         {
-            return null; // Retourne null si la configuration API n'est pas disponible
+            return null;
         }
 
-        // Remplacez "VOTRE_CLE_API_TMDB" par votre clé d'API TMDb
         string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key=8d2878a6270062db1f7b75d550d46f16&query={HttpUtility.UrlEncode(seriesName)}";
 
         using (HttpClient httpClient = new HttpClient())
@@ -707,7 +705,6 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName, string cate
             {
                 string jsonResponse = await response.Content.ReadAsStringAsync();
 
-                // Analyser la réponse JSON pour extraire l'ID du premier résultat de la recherche
                 dynamic result = JObject.Parse(jsonResponse);
                 int? seriesId = result.results[0]?.id;
 
