@@ -607,6 +607,7 @@ public class TorrentRunner
                             await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
 
+
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
                         {
                             await GetSeriesIdFromNameAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
@@ -689,100 +690,37 @@ public class TorrentRunner
         }
     }
 
-private async Task<int?> GetSeriesIdFromNameAsync(string seriesName, string category, string categoryInstance, string configFilePath)
+private async Task<int?> GetSeriesIdFromNameAsync(string categoryInstance, string configFilePath)
 {
     try
     {
-        var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // Charger la configuration API
-
+        var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // load comme ça
         if (apiConfig == null)
         {
-            _logger.LogError("La configuration API n'a pas pu être récupérée.");
-            return null;
+            return false;
         }
 
+        var data = new StringContent("{\"name\":\"RefreshMonitoredDownloads\"}", Encoding.UTF8, "application/json");
+        _httpClient.DefaultRequestHeaders.Clear();
+        _httpClient.DefaultRequestHeaders.Add("X-Api-Key", apiConfig.Value.ApiKey); // utilisé comme ça ici
+        var response = await _httpClient.PostAsync($"{apiConfig.Value.Host}/api/v3/command", data); // et ici pour host
 
-        if (category.ToLower() == "sonarr")
+        if (response.IsSuccessStatusCode)
         {
-            string searchUrl = $"https://api.tvmaze.com/search/shows?q={HttpUtility.UrlEncode(seriesName)}";
-
-            using (HttpClient httpClient = new HttpClient())
-            {
-                HttpResponseMessage response = await httpClient.GetAsync(searchUrl);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    string jsonResponse = await response.Content.ReadAsStringAsync();
-
-                    JsonDocument jsonDoc = JsonDocument.Parse(jsonResponse);
-                    JsonElement root = jsonDoc.RootElement;
-
-                    if (root.GetArrayLength() == 0)
-                    {
-                        return null;
-                    }
-
-                    JsonElement firstElement = root[0];
-
-                    if (firstElement.TryGetProperty("show", out JsonElement showElement))
-                    {
-                        if (showElement.TryGetProperty("externals", out JsonElement externalsElement))
-                        {
-                            if (externalsElement.TryGetProperty("thetvdb", out JsonElement tvdbElement))
-                            {
-                                if (tvdbElement.ValueKind == JsonValueKind.Number)
-                                {
-                                    return tvdbElement.GetInt32();
-                                }
-                            }
-                        }
-                    }
-
-                    return null;
-                }
-                else
-                {
-                    _logger.LogError($"La requête API TVMaze a échoué : {response.ReasonPhrase}");
-                    return null;
-                }
-            }
-        }
-        else if (category.ToLower() == "radarr")
-        {
-            // Remplacez "VOTRE_CLE_API_TMDB" par votre clé d'API TMDb
-            string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key=8d2878a6270062db1f7b75d550d46f16&query={HttpUtility.UrlEncode(seriesName)}";
-
-            using (HttpClient httpClient = new HttpClient())
-            {
-                HttpResponseMessage response = await httpClient.GetAsync(searchUrl);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    string jsonResponse = await response.Content.ReadAsStringAsync();
-
-                    // Analyser la réponse JSON pour extraire l'ID du premier résultat de la recherche
-                    dynamic result = JObject.Parse(jsonResponse);
-                    int? seriesId = result.results[0].id;
-
-                    return seriesId;
-                }
-                else
-                {
-                    _logger.LogError($"La requête API TMDb a échoué : {response.ReasonPhrase}");
-                    return null;
-                }
-            }
+            var responseBody = await response.Content.ReadAsStringAsync();
+            _logger.LogInformation($"Réponse de l'API : {responseBody}");
+            return true;
         }
         else
         {
-            _logger.LogError($"La catégorie {category} n'est pas prise en charge.");
-            return null;
+            _logger.LogError("La requête API a échoué.");
+            return false;
         }
     }
     catch (Exception ex)
     {
-        _logger.LogError($"Une erreur est survenue lors de la recherche de l'ID de la série/film : {ex.Message}");
-        return null;
+        _logger.LogError($"Une erreur est survenue : {ex.Message}");
+        return false;
     }
 }
 
