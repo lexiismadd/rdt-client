@@ -580,7 +580,7 @@ public class TorrentRunner
                         {
                             string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
                             //Log($"Nom de la série (Sonarr) : {seriesName}");
-                           await GetSeriesIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                           // int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                            // int? theTvdbId = null;
                            // theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                           //  Log($"Numero ID TVDB : {theTvdbId }");
@@ -591,7 +591,7 @@ public class TorrentRunner
                         {
                             string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
                             // Log($"Nom du Films (Radarr) : {seriesName}");
-                            // int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
+                            int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                             // int? theTvdbId = null;
                             // theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                            //  Log($"Numero ID TMDB : {theTvdbId }");
