@@ -576,10 +576,6 @@ public class TorrentRunner
 
                         Log($"All downloads complete, marking torrent as complete", torrent);
 
-                            string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
-
-
-                            await GetSeriesIdFromNameAsync(seriesName, Settings.Get.General.RadarrSonarrInstanceConfigPath);
 
 
                         if (torrent.Category.ToLower() == "sonarr")
