@@ -578,8 +578,8 @@ public class TorrentRunner
 
                         if (torrent.Category.ToLower() == "sonarr")
                         {
-                             string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
-                             int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                             //string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
+                             //int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
 
                             //Log($"Nom de la série (Sonarr) : {seriesName}");
                            // int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
@@ -591,8 +591,8 @@ public class TorrentRunner
                         }
                         else if (torrent.Category.ToLower() == "radarr")
                         {
-                             string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
-                             int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                             //string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
+                             //int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
 
                             // Log($"Nom du Films (Radarr) : {seriesName}");
                             // await GetSeriesIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
@@ -611,12 +611,12 @@ public class TorrentRunner
                             await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
 
-                        //if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
-                        //{
-                          //  string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
-                            // int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                        if (!String.IsNullOrWhiteSpace(Settings.Get.General.RadarrSonarrInstanceConfigPath))
+                        {
+                          string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
+                         int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                             // await GetSeriesIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
-                        // }
+                        }
 
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
