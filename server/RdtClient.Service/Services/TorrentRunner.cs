@@ -589,10 +589,9 @@ public class TorrentRunner
                         else if (torrent.Category.ToLower() == "radarr")
                         {
                             string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
-                            //int? theTvdbId = null;
-                            //theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
-                            //int? seriesId = await GetSeriesIdFromNameAsync(seriesName, Settings.Get.General.RadarrSonarrInstanceConfigPath);
-
+                            int? seriesId = await GetSeriesIdFromNameAsync(seriesName, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                            int? theTvdbId = null;
+                            theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
                         }
                         else
                         {
@@ -690,35 +689,32 @@ private async Task<int?> GetSeriesIdFromNameAsync(string seriesName, string cate
 {
     try
     {
-            var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // Charger la configuration API
-            if (apiConfig == null)
+        var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath);
+        if (apiConfig == null)
+        {
+            _logger.LogError("La configuration API n'a pas pu être récupérée.");
+            return null;
+        }
+
+        string encodedSeriesName = HttpUtility.UrlEncode(seriesName);
+        string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key={apiConfig.Value.TmdbApi}&query={encodedSeriesName}";
+
+        using (HttpClient httpClient = new HttpClient())
+        {
+            HttpResponseMessage response = await httpClient.GetAsync(searchUrl);
+
+            if (response.IsSuccessStatusCode)
             {
-                _logger.LogError("La configuration API n'a pas pu être récupérée.");
-                return false;
+                dynamic result = JObject.Parse(await response.Content.ReadAsStringAsync());
+                int? seriesId = result.results[0]?.id;
+                return seriesId;
             }
-
-            string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key=8d2878a6270062db1f7b75d550d46f16&query={HttpUtility.UrlEncode(seriesName)}";
-
-            using (HttpClient httpClient = new HttpClient())
+            else
             {
-                HttpResponseMessage response = await httpClient.GetAsync(searchUrl);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    string jsonResponse = await response.Content.ReadAsStringAsync();
-
-                    // Analyser la réponse JSON pour extraire l'ID du premier résultat de la recherche
-                    dynamic result = JObject.Parse(jsonResponse);
-                    int? seriesId = result.results[0].id;
-
-                    return seriesId;
-                }
-                else
-                {
-                    _logger.LogError($"La requête API TMDb a échoué : {response.ReasonPhrase}");
-                    return null;
-                }
+                _logger.LogError($"La requête API TMDb a échoué : {response.ReasonPhrase}");
+                return null;
             }
+        }
     }
     catch (Exception ex)
     {
