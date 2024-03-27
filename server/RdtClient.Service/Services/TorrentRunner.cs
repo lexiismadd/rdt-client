@@ -696,9 +696,6 @@ private async Task<int?> GetMovieIdFromNameAsync(string seriesName, string categ
             return null;
         }
 
-    // if (category.ToLower() == "radarr")
-    // {
-
         string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key=8d2878a6270062db1f7b75d550d46f16&query={HttpUtility.UrlEncode(seriesName)}";
 
         using (HttpClient httpClient = new HttpClient())
@@ -720,13 +717,12 @@ private async Task<int?> GetMovieIdFromNameAsync(string seriesName, string categ
                 return null; // Retourne null en cas d'échec de la requête
             }
         }
-    // }
+    }
     catch (Exception ex)
     {
         _logger.LogError($"Une erreur est survenue lors de la recherche de l'ID de la série/film : {ex.Message}");
         return null; // Retourne null en cas d'erreur
     }
- }
 }
 
 public class TvMazeSearchResult
