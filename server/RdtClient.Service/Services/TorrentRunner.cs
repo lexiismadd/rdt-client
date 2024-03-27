@@ -690,14 +690,13 @@ private async Task<int?> GetMovieIdFromNameAsync(string seriesName, string categ
 {
     try
     {
-
         var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // load comme ça
         if (apiConfig == null)
         {
             return null;
         }
 
-        string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key=8d2878a6270062db1f7b75d550d46f16&query={HttpUtility.UrlEncode(seriesName)}";
+        string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key={apiConfig.Value.TmdbApi}&query={HttpUtility.UrlEncode(seriesName)}";
 
         using (HttpClient httpClient = new HttpClient())
         {
@@ -724,8 +723,6 @@ private async Task<int?> GetMovieIdFromNameAsync(string seriesName, string categ
         _logger.LogError($"Une erreur est survenue lors de la recherche de l'ID de la série/film : {ex.Message}");
         return null; // Retourne null en cas d'erreur
     }
-
-   
 }
 
 public class TvMazeSearchResult
@@ -955,6 +952,7 @@ public struct ApiConfig
     public string ApiKey { get; set; }
     public string RootFolderPath { get; set; }
     public string qualityProfileId { get; set; }
+    public string TmdbApi { get; set; }
 }
 
 private async Task<ApiConfig?> GetApiConfigAsync(string categoryInstance, string configFilePath)
@@ -971,13 +969,14 @@ private async Task<ApiConfig?> GetApiConfigAsync(string categoryInstance, string
                 var apiKey = category.GetProperty("ApiKey").GetString();
                 var folder = category.GetProperty("RootFolderPath").GetString();
                 var quality = category.GetProperty("qualityProfileId").GetString();
+                var tmdb = category.GetProperty("TmdbApi").GetString();
 
-                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(folder) || string.IsNullOrEmpty(quality))
+                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(folder) || string.IsNullOrEmpty(quality) || string.IsNullOrEmpty(tmdb))
                 {
                     return null;
                 }
 
-                return new ApiConfig { Host = host, ApiKey = apiKey, RootFolderPath = folder, qualityProfileId = quality };
+                return new ApiConfig { Host = host, ApiKey = apiKey, RootFolderPath = folder, qualityProfileId = quality, TmdbApi = tmdb };
             }
             else
             {
