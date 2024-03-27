@@ -808,6 +808,13 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     rdName = Regex.Replace(rdName, @"\[.*?\]", "");
     _logger.LogInformation($"Nom du fichier après exclusion du contenu entre crochets : {rdName}");
 
+    // Retirer l'extension "mkv" si elle existe
+    if (rdName.EndsWith(" mkv", StringComparison.OrdinalIgnoreCase))
+    {
+        rdName = rdName.Substring(0, rdName.Length - 4); // Pour exclure " mkv"
+        _logger.LogInformation($"Nom du fichier après exclusion de l'extension mkv : {rdName}");
+    }
+
     // Utilisation d'une expression régulière pour extraire le titre de la série
     string seriesPattern = @"^(.+?)(?:\d|S\d)";
     Match match = Regex.Match(rdName, seriesPattern);
@@ -874,7 +881,7 @@ private async Task<bool> AddSeriesToSonarr(int? theTvdbId, string seriesName, st
         {
             var responseContent = await response.Content.ReadAsStringAsync();
             _logger.LogDebug($"Contenu de la réponse : {responseContent}");
-                if(responseContent.Contains("This movie has already been added"))
+                if(responseContent.Contains("This series has already been added"))
                 {
                     _logger.LogDebug("La série existe déjà dans Sonarr.");
                 }
