@@ -819,7 +819,9 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     int index = rdName.IndexOf("Integrale", StringComparison.OrdinalIgnoreCase);
     if (index != -1)
     {
-        seriesName = rdName.Substring(0, index).Trim(); // Correction ici
+        // seriesName = rdName.Substring(0, index).Trim(); // Correction ici
+        rdName = Regex.Replace(rdName.Substring(0, index), @"\d+", " ").Trim();
+        seriesName = rdName.Trim(); // Correction ici
         return seriesName;
     }
 
