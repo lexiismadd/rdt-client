@@ -792,6 +792,7 @@ public class TvMazeExternals
 
 public string ExtractSeriesNameFromRdName(string rdName, string category)
 {
+    string seriesName = null;
     if (string.IsNullOrWhiteSpace(rdName))
     {
         _logger.LogError("Le nom du fichier est vide ou null.");
