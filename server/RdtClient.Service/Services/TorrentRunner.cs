@@ -690,14 +690,14 @@ public class TorrentRunner
         }
     }
 
-private async Task<bool> GetSeriesIdFromNameAsync(string seriesName, string categoryInstance, string configFilePath)
+private async Task<int?> GetSeriesIdFromNameAsync(string seriesName, string categoryInstance, string configFilePath)
 {
     try
     {
         var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // load comme ça
         if (apiConfig == null)
         {
-            return false;
+            return null; // Retourne null si la configuration API n'est pas disponible
         }
 
         // Remplacez "VOTRE_CLE_API_TMDB" par votre clé d'API TMDb
@@ -715,19 +715,19 @@ private async Task<bool> GetSeriesIdFromNameAsync(string seriesName, string cate
                 dynamic result = JObject.Parse(jsonResponse);
                 int? seriesId = result.results[0]?.id;
 
-                return seriesId.HasValue; // Retourne true si seriesId a une valeur, sinon false
+                return seriesId; // Retourne l'ID de la série (peut être null si non trouvé)
             }
             else
             {
                 _logger.LogError($"La requête API TMDb a échoué : {response.ReasonPhrase}");
-                return false;
+                return null; // Retourne null en cas d'échec de la requête
             }
         }
     }
     catch (Exception ex)
     {
         _logger.LogError($"Une erreur est survenue lors de la recherche de l'ID de la série/film : {ex.Message}");
-        return false;
+        return null; // Retourne null en cas d'erreur
     }
 }
 
