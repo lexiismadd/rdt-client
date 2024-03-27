@@ -686,7 +686,7 @@ public class TorrentRunner
         }
     }
 
-private async Task<int?> GetMovieIdFromNameAsync(string seriesName, string categoryInstance, string configFilePath)
+private async Task<int?> GetMovieIdFromNameAsync(string seriesName, string category, string categoryInstance, string configFilePath)
 {
     try
     {
@@ -696,28 +696,28 @@ private async Task<int?> GetMovieIdFromNameAsync(string seriesName, string categ
             return null;
         }
 
-    if (category.ToLower() == "radarr")
-    {
-
-        string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key=8d2878a6270062db1f7b75d550d46f16&query={HttpUtility.UrlEncode(seriesName)}";
-
-        using (HttpClient httpClient = new HttpClient())
+        if (category.ToLower() == "radarr")
         {
-            HttpResponseMessage response = await httpClient.GetAsync(searchUrl);
+            string searchUrl = $"https://api.themoviedb.org/3/search/movie?api_key=8d2878a6270062db1f7b75d550d46f16&query={HttpUtility.UrlEncode(seriesName)}";
 
-            if (response.IsSuccessStatusCode)
+            using (HttpClient httpClient = new HttpClient())
             {
-                string jsonResponse = await response.Content.ReadAsStringAsync();
+                HttpResponseMessage response = await httpClient.GetAsync(searchUrl);
 
-                dynamic result = JObject.Parse(jsonResponse);
-                int? seriesId = result.results[0]?.id;
+                if (response.IsSuccessStatusCode)
+                {
+                    string jsonResponse = await response.Content.ReadAsStringAsync();
 
-                return seriesId; // Retourne l'ID de la série (peut être null si non trouvé)
-            }
-            else
-            {
-                _logger.LogError($"La requête API TMDb a échoué : {response.ReasonPhrase}");
-                return null; // Retourne null en cas d'échec de la requête
+                    dynamic result = JObject.Parse(jsonResponse);
+                    int? seriesId = result.results[0]?.id;
+
+                    return seriesId; // Retourne l'ID de la série (peut être null si non trouvé)
+                }
+                else
+                {
+                    _logger.LogError($"La requête API TMDb a échoué : {response.ReasonPhrase}");
+                    return null; // Retourne null en cas d'échec de la requête
+                }
             }
         }
     }
@@ -726,7 +726,6 @@ private async Task<int?> GetMovieIdFromNameAsync(string seriesName, string categ
         _logger.LogError($"Une erreur est survenue lors de la recherche de l'ID de la série/film : {ex.Message}");
         return null; // Retourne null en cas d'erreur
     }
- }
 }
 
 public class TvMazeSearchResult
