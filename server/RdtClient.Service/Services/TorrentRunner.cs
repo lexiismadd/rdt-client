@@ -697,7 +697,7 @@ private async Task<int?> GetSeriesIdFromNameAsync(string categoryInstance, strin
         var apiConfig = await GetApiConfigAsync(categoryInstance, configFilePath); // load comme ça
         if (apiConfig == null)
         {
-            return false;
+            return null;
         }
 
         var data = new StringContent("{\"name\":\"RefreshMonitoredDownloads\"}", Encoding.UTF8, "application/json");
