@@ -589,7 +589,7 @@ public class TorrentRunner
                         else if (torrent.Category.ToLower() == "radarr")
                         {
                             string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
-                            Log($"Nom du Films (Radarr) : {seriesName}");
+                            Log($"Nom du Film (Radarr) : {seriesName}");
                             int? seriesId = await GetMovieIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                             int? theTvdbId = null;
                             theTvdbId = await GetMovieIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
@@ -605,8 +605,6 @@ public class TorrentRunner
                         {
                             await TryRefreshMonitoredDownloadsAsync(torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
-
-
 
                         if (!String.IsNullOrWhiteSpace(Settings.Get.General.CopyAddedTorrents))
                         {
@@ -684,8 +682,6 @@ public class TorrentRunner
         }
     }
 
-
-
 private async Task<int?> GetSerieIdFromNameAsync(string seriesName, string category)
 {
     try
@@ -739,12 +735,6 @@ private async Task<int?> GetSerieIdFromNameAsync(string seriesName, string categ
         return null;
     }
 }
-
-
-
-
-
-
 
 private async Task<int?> GetMovieIdFromNameAsync(string seriesName, string categoryInstance, string configFilePath)
 {
@@ -1030,12 +1020,23 @@ private async Task<ApiConfig?> GetApiConfigAsync(string categoryInstance, string
                 var quality = category.GetProperty("qualityProfileId").GetString();
                 var tmdb = category.GetProperty("TmdbApi").GetString();
 
-                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(folder) || string.IsNullOrEmpty(quality) || string.IsNullOrEmpty(tmdb))
+                if (host == "http://radarr:8989")
+                {
+                    var tmdb = category.GetProperty("TmdbApi").GetString();
+                    if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(folder) || string.IsNullOrEmpty(quality) || string.IsNullOrEmpty(tmdb))
+                    {
+                        return null;
+                    }
+
+                    return new ApiConfig { Host = host, ApiKey = apiKey, RootFolderPath = folder, qualityProfileId = quality, TmdbApi = tmdb };
+                }
+
+                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(folder) || string.IsNullOrEmpty(quality))
                 {
                     return null;
                 }
 
-                return new ApiConfig { Host = host, ApiKey = apiKey, RootFolderPath = folder, qualityProfileId = quality, TmdbApi = tmdb };
+                return new ApiConfig { Host = host, ApiKey = apiKey, RootFolderPath = folder, qualityProfileId = quality };
             }
             else
             {
