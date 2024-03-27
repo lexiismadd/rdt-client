@@ -1018,7 +1018,7 @@ private async Task<ApiConfig?> GetApiConfigAsync(string categoryInstance, string
                 var apiKey = category.GetProperty("ApiKey").GetString();
                 var folder = category.GetProperty("RootFolderPath").GetString();
                 var quality = category.GetProperty("qualityProfileId").GetString();
-                var tmdb = category.GetProperty("TmdbApi").GetString();
+                // var tmdb = category.GetProperty("TmdbApi").GetString();
 
                 if (host == "http://radarr:8989")
                 {
