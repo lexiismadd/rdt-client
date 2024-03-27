@@ -1021,10 +1021,10 @@ private async Task<ApiConfig?> GetApiConfigAsync(string categoryInstance, string
         var apiKey = category.GetProperty("ApiKey").GetString();
         var folder = category.GetProperty("RootFolderPath").GetString();
         var quality = category.GetProperty("qualityProfileId").GetString();
-        var tmdb = category.GetProperty("TmdbApi").GetString();
+        var tmdb = categoryInstance == "radarr" ? category.GetProperty("TmdbApi").GetString() : null;
 
         if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(folder) || string.IsNullOrEmpty(quality) ||
-            (host == "http://radarr:7878" && string.IsNullOrEmpty(tmdb)))
+            (categoryInstance == "radarr" && string.IsNullOrEmpty(tmdb)))
         {
             return null;
         }
