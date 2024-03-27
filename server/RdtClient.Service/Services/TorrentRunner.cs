@@ -578,24 +578,23 @@ public class TorrentRunner
 
                         if (torrent.Category.ToLower() == "sonarr")
                         {
-                            // string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
-                            //Log($"Nom de la série (Sonarr) : {seriesName}");
-                           // int? seriesId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
-                           // int? theTvdbId = null;
-                           // theTvdbId = await GetSeriesIdFromNameAsync(seriesName, torrent.Category);
-                          //  Log($"Numero ID TVDB : {theTvdbId }");
-                            // await AddSeriesToSonarr(theTvdbId.Value, seriesName);
-                          //  await AddSeriesToSonarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                            string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
+                            Log($"Nom de la série (Sonarr) : {seriesName}");
+                            int? seriesId = await GetSerieIdFromNameAsync(seriesName, torrent.Category);
+                            int? theTvdbId = null;
+                            theTvdbId = await GetSerieIdFromNameAsync(seriesName, torrent.Category);
+                            Log($"Numero ID TVDB : {theTvdbId }");
+                            await AddSeriesToSonarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
                         else if (torrent.Category.ToLower() == "radarr")
                         {
-                             string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
-                             Log($"Nom du Films (Radarr) : {seriesName}");
-                             int? seriesId = await GetMovieIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
-                             int? theTvdbId = null;
-                             theTvdbId = await GetMovieIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
-                             Log($"Numero ID TMDB : {theTvdbId }");
-                             await AddMovieToRadarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                            string seriesName = ExtractSeriesNameFromRdName(torrent.RdName, torrent.Category);
+                            Log($"Nom du Films (Radarr) : {seriesName}");
+                            int? seriesId = await GetMovieIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                            int? theTvdbId = null;
+                            theTvdbId = await GetMovieIdFromNameAsync(seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
+                            Log($"Numero ID TMDB : {theTvdbId }");
+                            await AddMovieToRadarr(theTvdbId, seriesName, torrent.Category, Settings.Get.General.RadarrSonarrInstanceConfigPath);
                         }
                         else
                         {
@@ -684,6 +683,68 @@ public class TorrentRunner
             Log($"TorrentRunner Tick End (took {sw.ElapsedMilliseconds}ms)");
         }
     }
+
+
+
+private async Task<int?> GetSerieIdFromNameAsync(string seriesName, string category)
+{
+    try
+    {
+        string searchUrl = $"https://api.tvmaze.com/search/shows?q={HttpUtility.UrlEncode(seriesName)}";
+
+        using (HttpClient httpClient = new HttpClient())
+        {
+            HttpResponseMessage response = await httpClient.GetAsync(searchUrl);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string jsonResponse = await response.Content.ReadAsStringAsync();
+
+                JsonDocument jsonDoc = JsonDocument.Parse(jsonResponse);
+                JsonElement root = jsonDoc.RootElement;
+
+                if (root.GetArrayLength() == 0)
+                {
+                    return null;
+                }
+
+                JsonElement firstElement = root[0];
+
+                if (firstElement.TryGetProperty("show", out JsonElement showElement))
+                {
+                    if (showElement.TryGetProperty("externals", out JsonElement externalsElement))
+                    {
+                        if (externalsElement.TryGetProperty("thetvdb", out JsonElement tvdbElement))
+                        {
+                            if (tvdbElement.ValueKind == JsonValueKind.Number)
+                            {
+                                return tvdbElement.GetInt32();
+                            }
+                        }
+                    }
+                }
+
+                return null;
+                }
+            else
+            {
+                _logger.LogError($"La requête API TVMaze a échoué : {response.ReasonPhrase}");
+                return null;
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError($"Une erreur est survenue lors de la recherche de l'ID de la Série : {ex.Message}");
+        return null;
+    }
+}
+
+
+
+
+
+
 
 private async Task<int?> GetMovieIdFromNameAsync(string seriesName, string categoryInstance, string configFilePath)
 {
