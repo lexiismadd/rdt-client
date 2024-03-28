@@ -805,7 +805,7 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     _logger.LogInformation($"Nom du fichier après remplacement des points : {rdName}");
 
     // Remplacer les caractères spéciaux par des espaces avant "Integrale" ou "complete"
-    rdName = Regex.Replace(rdName, @"[^\w\s]+", " "); // Remplace tous les caractères non alphanumériques par un espace
+    rdName = Regex.Replace(rdName, @"^\w\s+", " "); // Remplace tous les caractères non alphanumériques par un espace
     _logger.LogInformation($"Nom du fichier après remplacement des caractères spéciaux : {rdName}");
 
     // Exclure le contenu entre crochets
