@@ -790,9 +790,6 @@ public class TvMazeExternals
     public string TheTvdb { get; set; }
 }
 
-using System;
-using System.Text.RegularExpressions;
-
 public string ExtractSeriesNameFromRdName(string rdName, string category)
 {
     if (string.IsNullOrWhiteSpace(rdName))
