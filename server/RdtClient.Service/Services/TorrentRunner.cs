@@ -820,7 +820,7 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     }
 
     // Utilisation d'une expression régulière pour extraire le titre de la série
-    string seriesPattern = @"^(.+?)(?:\d|S\d)";
+    string seriesPattern = @"^(.+?)(?!(?:\d|S\d|Integrale|complete|the|saison))";
     Match match = Regex.Match(rdName, seriesPattern);
 
     if (!match.Success)
@@ -830,18 +830,6 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     }
 
     string seriesName = match.Groups[1].Value.Trim();
-
-    // Condition pour extraire le titre de la série avec le mot-clé "Integrale" ou "complete"
-    int indexIntegrale = rdName.IndexOf("Integrale", StringComparison.OrdinalIgnoreCase);
-    int indexComplete = rdName.IndexOf("complete", StringComparison.OrdinalIgnoreCase);
-
-    if (indexIntegrale != -1 || indexComplete != -1)
-    {
-        int index = Math.Max(indexIntegrale, indexComplete);
-        // Correction : Remplacer les chiffres avant "Integrale" ou "complete" par un espace
-        seriesName = Regex.Replace(rdName.Substring(0, index), @"\d+", " ").Trim();
-    }
-
     return seriesName;
 }
 
