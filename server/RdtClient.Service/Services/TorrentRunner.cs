@@ -804,6 +804,10 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     rdName = rdName.Replace(".", " ");
     _logger.LogInformation($"Nom du fichier après remplacement des points : {rdName}");
 
+    // Remplacer les caractères spéciaux par des espaces avant "Integrale" ou "complete"
+    rdName = Regex.Replace(rdName, @"[^\w\s]+", " "); // Remplace tous les caractères non alphanumériques par un espace
+    _logger.LogInformation($"Nom du fichier après remplacement des caractères spéciaux : {rdName}");
+
     // Exclure le contenu entre crochets
     rdName = Regex.Replace(rdName, @"\[.*?\]", "");
     _logger.LogInformation($"Nom du fichier après exclusion du contenu entre crochets : {rdName}");
@@ -816,18 +820,7 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     }
 
     // Utilisation d'une expression régulière pour extraire le titre de la série
-    string seriesPattern = @"^(.+?)(?:Integrale|complete|\d|S\d)";
-    
-    // Condition pour extraire le titre de la série avec le mot-clé "Integrale" ou "complete"
-    int index = rdName.IndexOf("Integrale", StringComparison.OrdinalIgnoreCase);
-    if (index != -1)
-    {
-        // Correction : Remplacer les chiffres avant "Integrale" par un espace
-        rdName = Regex.Replace(rdName.Substring(0, index), @"\d+", " ").Trim();
-        return rdName.Trim(); // Renvoie le nom de la série modifié
-    }
-
-    // Utilisation de l'expression régulière pour l'extraction du titre de la série
+    string seriesPattern = @"^(.+?)(?:\d|S\d)";
     Match match = Regex.Match(rdName, seriesPattern);
 
     if (!match.Success)
@@ -837,6 +830,17 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     }
 
     string seriesName = match.Groups[1].Value.Trim();
+
+    // Condition pour extraire le titre de la série avec le mot-clé "Integrale" ou "complete"
+    int indexIntegrale = rdName.IndexOf("Integrale", StringComparison.OrdinalIgnoreCase);
+    int indexComplete = rdName.IndexOf("complete", StringComparison.OrdinalIgnoreCase);
+
+    if (indexIntegrale != -1 || indexComplete != -1)
+    {
+        int index = Math.Max(indexIntegrale, indexComplete);
+        // Correction : Remplacer les chiffres avant "Integrale" ou "complete" par un espace
+        seriesName = Regex.Replace(rdName.Substring(0, index), @"\d+", " ").Trim();
+    }
 
     return seriesName;
 }
