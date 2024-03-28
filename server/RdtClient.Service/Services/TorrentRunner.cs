@@ -820,7 +820,7 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     }
 
     // Utilisation d'une expression régulière pour extraire le titre de la série
-    string seriesPattern = @"^(.+?)(?!(?:\d|S\d|Integrale|complete|the|saison))";
+    string seriesPattern = @"^([^0-9S]|(?!the|complete|saison|integrale))+";
     Match match = Regex.Match(rdName, seriesPattern);
 
     if (!match.Success)
