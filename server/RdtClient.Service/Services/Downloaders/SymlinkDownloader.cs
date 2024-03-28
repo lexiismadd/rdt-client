@@ -246,29 +246,44 @@ public class SymlinkDownloader : IDownloader
         }
     }
 
-    private void RefreshRclone()
-    {
-        var processInfo = new ProcessStartInfo
-        {
-            FileName = "/usr/bin/rclone",
-            Arguments = Settings.Get.General.RcloneRefreshCommand,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false
-        };
+private void RefreshRclone()
+{
+    var tempOutputFile = Path.GetTempFileName();
 
-        using (var process = Process.Start(processInfo))
+    var processInfo = new ProcessStartInfo
+    {
+        FileName = "/usr/bin/rclone",
+        Arguments = Settings.Get.General.RcloneRefreshCommand,
+        RedirectStandardOutput = true,
+        RedirectStandardError = true,
+        UseShellExecute = false
+    };
+
+    using (var process = Process.Start(processInfo))
+    {
+        if (process != null)
         {
-            if (process != null)
+            process.WaitForExit();
+
+            // Lire la sortie standard et la sortie d'erreur et les écrire dans un fichier temporaire
+            using (StreamWriter writer = new StreamWriter(tempOutputFile))
             {
-                process.WaitForExit();
-                var output = process.StandardOutput.ReadToEnd();
-                var error = process.StandardError.ReadToEnd();
-                _logger.Debug($"rclone refresh output: {output}");
-                _logger.Debug($"rclone refresh error: {error}");
+                writer.WriteLine("rclone refresh output:");
+                writer.WriteLine(process.StandardOutput.ReadToEnd());
+                writer.WriteLine();
+                writer.WriteLine("rclone refresh error:");
+                writer.WriteLine(process.StandardError.ReadToEnd());
             }
+
+            // Lire le contenu complet du fichier temporaire
+            var content = File.ReadAllText(tempOutputFile);
+            _logger.Debug(content);
+
+            // Supprimer le fichier temporaire
+            File.Delete(tempOutputFile);
         }
     }
+}
 
 
     private static FileInfo? TryGetFileFromFolders(string[] Folders, string File)

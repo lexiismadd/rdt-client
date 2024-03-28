@@ -800,26 +800,22 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
 
     _logger.LogInformation($"Nom du fichier : {rdName}");
 
-    // Remplacer les points par des espaces
     rdName = rdName.Replace(".", " ");
     _logger.LogInformation($"Nom du fichier après remplacement des points : {rdName}");
 
-    // Remplacer les caractères spéciaux par des espaces avant "Integrale" ou "complete"
-    rdName = Regex.Replace(rdName, @"^\w\s+", " "); // Remplace tous les caractères non alphanumériques par un espace
+    rdName = Regex.Replace(rdName, @"^\w\s+", " ");
     _logger.LogInformation($"Nom du fichier après remplacement des caractères spéciaux : {rdName}");
 
-    // Exclure le contenu entre crochets
     rdName = Regex.Replace(rdName, @"\[.*?\]", "");
     _logger.LogInformation($"Nom du fichier après exclusion du contenu entre crochets : {rdName}");
 
-    // Retirer l'extension "mkv" si elle existe
     if (rdName.EndsWith(" mkv", StringComparison.OrdinalIgnoreCase))
     {
-        rdName = rdName.Substring(0, rdName.Length - 4); // Pour exclure " mkv"
+        rdName = rdName.Substring(0, rdName.Length - 4); 
         _logger.LogInformation($"Nom du fichier après exclusion de l'extension mkv : {rdName}");
     }
 
-    // A cet endroit je peux mettre des exclusions de mots dfsdf
+    // A cet endroit je peux mettre des exclusions de mots
     string seriesPattern = @"^(.+?)(?=\d{4}\sS\d{2}|Saison|Complete|Integrale|\d|S\d)";
 
     Match match = Regex.Match(rdName, seriesPattern);
