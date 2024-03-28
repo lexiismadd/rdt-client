@@ -819,8 +819,9 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
         _logger.LogInformation($"Nom du fichier après exclusion de l'extension mkv : {rdName}");
     }
 
-    // Utilisation d'une expression régulière pour extraire le titre de la série
-    string seriesPattern = @"^(.+?)(?=\d{4}\sS\d{2}|Saison|Complete|Integrale|\bthe\b|\d|S\d)";
+    // A cet endroit je peux mettre des exclusions de mots
+    string seriesPattern = @"^(.+?)(?=\d{4}\sS\d{2}|Saison|Complete|Integrale|\d|S\d)";
+
     Match match = Regex.Match(rdName, seriesPattern);
 
     if (!match.Success)
