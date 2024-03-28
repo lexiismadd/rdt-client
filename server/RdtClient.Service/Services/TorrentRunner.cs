@@ -790,9 +790,11 @@ public class TvMazeExternals
     public string TheTvdb { get; set; }
 }
 
+using System;
+using System.Text.RegularExpressions;
+
 public string ExtractSeriesNameFromRdName(string rdName, string category)
 {
-    string seriesName = null;
     if (string.IsNullOrWhiteSpace(rdName))
     {
         _logger.LogError("Le nom du fichier est vide ou null.");
@@ -800,6 +802,10 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     }
 
     _logger.LogInformation($"Nom du fichier : {rdName}");
+
+    // Remplacer les points par des espaces
+    rdName = rdName.Replace(".", " ");
+    _logger.LogInformation($"Nom du fichier après remplacement des points : {rdName}");
 
     // Exclure le contenu entre crochets
     rdName = Regex.Replace(rdName, @"\[.*?\]", "");
@@ -813,16 +819,15 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
     }
 
     // Utilisation d'une expression régulière pour extraire le titre de la série
-    string seriesPattern = @"^(.+?)(?:\d|S\d)";
-
-    // Condition pour extraire le titre de la série avec le mot-clé "Integrale"
+    string seriesPattern = @"^(.+?)(?:Integrale|complete|\d|S\d)";
+    
+    // Condition pour extraire le titre de la série avec le mot-clé "Integrale" ou "complete"
     int index = rdName.IndexOf("Integrale", StringComparison.OrdinalIgnoreCase);
     if (index != -1)
     {
-        // seriesName = rdName.Substring(0, index).Trim(); // Correction ici
+        // Correction : Remplacer les chiffres avant "Integrale" par un espace
         rdName = Regex.Replace(rdName.Substring(0, index), @"\d+", " ").Trim();
-        seriesName = rdName.Trim(); // Correction ici
-        return seriesName;
+        return rdName.Trim(); // Renvoie le nom de la série modifié
     }
 
     // Utilisation de l'expression régulière pour l'extraction du titre de la série
@@ -834,7 +839,7 @@ public string ExtractSeriesNameFromRdName(string rdName, string category)
         return null;
     }
 
-    seriesName = match.Groups[1].Value.Trim();
+    string seriesName = match.Groups[1].Value.Trim();
 
     return seriesName;
 }
