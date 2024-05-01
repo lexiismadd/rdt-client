@@ -20,7 +20,6 @@ using RdtClient.Service.Helpers;
 using RdtClient.Service.Services.Downloaders;
 using Newtonsoft.Json.Linq;
 
-
 namespace RdtClient.Service.Services;
 
 public class TorrentRunner
