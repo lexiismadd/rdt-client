@@ -1,9 +1,9 @@
 # Stage 1 - Build the frontend
 FROM node:18-alpine3.18 AS node-build-env
 ARG TARGETPLATFORM
-ENV TARGETPLATFORM=${TARGETPLATFORM:-linux/arm64}
+ENV TARGETPLATFORM=${TARGETPLATFORM:-linux/amd64}
 ARG BUILDPLATFORM
-ENV BUILDPLATFORM=${BUILDPLATFORM:-linux/arm64}
+ENV BUILDPLATFORM=${BUILDPLATFORM:-linux/amd64}
 
 RUN mkdir /appclient
 WORKDIR /appclient
@@ -21,11 +21,11 @@ RUN \
 RUN ls -FCla /appclient/root
 
 # Stage 2 - Build the backend
-FROM mcr.microsoft.com/dotnet/sdk:6.0-bullseye-slim-arm64v8 AS dotnet-build-env
+FROM mcr.microsoft.com/dotnet/sdk:6.0-bullseye-slim-amd64 AS dotnet-build-env
 ARG TARGETPLATFORM
-ENV TARGETPLATFORM=${TARGETPLATFORM:-linux/arm/v8}
+ENV TARGETPLATFORM=${TARGETPLATFORM:-linux/amd64}
 ARG BUILDPLATFORM
-ENV BUILDPLATFORM=${BUILDPLATFORM:-linux/arm/v8}
+ENV BUILDPLATFORM=${BUILDPLATFORM:-linux/amd64}
 
 RUN mkdir /appserver
 WORKDIR /appserver
@@ -49,9 +49,9 @@ RUN \
 # Stage 3 - Build runtime image
 FROM ghcr.io/linuxserver/baseimage-alpine:3.18
 ARG TARGETPLATFORM
-ENV TARGETPLATFORM=${TARGETPLATFORM:-linux/arm/v8}
+ENV TARGETPLATFORM=${TARGETPLATFORM:-linux/amd64}
 ARG BUILDPLATFORM
-ENV BUILDPLATFORM=${BUILDPLATFORM:-linux/arm/v8}
+ENV BUILDPLATFORM=${BUILDPLATFORM:-linux/amd64}
 
 # set version label
 ARG BUILD_DATE
