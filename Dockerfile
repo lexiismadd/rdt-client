@@ -72,6 +72,8 @@ RUN \
     apk add bash icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib && \
     echo "**** Installing dotnet ****" && \
     apk add aspnetcore6-runtime && \
+    echo "**** Installing rclone ****" && \
+    apk add rclone && \
     echo "**** Setting permissions ****" && \
     chown -R abc:abc /data && \
     rm -rf \

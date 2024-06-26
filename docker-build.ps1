@@ -33,7 +33,7 @@
     #>
 param(
     [string]$Version = "",
-    [string]$DockerAccount = "rogerfar",
+    [string]$DockerAccount = "alexisspencer",
     [string]$Platforms = "linux/arm64/v8,linux/amd64",
     [string]$Dockerfile = "Dockerfile",
     [switch]$SkipPush,
@@ -109,8 +109,8 @@ if ($OutputToDocker.IsPresent -and $lstPLatforms.Count -gt 0) {
     $drArgs += @( "${imageName}:${Version}")
 
     $o = @{
-        ImageName = "${imageName}:${Version}"
-        AppName = "${appName}"
+        ImageName = "$($imageName):$($Version)"
+        AppName = "$($appName)"
         Platform = $Platforms
         CmdArgs = $ddbArgs
         RunArgs = $drArgs
@@ -123,7 +123,7 @@ if ($OutputToDocker.IsPresent -and $lstPLatforms.Count -gt 0) {
 foreach ($c in $dockerCommandArgsList) {
     Write-Host "Generating docker image $imageName for $($c.Platform)" -ForegroundColor Green
     Write-Host "Args: $($c.CmdArgs)" -ForegroundColor Yellow
-    &docker $($c.CmdArgs)
+    & docker $($c.CmdArgs)
 
     if ($AutoRun.IsPresent) {
         Write-Host "Running docker image $imageName for $($c.Platform)" -ForegroundColor Green
